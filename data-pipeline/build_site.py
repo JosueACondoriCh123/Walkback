@@ -245,6 +245,8 @@ def main():
                '(R 3396190 m), true scale at %.3f, %.3f E' % (lat0, lon0),
         'sources': sources,
     }
+    if 'photoTint' in site:
+        info['photoTint'] = site['photoTint']
     json.dump(info, open(os.path.join(a.out, 'site.json'), 'w', encoding='utf-8'), indent=1, ensure_ascii=False)
 
     report['files'] = {f: os.path.getsize(os.path.join(a.out, f)) for f in sorted(os.listdir(a.out)) if not f.endswith('.meta')}

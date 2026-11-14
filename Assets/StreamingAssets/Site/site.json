@@ -61,5 +61,11 @@
    "id": "PIA26696",
    "credit": "NASA/JPL-Caltech/MSSS"
   }
- ]
+ ],
+ "photoTint": {
+  "r": 164,
+  "g": 124,
+  "b": 100,
+  "source": "Median ground colour of Curiosity's Mastcam 360-degree mosaic at Nevado Sajama (PIA26696, NASA/JPL-Caltech/MSSS), 504 807 ground pixels below the horizon (data-pipeline/photo_tint.py); the HiRISE orthophoto mosaic is black and white"
+ }
 }

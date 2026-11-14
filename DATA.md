@@ -9,6 +9,7 @@ What the app reads from `Assets/StreamingAssets/Site/`, where each file comes fr
 | `site.json` | Name, center, 1000 m side, 513 heightmap, 257 grid, height range, habitat, CRS, one source per layer | 1 595 | `data-pipeline/sites/gale.json` + build |
 | `heightmap.r16` | 513 x 513, uint16 little-endian, row 0 = north, height = min + v / 65535 x (max - min) | 526 338 | Elevation (see below) |
 | `ortho.jpg` | Base photo, 4096 x 4096, 0.244 m/px, edge to edge of the square | 4 988 703 | HiRISE orthophoto, 25 cm |
+| `site.json` `photoTint` | The colour multiplied onto the black-and-white photo: RGB 164, 124, 100, the median ground colour of Curiosity's Mastcam 360-degree mosaic at Nevado Sajama (504 807 ground pixels below the horizon, `data-pipeline/photo_tint.py`). The HiRISE orthophoto mosaic is a single red band; the app names the colour's source in the PHOTO legend | in site.json | PIA26696, NASA/JPL-Caltech/MSSS |
 | `sand.png` | 257 x 257, 255 = sandy hollow, 0 = rock. **All 0 for now** (plan B, see decisions) | 143 | Calculated from the elevation |
 | `stops.json` | Four Curiosity drill sites in walking order: Altadena, Valle de la Luna, Nevado Sajama, Campo Marte. Position, science (under 20 words), tasks with minutes, risk, a short tag | see report | Rover positions + NASA blog |
 | `curiosity_traverse.json` | 85 rover positions inside the square, sols 4548 to 4914, `{sol, x, y}` | 4 586 | MSL waypoints |
