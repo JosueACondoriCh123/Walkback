@@ -60,6 +60,8 @@ namespace Walkback
         public string photoCredit;
         /// <summary>Panorama id: the photo is StreamingAssets/Site/panorama_[id].jpg (may be empty).</summary>
         public string panorama;
+        /// <summary>Optional short line under the name: what this place is (e.g. "Curiosity drilled here · Nov 2025").</summary>
+        public string tag;
     }
 
     [Serializable]

@@ -20,11 +20,12 @@ namespace Walkback
         public const float PillarHeightMeters = 110f;
         public const float StopRadiusMeters = 5f;
         public const float HabitatRadiusMeters = 8f;
-        /// <summary>Stops closer than this get their labels stacked, each this much higher (map meters; 1 m on the table = 1000 m).</summary>
+        /// <summary>Stops closer than this (map meters) get their labels stacked one label height apart.</summary>
         public const float LabelSpacingMeters = 60f;
-        public const float LabelStackMeters = 38f;
         public const float HitRadiusMeters = 18f;
         public const int LabelFontSize = 30;
+        /// <summary>The line under a stop name ("Curiosity drilled here · Nov 2025").</summary>
+        public const int TagFontSize = 20;
         public const float GrowSeconds = 0.7f;
         public const float GrowStagger = 0.18f;
 
@@ -63,9 +64,17 @@ namespace Walkback
                 int near = 0;
                 for (int j = 0; j < i; j++)
                     if (Vector2.Distance(new Vector2(site.Stops[j].x, site.Stops[j].y), new Vector2(stop.x, stop.y)) < LabelSpacingMeters) near++;
-                pillar.labelLift = near * LabelStackMeters;
+                pillar.labelStack = near;
                 pillar.Refresh();
                 stops.Add(pillar);
+            }
+            // The habitat label rides one step above the highest stack, so stacked stop labels never hide it.
+            int highest = -1;
+            foreach (var p in stops) highest = Mathf.Max(highest, p.labelStack);
+            if (Habitat != null && highest > 0)
+            {
+                Habitat.labelStack = highest + 1;
+                Habitat.Refresh();
             }
 
             app.StopSelected += OnStopSelected;
@@ -165,12 +174,12 @@ namespace Walkback
                 pillar.hit = capsule;
             }
 
-            MakeLabel(pillar, name, font);
+            MakeLabel(pillar, name, index >= 0 && index < site.Stops.Length ? site.Stops[index].tag : null, font);
             pillar.Refresh();
             return pillar;
         }
 
-        void MakeLabel(PillarView pillar, string text, Font font)
+        void MakeLabel(PillarView pillar, string text, string tag, Font font)
         {
             var canvasObject = new GameObject("Label", typeof(RectTransform), typeof(Canvas), typeof(CanvasScaler));
             var rect = (RectTransform)canvasObject.transform;
@@ -204,11 +213,38 @@ namespace Walkback
 
             float width = Mathf.Max(label.preferredWidth, text.Length * LabelFontSize * 0.55f) + 28f;
             float height = LabelFontSize + 18f;
+            Text tagText = null;
+            if (!string.IsNullOrEmpty(tag))
+            {
+                var tagObject = new GameObject("Tag", typeof(RectTransform), typeof(Text));
+                tagObject.transform.SetParent(rect, false);
+                tagText = tagObject.GetComponent<Text>();
+                tagText.font = font;
+                tagText.text = tag;
+                tagText.fontSize = TagFontSize;
+                tagText.alignment = TextAnchor.MiddleCenter;
+                tagText.horizontalOverflow = HorizontalWrapMode.Overflow;
+                tagText.verticalOverflow = VerticalWrapMode.Overflow;
+                tagText.raycastTarget = false;
+                tagText.color = WalkbackTheme.Watch;
+                if (labelMaterial != null) tagText.material = labelMaterial;
+                width = Mathf.Max(width, Mathf.Max(tagText.preferredWidth, tag.Length * TagFontSize * 0.55f) + 28f);
+                height += TagFontSize + 6f;
+            }
             rect.sizeDelta = new Vector2(width, height);
             // Pivot at the bottom center: the label sits on top of the pillar.
             rect.pivot = new Vector2(0.5f, 0f);
             Stretch(boxRect);
             Stretch(textRect);
+            if (tagText != null)
+            {
+                // Name in the top part, the tag in the bottom strip.
+                float split = (TagFontSize + 10f) / height;
+                textRect.anchorMin = new Vector2(0f, split);
+                var tagRect = (RectTransform)tagText.transform;
+                Stretch(tagRect);
+                tagRect.anchorMax = new Vector2(1f, split + 0.04f);
+            }
 
             pillar.labelRoot = rect;
             pillar.label = label;

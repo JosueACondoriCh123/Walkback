@@ -22,8 +22,9 @@ namespace Walkback
         public Color baseColor = Color.white;
         public float radiusMeters = 5f;
         public float heightMeters = 110f;
-        /// <summary>Extra height of the label (map meters) so labels of stops standing close together do not cover each other.</summary>
-        public float labelLift;
+        /// <summary>How many labels of nearby stops sit under this one: it goes up one label height per step, so they never cover each other.</summary>
+        public int labelStack;
+        float labelBase;
 
         public bool Hovered { get; private set; }
         public bool Selected { get; private set; }
@@ -89,10 +90,18 @@ namespace Walkback
             if (labelRoot != null)
             {
                 labelRoot.gameObject.SetActive(Growth > 0.85f);
-                labelRoot.localPosition = new Vector3(0f, height + 10f + labelLift, 0f);
+                labelBase = height + 10f;
+                PlaceLabel();
             }
             if (label != null) label.color = Selected ? WalkbackTheme.Watch : WalkbackTheme.Text;
             if (labelBox != null) labelBox.color = Selected ? new Color(0.20f, 0.15f, 0.03f) : WalkbackTheme.PanelBack;
+        }
+
+        /// <summary>Label on top of the beam, one label height higher per nearby stop under it (uses the label's current scale).</summary>
+        void PlaceLabel()
+        {
+            float step = labelRoot.sizeDelta.y * Mathf.Abs(labelRoot.localScale.y) * 1.1f;
+            labelRoot.localPosition = new Vector3(0f, labelBase + labelStack * step, 0f);
         }
 
         /// <summary>Turns the label to the camera and keeps it the same size in the room.</summary>
@@ -102,6 +111,7 @@ namespace Walkback
             Vector3 parentScale = labelRoot.parent != null ? labelRoot.parent.lossyScale : Vector3.one;
             float s = Mathf.Abs(parentScale.x) > 1e-7f ? LabelMetersPerPixel / Mathf.Abs(parentScale.x) : 1f;
             labelRoot.localScale = Vector3.one * s;
+            PlaceLabel();
             Vector3 away = labelRoot.position - cam.transform.position;
             if (away.sqrMagnitude > 1e-8f) labelRoot.rotation = Quaternion.LookRotation(away, cam.transform.up);
         }
