@@ -57,6 +57,16 @@ GDAL 3.13.3 from QGIS (`C:\Program Files\QGIS 3.44.15\bin`, not on PATH). In Git
 8. **Panorama**: `python -I data-pipeline/process_panorama.py data-pipeline/cache/panorama/PIA26696.jpg Assets/StreamingAssets/Site/panorama_PIA26696.jpg <horizon>`, then step 5 again with `--panorama nevado-sajama=PIA26696="NASA/JPL-Caltech/MSSS, Mastcam mosaic PIA26696" --extra-sources globe_nasa3d,panorama_sajama`.
 9. **Checks**: `python -I data-pipeline/check_alignment.py <dem 1 m local> <usgs strip 1 m local>` and `python -I data-pipeline/preview_package.py Assets/StreamingAssets/Site <out prefix>` (photo, hillshade and slope side by side).
 
+## 3D models (`Assets/Walkback/Models3D/`, NASA 3D Resources, public domain)
+
+| File | Triangles | Bytes | Page | Note |
+|---|---|---|---|---|
+| `Astronaut.glb` | 6 381 (1 mesh, 4 textures) | 762 988 | `science.nasa.gov/3d-resources/astronaut/` | Light enough for the Quest |
+| `Perseverance.glb` | 199 521 (68 meshes, 44 textures) | 4 987 176 | `science.nasa.gov/3d-resources/mars-2020-perseverance-rover/` | For Jezero (guion §21.2); heavy: one at a time |
+| Curiosity (dirty), not in `Assets/` | | 7 253 380 (zip) | `science.nasa.gov/3d-resources/curiosity-rover-msl/` | The zip holds only a Blender file (`.blend`, 10.7 MB): Unity needs Blender installed to open it. Kept in `data-pipeline/cache/models3d/` |
+
+Both `.glb` need the glTFast package in Unity (offline kit, guion §5.5); without it Unity keeps them as plain files.
+
 ## Checks (14 Nov 2026, 11:56; full numbers in `data-pipeline/reports/gale_controls.json`)
 
 | Check | Result |
