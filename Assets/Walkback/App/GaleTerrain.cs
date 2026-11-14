@@ -23,6 +23,8 @@ namespace Walkback
         public float[] ReturnMinutes { get; private set; }
         /// <summary>True while the return layer comes from the stand-in, not session C's model.</summary>
         public bool ReturnIsPlaceholder { get; private set; }
+        /// <summary>What the legend says under the return layer while it is a placeholder (which stand-in made it).</summary>
+        public string ReturnPlaceholderLabel { get; private set; } = ReturnStandIn.Label;
         public MapLayer Layer { get; private set; } = MapLayer.Photo;
         /// <summary>Width of the photo on the table (memory on the Quest: 2048 px is 0.5 mm per pixel on a 1 m map).</summary>
         public const int PhotoSize = 2048;
@@ -60,7 +62,19 @@ namespace Walkback
             Site = site;
             BuildMesh();
             Slope = TerrainLayers.SlopeDegrees(site.Heights, site.GridSize, site.NodeSpacing);
-            ReturnMinutes = ReturnStandIn.Minutes(site);
+            // PLAN B until session C's ReturnMap lands: the fastest way back over the real relief
+            // (ReturnFallback). If it fails for any reason, the old straight-line stand-in.
+            try
+            {
+                ReturnMinutes = ReturnFallback.Minutes(site, Slope);
+                ReturnPlaceholderLabel = ReturnFallback.Label;
+            }
+            catch (Exception e)
+            {
+                WalkbackLog.Warn("Return fallback failed, using the straight-line stand-in: " + e.Message);
+                ReturnMinutes = ReturnStandIn.Minutes(site);
+                ReturnPlaceholderLabel = ReturnStandIn.Label;
+            }
             ReturnIsPlaceholder = true;
             HasPhoto = site.IsMarsData && SiteLoader.ReadStreamingAsset(SiteLoader.SiteFolder + "/ortho.jpg") != null;
             for (int i = 0; i < paints.Length; i++)
@@ -189,7 +203,7 @@ namespace Walkback
                     foreach (float m in ReturnMinutes) if (!float.IsInfinity(m) && m > worst) worst = m;
                     string text = "RETURN ON FOOT   ring every " + TerrainLayers.ReturnRingMinutes.ToString("0") + " min  ·  farthest " + worst.ToString("0") + " min";
                     if (ReturnIsPlaceholder)
-                        text += "\n" + Colored(WalkbackTheme.Watch, ReturnStandIn.Label);
+                        text += "\n" + Colored(WalkbackTheme.Watch, ReturnPlaceholderLabel);
                     return text;
                 case MapLayer.Photo:
                     var photo = Site.Source("ortho");

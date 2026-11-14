@@ -290,6 +290,28 @@ namespace Walkback.EditorTools
             float[] back = ReturnStandIn.Minutes(line);
             Check("Return stand-in: habitat is 0 min", back[256 * 257] < 0.001f);
             Check("Return stand-in: 1 km straight = 19.3 min", Mathf.Abs(back[256 * 257 + 256] - 19.3f) < 0.01f, back[256 * 257 + 256].ToString("F2") + " min");
+
+            // Return fallback (plan B): fastest way back over the grid. Flat ground must give the same pace.
+            int fn = line.GridSize;
+            for (int i = 0; i < line.Heights.Length; i++) line.Heights[i] = 0f;
+            var flatSlope = new float[fn * fn];
+            float[] way = ReturnFallback.Minutes(line, flatSlope);
+            int southWest = (fn - 1) * fn, southEast = (fn - 1) * fn + (fn - 1), northEast = fn - 1;
+            Check("Return fallback: habitat is 0 min", way[southWest] < 0.001f);
+            Check("Return fallback: 1 km straight on flat ground = 19.3 min", Mathf.Abs(way[southEast] - 19.3f) < 0.02f, way[southEast].ToString("F2") + " min");
+            Check("Return fallback: the diagonal of the square = 1.414 km = 27.3 min", Mathf.Abs(way[northEast] - 19.3f * Mathf.Sqrt(2f)) < 0.03f, way[northEast].ToString("F2") + " min");
+            Check("Return fallback: slope factor is 1 on flat ground and under 1 on a 20 % climb", Mathf.Abs(ReturnFallback.SlopeFactor(0f) - 1f) < 1e-5f && ReturnFallback.SlopeFactor(0.2f) < 0.6f && ReturnFallback.SlopeFactor(0.2f) > 0.4f,
+                ReturnFallback.SlopeFactor(0.2f).ToString("F3"));
+            // A no-go wall from north to south with one gap at the south edge: the far side is reached
+            // only around it; with the gap closed, the far side has no way back (infinity).
+            int wallColumn = fn / 2;
+            for (int r = 0; r < fn - 1; r++) flatSlope[r * fn + wallColumn] = TerrainLayers.SlopeLimitDegrees + 5f;
+            float[] around = ReturnFallback.Minutes(line, flatSlope);
+            Check("Return fallback: a no-go wall is walked around, never through", around[northEast] > way[northEast] + 3f && !float.IsInfinity(around[northEast]) && float.IsInfinity(around[wallColumn]),
+                way[northEast].ToString("F1") + " -> " + around[northEast].ToString("F1") + " min");
+            flatSlope[(fn - 1) * fn + wallColumn] = TerrainLayers.SlopeLimitDegrees + 5f;
+            float[] closed = ReturnFallback.Minutes(line, flatSlope);
+            Check("Return fallback: ground cut off from the habitat has no way back", float.IsInfinity(closed[northEast]) && float.IsInfinity(closed[southEast]) && closed[southWest] < 0.001f);
         }
 
         static void CheckLayers(WalkbackApp app, GaleTerrain terrain)
@@ -343,6 +365,24 @@ namespace Walkback.EditorTools
             terrain.ShowLayer(MapLayer.Return);
             app.RefreshPanel();
             Check("Return layer is labelled as a placeholder until session C's model lands", !terrain.ReturnIsPlaceholder || app.panel.legendLine.text.Contains("PLACEHOLDER"));
+            // On the real site every stop must have a way back on foot: a stop on ground the return map
+            // marks as cut off (infinity) would show no minutes at all.
+            if (terrain.Site.IsMarsData && terrain.Site.StopsAreReal)
+            {
+                int gn = terrain.Site.GridSize;
+                float gs = terrain.Site.NodeSpacing;
+                string cutOff = "";
+                float farthestStop = 0f;
+                foreach (var stop in terrain.Site.Stops)
+                {
+                    int sc = Mathf.Clamp(Mathf.RoundToInt(stop.x / gs), 0, gn - 1);
+                    int sr = Mathf.Clamp(Mathf.RoundToInt((terrain.Site.SideMeters - stop.y) / gs), 0, gn - 1);
+                    float m = terrain.ReturnMinutes[sr * gn + sc];
+                    if (float.IsInfinity(m) || float.IsNaN(m)) cutOff += (cutOff.Length > 0 ? ", " : "") + stop.name;
+                    else farthestStop = Mathf.Max(farthestStop, m);
+                }
+                Check("Return layer: every stop has a way back to the habitat", cutOff.Length == 0, cutOff.Length == 0 ? "farthest stop " + farthestStop.ToString("F1") + " min" : "no way back from: " + cutOff);
+            }
 
             // Photo: the HiRISE orthophoto draped on the relief (only with session B's package).
             terrain.ShowLayer(MapLayer.Photo);
