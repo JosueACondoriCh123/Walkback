@@ -10,7 +10,7 @@ What the app reads from `Assets/StreamingAssets/Site/`, where each file comes fr
 | `heightmap.r16` | 513 x 513, uint16 little-endian, row 0 = north, height = min + v / 65535 x (max - min) | 526 338 | Elevation (see below) |
 | `ortho.jpg` | Base photo, 4096 x 4096, 0.244 m/px, edge to edge of the square | 4 988 703 | HiRISE orthophoto, 25 cm |
 | `sand.png` | 257 x 257, 255 = sandy hollow, 0 = rock. **All 0 for now** (plan B, see decisions) | 143 | Calculated from the elevation |
-| `stops.json` | Valle de la Luna and Nevado Sajama: position, science (under 20 words), tasks with minutes, risk | 1 648 | Rover positions + NASA blog |
+| `stops.json` | Four Curiosity drill sites in walking order: Altadena, Valle de la Luna, Nevado Sajama, Campo Marte. Position, science (under 20 words), tasks with minutes, risk, a short tag | see report | Rover positions + NASA blog |
 | `curiosity_traverse.json` | 85 rover positions inside the square, sols 4548 to 4914, `{sol, x, y}` | 4 586 | MSL waypoints |
 | `conditions.json` | Latest REMS report, season, daylight, surface radiation, the week's space weather; each with its date and source | see below | REMS feed, NASA DONKI, RAD |
 | `mars_global.jpg` | The globe: equirectangular, left edge 180° W (trap 11), 4096 x 2048 | 2 550 912 | Viking MDIM 2.1 colour mosaic |
@@ -26,7 +26,7 @@ Local coordinates: meters from the south-west corner, x east, y north. The squar
 | Elevation (reference, guion §5.1) | MSL Gale Merged DEM 1m v3 | `https://planetarymaps.usgs.gov/mosaic/Mars/MSL/MSL_Gale_DEM_Mosaic_1m_v3.tif` (3.87 GB) | Parker and Calef (2016), USGS Astrogeology |
 | Base photo | MSL Gale Merged Orthophoto Mosaic 25cm v3 | `https://planetarymaps.usgs.gov/mosaic/Mars/MSL/MSL_Gale_Orthophoto_Mosaic_25cm_v3.tif` (24.4 GB) | Calef and Parker (2016), USGS Astrogeology; HiRISE NASA/JPL/University of Arizona |
 | Curiosity positions | MSL waypoints (one point per drive) | `https://mars.nasa.gov/mmgis-maps/MSL/Layers/json/MSL_waypoints.json` | NASA/JPL-Caltech |
-| Stop science | Curiosity blog, sols 4695-4701 (13 Nov 2025) and sols 4716-4722 (18 Nov 2025) | `science.nasa.gov/blog/` | NASA/JPL-Caltech |
+| Stop science | Curiosity blog: sols 4568-4569 (Altadena, 11 Jun 2025), 4695-4701 (13 Nov 2025), 4716-4722 (18 Nov 2025), 4893-4899 and 4900-4907 (Campo Marte, May 2026). Read on 14 Nov 2026 15:30 before use | `science.nasa.gov/blog/` | NASA/JPL-Caltech |
 | Stop task times | Proposed from NASA/TP-2017-219457, table 30 | | NASA |
 | Weather | Curiosity REMS weather feed (the data CAB publishes) | `https://mars.nasa.gov/rss/api/?feed=weather&category=msl&feedtype=json` | NASA/JPL-Caltech/CAB (CSIC-INTA) |
 | Space weather | NASA DONKI: SEP, GST, CME for the week | `https://api.nasa.gov/DONKI/SEP?startDate=2026-11-07&endDate=2026-11-14&api_key=DEMO_KEY` (same for GST, CME) | NASA CCMC |
@@ -88,7 +88,8 @@ Both `.glb` need the glTFast package in Unity (offline kit, guion §5.5); withou
 2. **No sand map** (plan B of guion §22.5): rock everywhere (η 1.2) and the legend says the 1 m elevation misses the hollows. `--sand dem` writes the DEM hollows instead.
 3. **Habitat at x 514.8, y 777.0**: on Curiosity's own path (its sol 4580 position), 330 m north of the stops, 5° slope. *Proposal.*
 4. **Stops at the rover's positions** during each drill campaign: Valle de la Luna at the sol 4687 position (parked to sol 4709; drilled sols 4689-4695), Nevado Sajama at the sol 4711 position (parked to sol 4741; drilled sol 4718). They are 10 m apart.
+5. **Two more drill stops (14 Nov 15:35), for variety and a real distance:** **Altadena**, Curiosity's 43rd drill hole (the blog: "the 42 drill sites that came before"), at the sol 4560 position (parked to sol 4571; hole imaged sol 4564), 200 m from the habitat; and **Campo Marte**, in the layered sulfate unit just above the boxwork, named by NASA after a red sandstone feature in Bolivia, at the sol 4893 position (parked to sol 4912; hole imaged sol 4897), 716 m from the habitat and 77 m higher. Its risk line is the blog's: next door, the Atacama block came up with the drill. Altadena came from Daniel's research round (Gemini and Grok, prompts R8-1 and R8-2), Campo Marte from a Fable 5.2 audit; positions checked against the waypoints, every line against the blog. The drill numbers 44 and 47 that the research gave are not used: not found in the posts read. Task minutes reuse the drill set of Valle de la Luna. *Proposal.*
 
 ## Still to make
 
-`thermal.png` (THEMIS: needs the tile link) · glTFast in Unity for the two `.glb` models · more real Curiosity stops inside the square (research prompt given to Daniel, 14 Nov 13:40). Valle de la Luna has no official 360° panorama (guion §5.1, row 3b): the app says "No panorama for this stop yet".
+`thermal.png`: the research found the THEMIS quantitative tile (`THEMIS_TI_Mosaic_Quant_30S120E_100mpp.cub`, 2.36 GB, Astropedia), but on 14 Nov 15:33 the Astropedia server did not answer in 2 minutes; at 100 m the square is only 10 x 10 pixels, context only (guion §5.1) · glTFast in Unity for the two `.glb` models. Valle de la Luna has no official 360° panorama (guion §5.1, row 3b): the app says "No panorama for this stop yet".
