@@ -32,7 +32,7 @@ Deadlines: code freeze Sun 15/11 10:00 · submit 11:00 · the venue closes submi
 
 **Pushes and commits (Daniel, 14/11 10:48: "automatizá hasta los push y commits"):** session A commits and pushes `main` by itself after each piece that passes the automatic test. This replaces "only Daniel pushes" for session A's own work. Still ask Daniel before: force-pushing, deleting branches, merging `model`, `docs` or `web` into `main`, making the repository public, tagging the release.
 
-**Git hook:** Daniel's global git config has a `commit-msg` hook that strips AI attribution. It is switched off in this repository only (`git config --local hook.strip-ai-attribution.enabled false`, with Daniel's yes at 10:35) because rule 3 requires the `Co-Authored-By` line. A fresh clone on this laptop needs the same line. After each commit, check with `git log -1 --format=%(trailers)`.
+**Commits carry no AI co-author line (Daniel, 14/11 ~12:55: "borra los commits viejos… lo pondremos en datos de la NASA en el formulario"):** no `Co-Authored-By: Claude` in any commit. Daniel's global `commit-msg` hook strips it and is switched on again here (`git config --local hook.strip-ai-attribution.enabled true`). At 12:57 the history of `main`, `model`, `docs` and `web` was rewritten without that line (same files, new hashes) and force-pushed with Daniel's request; the old hashes are kept locally in `refs/original/`. Anyone with an older clone: `git fetch origin` and `git reset --hard origin/<branch>` (no local commits) or `git rebase --onto origin/<branch> <old base> <branch>`. AI use is still declared (rule 3): bitácora §1, `AI_USAGE.md` and the AI field of the submission form.
 
 ## Read before writing anything
 
@@ -105,7 +105,7 @@ H1 13:00 real Mars on the table · H2 16:30 the route with time, oxygen and verd
 
 - Everything the jury sees: in English and readable on a projector (guion §18.1).
 - First line of every script: `// Written with Claude Code (AI), directed and tested by team MARSXR`
-- One commit per piece, message in English, with Claude's `Co-Authored-By` line.
+- One commit per piece, message in English, without an AI co-author line (see "Commits carry no AI co-author line" above).
 - Test without the headset before asking for a build; build at milestones. With Unity open, the batchmode test can't run: say so.
 - Unity's C# has no `PriorityQueue` (.NET Standard 2.1): use your own heap.
 - Read SDK names from the installed packages, never from memory.
