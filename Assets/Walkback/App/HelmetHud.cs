@@ -40,6 +40,97 @@ namespace Walkback
         public GlobeLabel warningCard;
         public MiniMap miniMap;
 
+        [Header("Mission mode: north is known")]
+        /// <summary>The compass tape between the two top cards (hidden where north is not known).</summary>
+        public HudCompass compass;
+        /// <summary>The heading over the tape, "047° NE".</summary>
+        public GlobeLabel headingCard;
+        /// <summary>The plate with the arrow to the next stop, next to the NEXT card.</summary>
+        public Transform arrowPlate;
+        /// <summary>Turns in the visor's plane: up = the stop is straight ahead, right = it is to the right.</summary>
+        public Transform arrow;
+
+        [Header("Oxygen bar")]
+        /// <summary>The bar under the oxygen number: as long as the oxygen left, in the number's colour.</summary>
+        public Transform oxygenFill;
+        public Renderer oxygenFillRenderer;
+        public const float OxygenBarMeters = 0.272f;
+        public const float OxygenBarHeightMeters = 0.014f;
+        /// <summary>Closer than this to the stop the arrow hides: the direction to a point underfoot means nothing.</summary>
+        public const float ArrowHideMeters = 1f;
+
+        public bool HeadingKnown { get; private set; }
+        /// <summary>Oxygen left as shown on the bar, 0..1.</summary>
+        public float OxygenBarFraction { get; private set; }
+
+        MaterialPropertyBlock barBlock;
+        int headingShown = -1;
+
+        public static Color OxygenColor(float percentLeft)
+        {
+            return percentLeft > 50f ? WalkbackTheme.Safe : (percentLeft > 25f ? WalkbackTheme.Watch : WalkbackTheme.Danger);
+        }
+
+        public static Color ReturnColor(HudEstimate.ReturnState state)
+        {
+            return state == HudEstimate.ReturnState.Covered ? WalkbackTheme.Safe : (state == HudEstimate.ReturnState.Tight ? WalkbackTheme.Watch : WalkbackTheme.Danger);
+        }
+
+        /// <summary>The third line of the return card: what is left after the way back, or by how much it falls short.</summary>
+        public static string MarginText(HudEstimate.ReturnState state, float marginMinutes, bool noWayBack)
+        {
+            if (noWayBack) return "no way back on foot";
+            if (state == HudEstimate.ReturnState.NotCovered) return "short by " + MinutesText(-marginMinutes);
+            return "O2 margin " + MinutesText(marginMinutes);
+        }
+
+        void SetOxygen(float percentLeft)
+        {
+            Color color = OxygenColor(percentLeft);
+            oxygenCard.SetLines("O2  " + F(percentLeft, "0") + " %", "oxygen left (estimate)");
+            oxygenCard.lines[0].color = color;
+            OxygenBarFraction = Mathf.Clamp01(percentLeft / 100f);
+            if (oxygenFill == null) return;
+            // The bar grows from its left end.
+            float length = Mathf.Max(OxygenBarFraction * OxygenBarMeters, 0.0005f);
+            Vector3 p = oxygenFill.localPosition;
+            oxygenFill.localScale = new Vector3(length, OxygenBarHeightMeters, 1f);
+            oxygenFill.localPosition = new Vector3(-OxygenBarMeters / 2f + length / 2f, p.y, p.z);
+            if (oxygenFillRenderer == null) return;
+            if (barBlock == null) barBlock = new MaterialPropertyBlock();
+            oxygenFillRenderer.GetPropertyBlock(barBlock);
+            barBlock.SetColor("_BaseColor", color);
+            oxygenFillRenderer.SetPropertyBlock(barBlock);
+        }
+
+        /// <summary>
+        /// Every frame in mission mode: which way the astronaut looks (degrees clockwise from north) and
+        /// the bearing of the next stop. The tape slides, the arrow turns, the heading number changes
+        /// when its whole degree changes. Not known (inside a 360° photo): the three hide.
+        /// </summary>
+        public void SetHeading(bool known, float headingDegrees, bool hasTarget, float bearingDegrees)
+        {
+            HeadingKnown = known;
+            if (compass != null && compass.gameObject.activeSelf != known) compass.gameObject.SetActive(known);
+            if (headingCard != null && headingCard.gameObject.activeSelf != known) headingCard.gameObject.SetActive(known);
+            bool showArrow = known && hasTarget;
+            if (arrowPlate != null && arrowPlate.gameObject.activeSelf != showArrow) arrowPlate.gameObject.SetActive(showArrow);
+            if (!known)
+            {
+                headingShown = -1;
+                return;
+            }
+            if (compass != null) compass.Show(headingDegrees, hasTarget, bearingDegrees);
+            int whole = Mathf.RoundToInt(Mathf.Repeat(headingDegrees, 360f)) % 360;
+            if (headingCard != null && whole != headingShown)
+            {
+                headingShown = whole;
+                headingCard.SetLines(HudCompass.BearingText(whole));
+            }
+            // Seen from the viewer the plane has x to the right and y up: clockwise is a negative turn about z.
+            if (arrow != null && showArrow) arrow.localRotation = Quaternion.Euler(0f, 0f, -HudCompass.Offset(bearingDegrees, headingDegrees));
+        }
+
         public bool Visible { get { return content != null && content.gameObject.activeSelf; } }
         public int AtStop { get; private set; } = -1;
         public HudEstimate.State Current { get; private set; }
@@ -54,13 +145,14 @@ namespace Walkback
             Current = s;
             AtStop = s.stop;
 
-            oxygenCard.SetLines("O2  " + F(s.oxygenLeftPercent, "0") + " %", "oxygen left (estimate)");
-            oxygenCard.lines[0].color = s.oxygenLeftPercent > 50f ? WalkbackTheme.Safe : (s.oxygenLeftPercent > 25f ? WalkbackTheme.Watch : WalkbackTheme.Danger);
-            returnCard.SetLines(MinutesText(s.returnMinutes), "back to habitat (estimate)");
-            returnCard.lines[0].color = s.turnBack ? WalkbackTheme.Danger : WalkbackTheme.Live;
+            SetOxygen(s.oxygenLeftPercent);
+            returnCard.SetLines(MinutesText(s.returnMinutes), "back to habitat (estimate)", MarginText(s.returnState, s.marginMinutes, false));
+            returnCard.lines[0].color = ReturnColor(s.returnState);
             nextCard.SetLines("NEXT  " + s.nextName,
                 MetersText(s.nextMeters) + "  ·  " + MinutesText(s.nextMinutes) + "  ·  O2 -" + F(s.nextOxygenPercent, "0.0") + " %",
-                s.taskMinutes > 0f ? "Tasks here: " + F(s.taskMinutes, "0") + " min" : "");
+                HudCompass.ClimbText(s.nextClimbMeters) + (s.taskMinutes > 0f ? "  ·  tasks here " + F(s.taskMinutes, "0") + " min" : ""));
+            // Inside a 360° photo the way the headset looks is not a direction on Mars: no compass, no arrow.
+            SetHeading(false, 0f, false, 0f);
             estimateTag.SetLines(site.IsMarsData ? EstimateLine : EstimateLine + "  ·  TEST TERRAIN, not Mars data");
             estimateTag.transform.localPosition = EstimateAbove;
             warningCard.SetLines("TURN BACK NOW");
@@ -81,13 +173,17 @@ namespace Walkback
         public void ShowLive(MissionProgress.Snapshot s, SiteData site)
         {
             AtStop = -1;
-            oxygenCard.SetLines("O2  " + F(s.oxygenLeftPercent, "0") + " %", "oxygen left (estimate)");
-            oxygenCard.lines[0].color = s.oxygenLeftPercent > 50f ? WalkbackTheme.Safe : (s.oxygenLeftPercent > 25f ? WalkbackTheme.Watch : WalkbackTheme.Danger);
-            returnCard.SetLines(s.noWayBack ? "NO WAY BACK" : MinutesText(s.returnMinutes), "back to habitat (estimate)");
-            returnCard.lines[0].color = s.turnBack ? WalkbackTheme.Danger : WalkbackTheme.Live;
-            nextCard.SetLines("NEXT  " + s.nextName,
-                s.arrived ? "You are here" : MetersText(s.nextMeters) + "  ·  " + MinutesText(s.nextMinutes),
-                s.taskMinutesAtNext > 0f ? "Work there: " + F(s.taskMinutesAtNext, "0") + " min" : "");
+            SetOxygen(s.oxygenLeftPercent);
+            // "CUT OFF" fits the card on one line at this size; the line under it says what it means.
+            returnCard.SetLines(s.noWayBack ? "CUT OFF" : MinutesText(s.returnMinutes), "back to habitat (estimate)", MarginText(s.returnState, s.marginMinutes, s.noWayBack));
+            returnCard.lines[0].color = ReturnColor(s.returnState);
+            string work = s.taskMinutesAtNext > 0f ? "work there " + F(s.taskMinutesAtNext, "0") + " min" : "";
+            if (s.arrived)
+                nextCard.SetLines("NEXT  " + s.nextName, "You are here", work);
+            else
+                nextCard.SetLines("NEXT  " + s.nextName,
+                    MetersText(s.nextMeters) + "  ·  " + MinutesText(s.nextMinutes) + "  ·  " + HudCompass.BearingText(s.nextBearingDegrees),
+                    HudCompass.ClimbText(s.nextClimbMeters) + (work.Length > 0 ? "  ·  " + work : ""));
             estimateTag.SetLines(site != null && !site.IsMarsData ? EstimateLine + "  ·  TEST TERRAIN, not Mars data" : EstimateLine);
             estimateTag.transform.localPosition = EstimateBelow;
             warningCard.SetLines("TURN BACK NOW");

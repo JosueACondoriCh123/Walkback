@@ -141,12 +141,22 @@ namespace Walkback.EditorTools
                 bool arrowAhead = Mathf.Abs(Mathf.DeltaAngle(mission.HeadingDegrees, bearing)) < 1f && miniMap.HeadingKnown && miniMap.youHeading != null && miniMap.youHeading.gameObject.activeSelf &&
                     Mathf.Abs(Mathf.DeltaAngle(miniMap.you.localEulerAngles.z, -bearing)) < 1f && app.wristMap.youNose != null && app.wristMap.youNose.gameObject.activeSelf &&
                     Mathf.Abs(Mathf.DeltaAngle(app.wristMap.youPin.localEulerAngles.y, bearing)) < 1f;
+                HelmetHud visor = app.hud;
+                bool tapeAhead = visor.HeadingKnown && visor.compass.gameObject.activeSelf && visor.headingCard.gameObject.activeSelf && visor.arrowPlate.gameObject.activeSelf &&
+                    mission.HasBearing && Mathf.Abs(Mathf.DeltaAngle(mission.BearingToNext, bearing)) < 1f && Mathf.Abs(visor.compass.stopMarker.localPosition.x) < 0.005f &&
+                    Mathf.Abs(Mathf.DeltaAngle(visor.arrow.localEulerAngles.z, 0f)) < 1f && visor.headingCard.lines[0].text == HudCompass.BearingText(mission.HeadingDegrees);
+                string headingAhead = visor.headingCard.lines[0].text;
                 Quaternion lookingAtStop = cam.transform.rotation;
                 cam.transform.rotation = Quaternion.AngleAxis(90f, Vector3.up) * lookingAtStop;
                 mission.Tick(cam.transform, 0.01f);
                 bool arrowTurned = Mathf.Abs(Mathf.DeltaAngle(mission.HeadingDegrees, bearing + 90f)) < 1f && Mathf.Abs(Mathf.DeltaAngle(miniMap.you.localEulerAngles.z, -(bearing + 90f))) < 1f;
+                // Looking 90° to the right of the stop: the stop is to the left. The arrow points left and the tape's bar waits at its left end.
+                bool tapeTurned = visor.compass.TargetOffTape && visor.compass.stopMarker.localPosition.x < -HudCompass.WidthMeters / 2f + 0.011f &&
+                    Mathf.Abs(Mathf.DeltaAngle(visor.arrow.localEulerAngles.z, 90f)) < 1f && visor.headingCard.lines[0].text == HudCompass.BearingText(mission.HeadingDegrees);
                 cam.transform.rotation = lookingAtStop;
                 mission.Tick(cam.transform, 0.01f);
+                Check("Mission HUD: the compass shows where the user looks; its amber bar and the arrow point to the next stop (ahead, then to the left after turning right)",
+                    tapeAhead && tapeTurned, "heading " + headingAhead + ", stop at " + HudCompass.BearingText(bearing));
                 Check("Mission maps: the \"you\" marks are arrows that point where the user looks (toward the stop, then 90° to the right)",
                     arrowAhead && arrowTurned, "heading " + mission.HeadingDegrees.ToString("F0") + "°, stop at " + bearing.ToString("F0") + "°");
 
@@ -214,6 +224,67 @@ namespace Walkback.EditorTools
                     Check("Mission HUD: the estimate line sits below the cards and never covers the name on the pillar (2 to 40 m away, looking level or down at the path)",
                         crossings == 0 && oldCrossings > 0 && app.hud.estimateTag.transform.localPosition == HelmetHud.EstimateBelow,
                         crossings + " of " + poses + " poses covered" + covered + "; above the cards it was " + oldCrossings);
+                }
+
+                // ---- The visor's new numbers: bearing and height difference to the stop, the margin, the oxygen bar
+                {
+                    Vector2 hereNow = mission.MetersOf(cam.transform.position), target = mission.Progress.LegTarget(mission.Progress.Leg);
+                    float climb = RouteGeometry.HeightAt(site, target.x, target.y) - RouteGeometry.HeightAt(site, hereNow.x, hereNow.y);
+                    var last = mission.Last;
+                    Check("Mission HUD: the next card gives the stop's distance, minutes and bearing, and the height difference from the relief",
+                        visor.nextCard.lines[1].text.EndsWith(HudCompass.BearingText(last.nextBearingDegrees)) && Mathf.Abs(Mathf.DeltaAngle(last.nextBearingDegrees, bearing)) < 1f &&
+                        Mathf.Abs(last.nextStraightMeters - toStop.magnitude) < 0.05f && Mathf.Abs(last.nextClimbMeters - climb) < 0.01f &&
+                        visor.nextCard.lines[2].text.StartsWith(HudCompass.ClimbText(climb)), visor.nextCard.lines[1].text + " | " + visor.nextCard.lines[2].text);
+                    Check("Mission HUD: the minutes back are green with a full tank, with the oxygen margin under them; the oxygen bar matches the number",
+                        last.returnState == HudEstimate.ReturnState.Covered && visor.returnCard.lines[0].color == WalkbackTheme.Safe && last.marginMinutes > 60f &&
+                        visor.returnCard.lines[2].text == HelmetHud.MarginText(last.returnState, last.marginMinutes, false) &&
+                        Mathf.Abs(visor.OxygenBarFraction - last.oxygenLeftPercent / 100f) < 0.001f && Mathf.Abs(visor.oxygenFill.localScale.x - HelmetHud.OxygenBarMeters * visor.OxygenBarFraction) < 0.0005f,
+                        visor.returnCard.lines[0].text + " | " + visor.returnCard.lines[2].text);
+                    Canvas.ForceUpdateCanvases();
+                    string wide = "";
+                    foreach (var card in new[] { visor.oxygenCard, visor.returnCard, visor.nextCard, visor.headingCard })
+                        foreach (var cardLine in card.lines)
+                        {
+                            float box = ((RectTransform)cardLine.transform).rect.width;
+                            if (cardLine.preferredWidth > box) wide += cardLine.text + " " + cardLine.preferredWidth.ToString("F0") + "/" + box.ToString("F0") + " px; ";
+                        }
+                    bool middleClear;
+                    int boxCount;
+                    string overlaps = HudOverlaps(visor, out middleClear, out boxCount);
+                    Check("Mission HUD: with the compass, the heading and the arrow on, no two boxes overlap, the middle stays clear and every line fits",
+                        overlaps.Length == 0 && middleClear && boxCount >= 10 && wide.Length == 0, boxCount + " boxes " + overlaps + wide);
+
+                    // The compass and the heading sit between and over the top cards, under where the pillar's name
+                    // is seen. A jump lands 5 m from the stop: from there in, looking level or down at the path,
+                    // with the stop's ground level with the user's, 0.4 m lower or 0.5 m higher, they stay under the name.
+                    Vector3 wasAt = cam.transform.position;
+                    Quaternion wasLooking = cam.transform.rotation;
+                    Vector3 labelAt = mission.pillarLabel.transform.position;
+                    Vector3 away = new Vector3(wasAt.x - labelAt.x, 0f, wasAt.z - labelAt.z).normalized;
+                    int covered = 0, poses = 0;
+                    string where = "";
+                    foreach (float stopGround in new[] { -0.4f, 0f, 0.5f })
+                        foreach (float pitch in new[] { 0f, 10f, 20f })
+                            foreach (float meters in new[] { 5f, 4.5f, 4f, 3f, 2f })
+                            {
+                                float eyeY = labelAt.y - (MissionMode.PillarHeightMeters + 0.35f - 1.6f) - stopGround;
+                                cam.transform.position = new Vector3(labelAt.x, eyeY, labelAt.z) + away * meters;
+                                cam.transform.rotation = Quaternion.LookRotation(-away, Vector3.up) * Quaternion.Euler(pitch, 0f, 0f);
+                                mission.pillarLabel.Face(cam.transform.position);
+                                visor.SnapTo(cam.transform);
+                                Rect name = ViewRect(cam, mission.pillarLabel);
+                                if (ViewRectOf(cam, visor.compass.transform, HudCompass.WidthMeters, HudCompass.HeightMeters).Overlaps(name) || ViewRect(cam, visor.headingCard).Overlaps(name))
+                                {
+                                    covered++;
+                                    where += " " + meters.ToString("0.#") + " m/" + pitch.ToString("0") + "°/" + stopGround.ToString("0.#") + " m";
+                                }
+                                poses++;
+                            }
+                    cam.transform.SetPositionAndRotation(wasAt, wasLooking);
+                    mission.pillarLabel.Face(cam.transform.position);
+                    visor.SnapTo(cam.transform);
+                    mission.Tick(cam.transform, 0.3f);
+                    Check("Mission HUD: from where a jump lands (5 m) to the stop, the compass and the heading never cover the name on the pillar", covered == 0, covered + " of " + poses + " poses covered" + where);
                 }
 
                 // ---- Walking: the headset's position moves the numbers; nothing else moves
@@ -358,6 +429,20 @@ namespace Walkback.EditorTools
             return Rect.MinMaxRect(x0, y0, x1, y1);
         }
 
+        /// <summary>The box a flat rectangle (width x height, centered on a transform, in its plane) takes on screen.</summary>
+        static Rect ViewRectOf(Camera cam, Transform center, float width, float height)
+        {
+            float x0 = float.MaxValue, y0 = float.MaxValue, x1 = float.MinValue, y1 = float.MinValue;
+            for (int i = 0; i < 4; i++)
+            {
+                Vector3 corner = center.TransformPoint(new Vector3((i % 2 == 0 ? -1f : 1f) * width / 2f, (i < 2 ? -1f : 1f) * height / 2f, 0f));
+                Vector3 v = cam.WorldToViewportPoint(corner);
+                x0 = Mathf.Min(x0, v.x); x1 = Mathf.Max(x1, v.x);
+                y0 = Mathf.Min(y0, v.y); y1 = Mathf.Max(y1, v.y);
+            }
+            return Rect.MinMaxRect(x0, y0, x1, y1);
+        }
+
         static SiteData MissionTestSite()
         {
             var site = SiteLoader.Synthetic();
@@ -387,6 +472,11 @@ namespace Walkback.EditorTools
                 progress.Valid && s.usedLiters < 0.001f && Mathf.Abs(s.oxygenLeftPercent - 100f) < 0.01f && s.nextName == "A" && s.nextStop == 0 &&
                 Mathf.Abs(s.nextMeters - 1000f) < 0.5f && Mathf.Abs(s.nextMinutes - 19.3f) < 0.03f && !s.turnBack && s.canJump,
                 "next " + s.nextName + " " + s.nextMeters.ToString("F1") + " m");
+
+            Check("Mission progress: the stop is due east (090°) on level ground, and with a full tank the way back is covered (green)",
+                Mathf.Abs(s.nextBearingDegrees - 90f) < 0.01f && Mathf.Abs(s.nextStraightMeters - 1000f) < 0.5f && Mathf.Abs(s.nextClimbMeters) < 0.001f &&
+                s.returnState == HudEstimate.ReturnState.Covered && Mathf.Abs(s.marginMinutes - (HudEstimate.TankLiters - HudEstimate.ReserveLiters) / walkRate) < 0.05f,
+                HudCompass.BearingText(s.nextBearingDegrees) + ", margin " + s.marginMinutes.ToString("F0") + " min");
 
             // The jump lands 5 m before the stop and counts as walked: 995 m of the 1000 m leg.
             bool jumped = progress.JumpNext();
@@ -438,6 +528,9 @@ namespace Walkback.EditorTools
             var shortRead = shortProgress.Read(shortProgress.PointAt(shortProgress.RouteMeters));
             Check("Mission progress: TURN BACK when the oxygen left above the reserve no longer covers the way back (WHAT IF included)",
                 shortRead.turnBack && !s.turnBack && shortRead.oxygenLeftPercent < 8f, "O2 left " + shortRead.oxygenLeftPercent.ToString("F1") + " %");
+            Check("Mission progress: when TURN BACK is on the minutes back are red and the margin says by how much the oxygen falls short",
+                shortRead.returnState == HudEstimate.ReturnState.NotCovered && shortRead.marginMinutes < 0f && HelmetHud.MarginText(shortRead.returnState, shortRead.marginMinutes, false).StartsWith("short by"),
+                HelmetHud.MarginText(shortRead.returnState, shortRead.marginMinutes, false));
 
             // No way back on the map (cut-off ground): the visor says so and warns.
             var cut = new float[home.Length];

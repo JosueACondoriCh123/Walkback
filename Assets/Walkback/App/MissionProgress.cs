@@ -54,6 +54,16 @@ namespace Walkback
             public bool arrived;
             public float taskMinutesAtNext;
             public bool canJump;
+            /// <summary>Bearing from here straight to the next stop, degrees clockwise from north.</summary>
+            public float nextBearingDegrees;
+            /// <summary>Straight-line meters from here to the next stop (nextMeters is along the route).</summary>
+            public float nextStraightMeters;
+            /// <summary>Height of the next stop above where the astronaut stands, from the relief (negative = downhill).</summary>
+            public float nextClimbMeters;
+            /// <summary>Walking minutes the oxygen above the reserve covers after the way back (negative = short).</summary>
+            public float marginMinutes;
+            /// <summary>Green, amber or red for the minutes back (HudEstimate.StateOf).</summary>
+            public HudEstimate.ReturnState returnState;
         }
 
         readonly SiteData site;
@@ -249,6 +259,14 @@ namespace Walkback
             s.returnLiters = s.returnMinutes * HudEstimate.WalkLitersPerMinute;
             // The rule of HudEstimate.TurnBack, with the tank this plan starts with (a WHAT IF starts with less).
             s.turnBack = s.noWayBack || plan.TankLiters - s.usedLiters - HudEstimate.ReserveLiters < s.returnLiters;
+            float aboveReserve = plan.TankLiters - s.usedLiters - HudEstimate.ReserveLiters;
+            s.marginMinutes = s.noWayBack ? 0f : HudEstimate.MarginMinutes(aboveReserve, s.returnLiters);
+            s.returnState = s.noWayBack ? HudEstimate.ReturnState.NotCovered : HudEstimate.StateOf(aboveReserve, s.returnLiters);
+
+            // Where the next stop is from here: bearing and straight distance on the map, height from the relief.
+            s.nextBearingDegrees = HudCompass.Bearing(here, s.nextPoint);
+            s.nextStraightMeters = Vector2.Distance(here, s.nextPoint);
+            s.nextClimbMeters = RouteGeometry.HeightAt(site, s.nextPoint.x, s.nextPoint.y) - RouteGeometry.HeightAt(site, here.x, here.y);
             return s;
         }
     }

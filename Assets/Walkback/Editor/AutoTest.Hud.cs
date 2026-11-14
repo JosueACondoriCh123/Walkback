@@ -58,6 +58,35 @@ namespace Walkback.EditorTools
                     "visor " + hud.Current.returnMinutes.ToString("F1") + " min, map " + onMap.ToString("F1") + " min");
             }
             Check("HUD: no TURN BACK warning at this stop", !hud.warningCard.gameObject.activeSelf);
+            CheckHudMath();
+            Check("HUD: inside a 360° photo there is no compass, no heading and no arrow (north is not known there)",
+                !hud.HeadingKnown && hud.compass != null && !hud.compass.gameObject.activeSelf && !hud.headingCard.gameObject.activeSelf && !hud.arrowPlate.gameObject.activeSelf);
+            {
+                float barLength = hud.oxygenFill.localScale.x;
+                var barBlock = new MaterialPropertyBlock();
+                hud.oxygenFillRenderer.GetPropertyBlock(barBlock);
+                Color barColor = barBlock.GetColor("_BaseColor"), numberColor = hud.oxygenCard.lines[0].color;
+                Check("HUD: the oxygen bar is as long as the oxygen left, grows from its left end and has the number's colour",
+                    Mathf.Abs(barLength - HelmetHud.OxygenBarMeters * hud.Current.oxygenLeftPercent / 100f) < 0.0005f &&
+                    Mathf.Abs(hud.oxygenFill.localPosition.x - (barLength - HelmetHud.OxygenBarMeters) / 2f) < 0.0005f &&
+                    Mathf.Abs(barColor.r - numberColor.r) < 0.01f && Mathf.Abs(barColor.g - numberColor.g) < 0.01f && numberColor == HelmetHud.OxygenColor(hud.Current.oxygenLeftPercent),
+                    (barLength * 1000f).ToString("F0") + " mm of " + (HelmetHud.OxygenBarMeters * 1000f).ToString("F0") + " mm for " + hud.Current.oxygenLeftPercent.ToString("F0") + " %");
+                Check("HUD: the minutes back are green, amber or red by the oxygen margin, and the margin is under them",
+                    hud.returnCard.lines[0].color == HelmetHud.ReturnColor(hud.Current.returnState) && hud.Current.returnState == HudEstimate.ReturnState.Covered &&
+                    hud.returnCard.lines[2].text == HelmetHud.MarginText(hud.Current.returnState, hud.Current.marginMinutes, false) && hud.returnCard.lines[2].text.StartsWith("O2 margin"),
+                    hud.returnCard.lines[0].text + " | " + hud.returnCard.lines[2].text);
+                float climb = RouteGeometry.HeightAt(site, hud.Current.nextPoint.x, hud.Current.nextPoint.y) - RouteGeometry.HeightAt(site, stopInfo.x, stopInfo.y);
+                Check("HUD: the next card says the height difference to the next stop, from the relief",
+                    Mathf.Abs(hud.Current.nextClimbMeters - climb) < 0.01f && hud.nextCard.lines[2].text.StartsWith(HudCompass.ClimbText(climb)), hud.nextCard.lines[2].text);
+                string wide = "";
+                foreach (var card in new[] { hud.oxygenCard, hud.returnCard, hud.nextCard })
+                    foreach (var cardLine in card.lines)
+                    {
+                        float box = ((RectTransform)cardLine.transform).rect.width;
+                        if (cardLine.preferredWidth > box) wide += cardLine.text + " " + cardLine.preferredWidth.ToString("F0") + "/" + box.ToString("F0") + " px; ";
+                    }
+                Check("HUD: every line of the three cards fits on one line", wide.Length == 0, wide);
+            }
             Check("HUD: inside a 360° photo the mini map's \"you\" is a dot, not an arrow (the headset's direction is not one on Mars)",
                 !hud.miniMap.HeadingKnown && (hud.miniMap.youHeading == null || !hud.miniMap.youHeading.gameObject.activeSelf));
             Text estimateText = hud.estimateTag.lines[0];
@@ -71,7 +100,16 @@ namespace Walkback.EditorTools
             foreach (var card in new[] { hud.oxygenCard, hud.returnCard, hud.nextCard, hud.estimateTag })
                 worst = Mathf.Max(worst, Vector3.Angle(cam.transform.forward, card.transform.position - eye));
             worst = Mathf.Max(worst, Vector3.Angle(cam.transform.forward, hud.miniMap.transform.position - eye));
-            Check("HUD: everything within 25° of the center of the view", worst < 25f, worst.ToString("F1") + "° worst");
+            foreach (var extra in new[] { hud.compass.transform, hud.headingCard.transform, hud.arrowPlate })
+                worst = Mathf.Max(worst, Vector3.Angle(cam.transform.forward, extra.position - eye));
+            Check("HUD: everything within 25° of the center of the view (the compass and the arrow too)", worst < 25f, worst.ToString("F1") + "° worst");
+            // The data is spread out: no two boxes of the visor overlap, and the very middle stays clear.
+            {
+                bool middleClear;
+                int boxCount;
+                string overlaps = HudOverlaps(hud, out middleClear, out boxCount);
+                Check("HUD: at a stop no two boxes of the visor overlap, and only TURN BACK NOW may take the middle", overlaps.Length == 0 && middleClear && boxCount >= 7, boxCount + " boxes " + overlaps);
+            }
             float smallest = float.MaxValue;
             bool uiOnly = true;
             foreach (var text in hud.GetComponentsInChildren<Text>(true))
@@ -151,6 +189,90 @@ namespace Walkback.EditorTools
             app.siteJump.HideNoPanorama();
             cam.transform.SetPositionAndRotation(home, homeRotation);
             Check("HUD checks leave the scene as built", !hud.Visible && !wrist.Visible && !app.siteJump.Inside && app.table.gameObject.activeSelf == tableWas);
+        }
+
+        /// <summary>
+        /// The boxes the visor shows now (TURN BACK NOW always counts, shown or not), in the visor's plane:
+        /// which ones overlap, and whether anything but TURN BACK NOW comes within 5 cm of the middle.
+        /// </summary>
+        static string HudOverlaps(HelmetHud hud, out bool middleClear, out int count)
+        {
+            var names = new System.Collections.Generic.List<string>();
+            var boxes = new System.Collections.Generic.List<Rect>();
+            System.Action<string, Transform, float, float> add = (name, t, w, h) =>
+            {
+                if (name != "TurnBack" && !t.gameObject.activeInHierarchy) return;
+                Vector3 c = hud.content.InverseTransformPoint(t.position);
+                names.Add(name);
+                boxes.Add(new Rect(c.x - w / 2f, c.y - h / 2f, w, h));
+            };
+            foreach (var card in new[] { hud.oxygenCard, hud.returnCard, hud.nextCard, hud.estimateTag, hud.warningCard, hud.headingCard })
+                add(card.name, card.transform, card.backPlate.localScale.x, card.backPlate.localScale.y);
+            add("Compass", hud.compass.transform, HudCompass.WidthMeters, HudCompass.HeightMeters);
+            add("NextArrow", hud.arrowPlate, 0.10f, 0.10f);
+            add("MiniMap", hud.miniMap.transform, MiniMap.SizeMeters + 0.012f, MiniMap.SizeMeters + 0.012f);
+            add("MapCaption", hud.miniMap.caption.transform, hud.miniMap.caption.backPlate.localScale.x, hud.miniMap.caption.backPlate.localScale.y);
+            string overlaps = "";
+            middleClear = true;
+            count = boxes.Count;
+            for (int i = 0; i < boxes.Count; i++)
+            {
+                if (names[i] != "TurnBack" && boxes[i].Overlaps(new Rect(-0.05f, -0.05f, 0.10f, 0.10f))) middleClear = false;
+                for (int j = i + 1; j < boxes.Count; j++)
+                    if (boxes[i].Overlaps(boxes[j])) overlaps += names[i] + " over " + names[j] + "; ";
+            }
+            return overlaps;
+        }
+
+        /// <summary>The visor's pure arithmetic and the compass tape, on hand-made inputs.</summary>
+        static void CheckHudMath()
+        {
+            Vector2 o = Vector2.zero;
+            Check("Compass: bearings are degrees clockwise from north (north 0, east 90, south 180, west 270, north-east 45)",
+                Mathf.Abs(HudCompass.Bearing(o, new Vector2(0f, 10f))) < 0.01f && Mathf.Abs(HudCompass.Bearing(o, new Vector2(10f, 0f)) - 90f) < 0.01f &&
+                Mathf.Abs(HudCompass.Bearing(o, new Vector2(0f, -10f)) - 180f) < 0.01f && Mathf.Abs(HudCompass.Bearing(o, new Vector2(-10f, 0f)) - 270f) < 0.01f &&
+                Mathf.Abs(HudCompass.Bearing(new Vector2(5f, 5f), new Vector2(15f, 15f)) - 45f) < 0.01f);
+            Check("Compass: the eight points and the three-digit bearing (045° NE, 000° N just under 360°)",
+                HudCompass.Cardinal(0f) == "N" && HudCompass.Cardinal(22.4f) == "N" && HudCompass.Cardinal(22.6f) == "NE" && HudCompass.Cardinal(337.6f) == "N" && HudCompass.Cardinal(270f) == "W" &&
+                HudCompass.BearingText(45f) == "045° NE" && HudCompass.BearingText(359.6f) == "000° N" && HudCompass.BearingText(7.2f) == "007° N" && HudCompass.BearingText(-90f) == "270° W",
+                HudCompass.BearingText(45f) + ", " + HudCompass.BearingText(359.6f));
+            Check("Compass: the offset from the heading goes the short way round (+ to the right)",
+                Mathf.Abs(HudCompass.Offset(10f, 350f) - 20f) < 0.01f && Mathf.Abs(HudCompass.Offset(350f, 10f) + 20f) < 0.01f && Mathf.Abs(Mathf.Abs(HudCompass.Offset(180f, 0f)) - 180f) < 0.01f);
+            Check("HUD: height difference in words (climb, descent, level under half a meter)",
+                HudCompass.ClimbText(12.4f) == "climb 12 m" && HudCompass.ClimbText(-7.6f) == "descent 8 m" && HudCompass.ClimbText(0.3f) == "level" && HudCompass.ClimbText(-0.3f) == "level");
+            float rate = HudEstimate.WalkLitersPerMinute;
+            Check("HUD: way back green when the oxygen above the reserve covers it twice, amber when less, red when it does not cover it",
+                HudEstimate.StateOf(100f, 40f) == HudEstimate.ReturnState.Covered && HudEstimate.StateOf(80f, 40f) == HudEstimate.ReturnState.Covered &&
+                HudEstimate.StateOf(79f, 40f) == HudEstimate.ReturnState.Tight && HudEstimate.StateOf(40f, 40f) == HudEstimate.ReturnState.Tight &&
+                HudEstimate.StateOf(39f, 40f) == HudEstimate.ReturnState.NotCovered && HudEstimate.StateOf(10f, 0f) == HudEstimate.ReturnState.Covered &&
+                (HudEstimate.StateOf(39f, 40f) == HudEstimate.ReturnState.NotCovered) == HudEstimate.TurnBack(HudEstimate.TankLiters - HudEstimate.ReserveLiters - 39f, 40f));
+            Check("HUD: the oxygen margin is the walking minutes left after the way back (negative when short)",
+                Mathf.Abs(HudEstimate.MarginMinutes(100f, 40f) - 60f / rate) < 0.01f && HudEstimate.MarginMinutes(30f, 40f) < 0f &&
+                HelmetHud.MarginText(HudEstimate.ReturnState.Covered, 125f, false) == "O2 margin 2 h 5 min" &&
+                HelmetHud.MarginText(HudEstimate.ReturnState.NotCovered, -6f, false) == "short by 6 min" &&
+                HelmetHud.MarginText(HudEstimate.ReturnState.NotCovered, 0f, true) == "no way back on foot",
+                HelmetHud.MarginText(HudEstimate.ReturnState.Covered, 125f, false));
+
+            // The tape itself: 40° to each side, 5 mm per degree.
+            WalkbackApp app = UnityEngine.Object.FindFirstObjectByType<WalkbackApp>();
+            HudCompass tape = app != null && app.hud != null ? app.hud.compass : null;
+            Check("Compass: the tape is in the visor, with 8 letters and a tick every 15° between them", tape != null && tape.letters.Length == 8 && tape.ticks.Length == 16 && tape.stopMarker != null);
+            if (tape == null) return;
+            tape.Show(30f, true, 30f);
+            Transform north = tape.letters[0].transform, east = tape.letters[2].transform;
+            bool facing = north.gameObject.activeSelf && Mathf.Abs(north.localPosition.x + 30f * HudCompass.MetersPerDegree) < 0.0005f && !east.gameObject.activeSelf &&
+                tape.stopMarker.gameObject.activeSelf && Mathf.Abs(tape.stopMarker.localPosition.x) < 0.0005f && !tape.TargetOffTape;
+            tape.Show(30f, true, 120f);
+            bool right = tape.TargetOffTape && tape.stopMarker.localPosition.x > HudCompass.WidthMeters / 2f - 0.011f && Mathf.Abs(tape.TargetOffset - 90f) < 0.01f;
+            tape.Show(30f, true, 300f);
+            bool left = tape.TargetOffTape && tape.stopMarker.localPosition.x < -HudCompass.WidthMeters / 2f + 0.011f;
+            tape.Show(30f, false, 0f);
+            bool none = !tape.stopMarker.gameObject.activeSelf;
+            int shown = 0;
+            foreach (var letter in tape.letters) if (letter.gameObject.activeSelf) shown++;
+            tape.Show(0f, false, 0f);
+            Check("Compass: looking 30° east of north, N is 30° to the left; the amber bar is on the stop's bearing, or waits at the end of the tape on that side",
+                facing && right && left && none && shown >= 1 && shown <= 2, shown + " letters in the window");
         }
 
         static Transform probe;

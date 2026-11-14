@@ -43,6 +43,11 @@ namespace Walkback
             public float nextMinutes;
             public float nextOxygenPercent;
             public float taskMinutes;
+            /// <summary>Height of the next target above this stop, from the relief (negative = downhill).</summary>
+            public float nextClimbMeters;
+            /// <summary>Walking minutes the oxygen above the reserve covers after the way back (negative = short).</summary>
+            public float marginMinutes;
+            public ReturnState returnState;
         }
 
         public static float Minutes(float meters) { return meters / 1000f * FlatMinutesPerKilometer; }
@@ -52,6 +57,34 @@ namespace Walkback
         public static bool TurnBack(float litersUsed, float returnLiters)
         {
             return TankLiters - litersUsed - ReserveLiters < returnLiters;
+        }
+
+        /// <summary>How well the oxygen left covers the way back: the colour of the minutes on the visor.</summary>
+        public enum ReturnState { Covered, Tight, NotCovered }
+
+        /// <summary>
+        /// Amber starts when the oxygen above the reserve is less than this many times what the way back
+        /// needs. A design choice of the visor (a proposal, not a number from the walking model).
+        /// </summary>
+        public const float TightFactor = 2f;
+
+        /// <summary>
+        /// Green: the oxygen above the reserve covers the way back at least twice. Amber: it covers it,
+        /// but less than twice. Red: it does not cover it (the same rule as TurnBack).
+        /// </summary>
+        public static ReturnState StateOf(float litersAboveReserve, float returnLiters)
+        {
+            if (litersAboveReserve < returnLiters) return ReturnState.NotCovered;
+            return litersAboveReserve < TightFactor * returnLiters ? ReturnState.Tight : ReturnState.Covered;
+        }
+
+        /// <summary>
+        /// Minutes of walking that the oxygen above the reserve still covers after the way back
+        /// (negative: the way back is short by that many minutes).
+        /// </summary>
+        public static float MarginMinutes(float litersAboveReserve, float returnLiters)
+        {
+            return (litersAboveReserve - returnLiters) / WalkLitersPerMinute;
         }
 
         public static float TaskMinutes(StopInfo stop)
@@ -84,6 +117,8 @@ namespace Walkback
             s.returnLiters = minutes * WalkLitersPerMinute;
             s.turnBack = TurnBack(used, s.returnLiters);
             s.returnFromMap = true;
+            s.marginMinutes = MarginMinutes(TankLiters - used - ReserveLiters, s.returnLiters);
+            s.returnState = StateOf(TankLiters - used - ReserveLiters, s.returnLiters);
             return s;
         }
 
@@ -121,6 +156,10 @@ namespace Walkback
             s.nextMeters = Vector2.Distance(s.here, s.nextPoint);
             s.nextMinutes = Minutes(s.nextMeters);
             s.nextOxygenPercent = Liters(s.nextMeters) / TankLiters * 100f;
+            s.marginMinutes = MarginMinutes(TankLiters - used - ReserveLiters, s.returnLiters);
+            s.returnState = StateOf(TankLiters - used - ReserveLiters, s.returnLiters);
+            if (site.Heights != null && site.Heights.Length == site.GridSize * site.GridSize)
+                s.nextClimbMeters = RouteGeometry.HeightAt(site, s.nextPoint.x, s.nextPoint.y) - RouteGeometry.HeightAt(site, s.here.x, s.here.y);
             return s;
         }
     }

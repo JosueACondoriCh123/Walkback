@@ -28,14 +28,93 @@ namespace Walkback.EditorTools
             content.SetParent(root.transform, false);
             hud.content = content;
 
-            hud.oxygenCard = Card(content, "Oxygen", 320f, 130f, new[] { 60, 24 }, new[] { WalkbackTheme.Safe, soft }, backPlate, ui, new Vector3(-0.33f, 0.22f, 0f));
-            hud.returnCard = Card(content, "Return", 360f, 130f, new[] { 60, 24 }, new[] { WalkbackTheme.Live, soft }, backPlate, ui, new Vector3(0.33f, 0.22f, 0f));
-            hud.nextCard = Card(content, "Next", 440f, 130f, new[] { 30, 26, 24 }, new[] { WalkbackTheme.Watch, text, soft }, backPlate, ui, new Vector3(-0.32f, -0.17f, 0f));
+            // The four corners sit a little farther from the middle than before (0.37 m to each side at 1.2 m,
+            // 17°), so the middle of the view stays clear; every card's center is within 20° of it.
+            hud.oxygenCard = Card(content, "Oxygen", 320f, 150f, new[] { 60, 24 }, new[] { WalkbackTheme.Safe, soft }, backPlate, ui, new Vector3(-0.37f, 0.23f, 0f));
+            hud.returnCard = Card(content, "Return", 340f, 150f, new[] { 56, 22, 22 }, new[] { WalkbackTheme.Safe, soft, text }, backPlate, ui, new Vector3(0.38f, 0.23f, 0f));
+            hud.nextCard = Card(content, "Next", 440f, 140f, new[] { 30, 24, 22 }, new[] { WalkbackTheme.Watch, text, soft }, backPlate, ui, new Vector3(-0.34f, -0.17f, 0f));
             hud.estimateTag = Card(content, "Estimate", 760f, 42f, new[] { 20 }, new[] { WalkbackTheme.Watch }, backPlate, ui, HelmetHud.EstimateAbove);
             hud.warningCard = Card(content, "TurnBack", 560f, 96f, new[] { 56 }, new[] { WalkbackTheme.Danger }, backPlate, ui, new Vector3(0f, 0.10f, 0f));
             foreach (var card in new[] { hud.oxygenCard, hud.returnCard, hud.nextCard, hud.estimateTag, hud.warningCard })
                 foreach (var line in card.lines) line.alignment = TextAnchor.MiddleCenter;
             hud.warningCard.gameObject.SetActive(false);
+
+            // The oxygen bar under the number: a dark track, the fill (its colour is set with the number)
+            // and a white tick where the reserve starts. The two text lines move up to make room.
+            Material track = MakeMaterial("HudTrack", "Universal Render Pipeline/Unlit", new Color(0.26f, 0.28f, 0.31f), 0f);
+            foreach (var line in hud.oxygenCard.lines) ((RectTransform)line.transform).anchoredPosition += new Vector2(0f, 14f);
+            const float barY = -0.051f;
+            float barWide = HelmetHud.OxygenBarMeters, barTall = HelmetHud.OxygenBarHeightMeters;
+            HudQuad("OxygenTrack", hud.oxygenCard.transform, track, new Vector3(0f, barY, -0.001f), new Vector3(barWide, barTall, 1f));
+            hud.oxygenFill = HudQuad("OxygenFill", hud.oxygenCard.transform, mark, new Vector3(0f, barY, -0.002f), new Vector3(barWide, barTall, 1f));
+            hud.oxygenFillRenderer = hud.oxygenFill.GetComponent<MeshRenderer>();
+            float reserveAt = -barWide / 2f + barWide * HudEstimate.ReserveLiters / HudEstimate.TankLiters;
+            HudQuad("OxygenReserve", hud.oxygenCard.transform, mark, new Vector3(reserveAt, barY, -0.003f), new Vector3(0.003f, barTall + 0.008f, 1f));
+
+            // The compass tape between the two top cards, and the heading over it. Mission mode only: both
+            // start hidden. Not above the cards: at 5 m the next stop's name (3.35 m up on its pillar) is
+            // seen 14° to 19° above the horizon, just over the cards, and a tape there covered it.
+            var compassObject = new GameObject("Compass");
+            compassObject.transform.SetParent(content, false);
+            compassObject.transform.localPosition = new Vector3(0f, 0.195f, 0f);
+            var compass = compassObject.AddComponent<HudCompass>();
+            float tapeWide = HudCompass.WidthMeters, tapeTall = HudCompass.HeightMeters;
+            HudQuad("Tape", compassObject.transform, backPlate, new Vector3(0f, 0f, 0.002f), new Vector3(tapeWide, tapeTall, 1f));
+            var tickList = new System.Collections.Generic.List<Transform>();
+            var tickAngles = new System.Collections.Generic.List<float>();
+            for (float angle = 0f; angle < 359.9f; angle += HudCompass.TickStepDegrees)
+            {
+                // Where a letter stands there is no tick.
+                if (Mathf.Abs(Mathf.Repeat(angle, HudCompass.LetterStepDegrees)) < 0.01f) continue;
+                tickList.Add(HudQuad("Tick" + angle.ToString("000"), compassObject.transform, mark, new Vector3(0f, -0.010f, -0.001f), new Vector3(0.003f, 0.016f, 1f)));
+                tickAngles.Add(angle);
+            }
+            compass.ticks = tickList.ToArray();
+            compass.tickAngles = tickAngles.ToArray();
+            compass.letters = new GlobeLabel[HudCompass.Letters.Length];
+            for (int i = 0; i < compass.letters.Length; i++)
+            {
+                float wide = HudCompass.LetterHalfMeters * 2000f;
+                var letter = Card(compassObject.transform, "Letter" + HudCompass.Letters[i], wide, 34f, new[] { 22 },
+                    new[] { i % 2 == 0 ? text : soft }, backPlate, ui, new Vector3(0f, 0.004f, -0.001f));
+                // A card this narrow has no room for the label's side margins: the letter takes the whole width.
+                var letterRect = (RectTransform)letter.lines[0].transform;
+                letterRect.anchoredPosition = new Vector2(0f, letterRect.anchoredPosition.y);
+                letterRect.sizeDelta = new Vector2(wide, letterRect.sizeDelta.y);
+                letter.lines[0].alignment = TextAnchor.MiddleCenter;
+                letter.lines[0].horizontalOverflow = HorizontalWrapMode.Overflow;
+                letter.SetLines(HudCompass.Letters[i]);
+                compass.letters[i] = letter;
+            }
+            // The notch in the middle is you (cyan); the bar is the next stop (amber), in front of everything else.
+            HudQuad("NotchTop", compassObject.transform, live, new Vector3(0f, tapeTall / 2f - 0.004f, -0.003f), new Vector3(0.005f, 0.008f, 1f));
+            HudQuad("NotchBottom", compassObject.transform, live, new Vector3(0f, -tapeTall / 2f + 0.004f, -0.003f), new Vector3(0.005f, 0.008f, 1f));
+            compass.stopMarker = HudQuad("NextStopBar", compassObject.transform, watch, new Vector3(0f, 0f, -0.004f), new Vector3(0.010f, tapeTall, 1f));
+            compass.Show(0f, false, 0f);
+            compassObject.SetActive(false);
+            hud.compass = compass;
+
+            hud.headingCard = Card(content, "Heading", 170f, 36f, new[] { 20 }, new[] { text }, backPlate, ui, new Vector3(0f, 0.250f, 0f));
+            hud.headingCard.lines[0].alignment = TextAnchor.MiddleCenter;
+            hud.headingCard.SetLines(HudCompass.BearingText(0f));
+            hud.headingCard.gameObject.SetActive(false);
+
+            // The arrow to the next stop, on its own plate right of the NEXT card: a shaft and two blades.
+            var arrowPlate = new GameObject("NextArrow").transform;
+            arrowPlate.SetParent(content, false);
+            arrowPlate.localPosition = new Vector3(-0.06f, -0.17f, 0f);
+            HudQuad("Plate", arrowPlate, backPlate, new Vector3(0f, 0f, 0.002f), new Vector3(0.10f, 0.10f, 1f));
+            var arrow = new GameObject("Arrow").transform;
+            arrow.SetParent(arrowPlate, false);
+            arrow.localPosition = new Vector3(0f, 0f, -0.002f);
+            HudQuad("Shaft", arrow, watch, new Vector3(0f, -0.004f, 0f), new Vector3(0.012f, 0.064f, 1f));
+            Transform leftBlade = HudQuad("BladeLeft", arrow, watch, new Vector3(-0.0115f, 0.0225f, 0f), new Vector3(0.012f, 0.040f, 1f));
+            Transform rightBlade = HudQuad("BladeRight", arrow, watch, new Vector3(0.0115f, 0.0225f, 0f), new Vector3(0.012f, 0.040f, 1f));
+            leftBlade.localRotation = Quaternion.Euler(0f, 0f, -40f);
+            rightBlade.localRotation = Quaternion.Euler(0f, 0f, 40f);
+            arrowPlate.gameObject.SetActive(false);
+            hud.arrowPlate = arrowPlate;
+            hud.arrow = arrow;
 
             // The 2D map in the bottom-right corner.
             var mapObject = new GameObject("MiniMap");

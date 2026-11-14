@@ -406,7 +406,22 @@ namespace Walkback
             HeadingDegrees = Mathf.Repeat(Mathf.Atan2(onMars.x, onMars.z) * Mathf.Rad2Deg, 360f);
             if (app.hud != null && app.hud.miniMap != null) app.hud.miniMap.SetHeading(true, HeadingDegrees);
             if (app.wristMap != null) app.wristMap.SetHeading(true, HeadingDegrees);
+
+            // The compass and the arrow to the next stop: Mars is anchored, so the bearing from here is known.
+            HasBearing = false;
+            if (Progress != null && Progress.Valid)
+            {
+                Vector2 here = MetersOf(head.position), target = Progress.LegTarget(Progress.Leg);
+                HasBearing = Vector2.Distance(here, target) > HelmetHud.ArrowHideMeters;
+                if (HasBearing) BearingToNext = HudCompass.Bearing(here, target);
+            }
+            if (app.hud != null) app.hud.SetHeading(true, HeadingDegrees, HasBearing, BearingToNext);
         }
+
+        /// <summary>Bearing from the user straight to the next stop, degrees clockwise from north (while HasBearing).</summary>
+        public float BearingToNext { get; private set; }
+        /// <summary>False within a meter of the stop: there the arrow and the tape's bar hide.</summary>
+        public bool HasBearing { get; private set; }
 
         /// <summary>
         /// Only the height follows the user: Mars slides up or down so that its ground at
