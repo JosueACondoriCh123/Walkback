@@ -24,6 +24,11 @@ namespace Walkback
         public float heightMeters = 110f;
         /// <summary>How many labels of nearby stops sit under this one: it goes up one label height per step, so they never cover each other.</summary>
         public int labelStack;
+        /// <summary>
+        /// Extra lift, in the same steps, for the eye that looks right now: a label that would cover (or hide
+        /// behind) a nearer pillar's label from there goes up until both read. Set by StopPillars every frame.
+        /// </summary>
+        public float viewLift;
         float labelBase;
 
         public bool Hovered { get; private set; }
@@ -101,7 +106,7 @@ namespace Walkback
         void PlaceLabel()
         {
             float step = labelRoot.sizeDelta.y * Mathf.Abs(labelRoot.localScale.y) * 1.1f;
-            labelRoot.localPosition = new Vector3(0f, labelBase + labelStack * step, 0f);
+            labelRoot.localPosition = new Vector3(0f, labelBase + (labelStack + viewLift) * step, 0f);
         }
 
         /// <summary>Turns the label to the camera and keeps it the same size in the room.</summary>

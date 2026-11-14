@@ -93,11 +93,113 @@ namespace Walkback
             foreach (var p in stops) p.SetGrowth(value);
         }
 
-        /// <summary>Labels turn to this camera. Called every frame in Play; the test calls it before a screenshot.</summary>
+        /// <summary>A label goes up this many steps at most to get clear of the labels in front of it.</summary>
+        public const int MaxViewStack = 6;
+        /// <summary>A lifted label comes back down only when it would be clear by this fraction of its size (no flicker at the edge).</summary>
+        public const float ViewStackMargin = 0.25f;
+        /// <summary>Looking almost straight down, lifting a label does not move it on screen: no lifting under this.</summary>
+        public const float MinRiseAcrossView = 0.35f;
+
+        readonly List<PillarView> all = new List<PillarView>();
+        int[] viewStacks = new int[0];
+
+        /// <summary>
+        /// Labels turn to this camera, and a label that another pillar's label covers from where the camera
+        /// is goes up until both read (from the front of the table the habitat's label covered Altadena's,
+        /// 200 m behind it). Called every frame in Play; the test calls it before a screenshot.
+        /// </summary>
         public void FaceCamera(Camera cam)
         {
-            if (Habitat != null) Habitat.FaceCamera(cam);
-            foreach (var p in stops) p.FaceCamera(cam);
+            all.Clear();
+            if (Habitat != null) all.Add(Habitat);
+            all.AddRange(stops);
+            int count = all.Count;
+            if (viewStacks.Length != count) viewStacks = new int[count];
+            foreach (var p in all)
+            {
+                p.viewLift = 0f;
+                p.FaceCamera(cam);
+            }
+            if (cam == null || count < 2) return;
+
+            // Every label as the camera sees it, at its own place; then who has to go up.
+            var bottom = new Vector3[count];
+            var size = new Vector2[count];
+            var rise = new Vector3[count];
+            var perStep = new float[count];
+            Transform eye = cam.transform;
+            for (int i = 0; i < count; i++)
+            {
+                RectTransform root = all[i].labelRoot;
+                if (root == null || !root.gameObject.activeInHierarchy) { bottom[i] = new Vector3(0f, 0f, -1f); continue; }
+                bottom[i] = eye.InverseTransformPoint(root.position);
+                size[i] = new Vector2(root.sizeDelta.x * Mathf.Abs(root.lossyScale.x), root.sizeDelta.y * Mathf.Abs(root.lossyScale.y));
+                // One step up the pillar, as the camera sees it. Looking down at the table a step moves the
+                // label less on screen, so the step is longer by as much.
+                Vector3 up = eye.InverseTransformDirection(all[i].transform.up);
+                Vector3 toLabel = bottom[i].normalized;
+                float across = (up - Vector3.Dot(up, toLabel) * toLabel).magnitude;
+                if (across < MinRiseAcrossView) { rise[i] = Vector3.zero; continue; }
+                perStep[i] = 1f / Mathf.Max(0.6f, across);
+                rise[i] = up * (size[i].y * 1.1f * perStep[i]);
+            }
+            viewStacks = ViewStacks(bottom, size, rise, viewStacks);
+            for (int i = 0; i < count; i++)
+            {
+                if (viewStacks[i] == 0) continue;
+                all[i].viewLift = viewStacks[i] * perStep[i];
+                all[i].FaceCamera(cam);
+            }
+        }
+
+        /// <summary>
+        /// How many steps each label goes up so that none covers another, seen from the camera.
+        /// <paramref name="bottom"/> is the label's bottom center in camera space (z forward; z of 0 or
+        /// less = not seen), <paramref name="size"/> its width and height in meters, <paramref name="rise"/>
+        /// one step up in camera space (zero = this label cannot be lifted). The nearest label keeps its
+        /// place; each one behind goes up until it is clear of those already placed. A label that was
+        /// lifted the frame before (<paramref name="previous"/>) only comes down once it is clear by a margin.
+        /// </summary>
+        public static int[] ViewStacks(Vector3[] bottom, Vector2[] size, Vector3[] rise, int[] previous)
+        {
+            int count = bottom.Length;
+            var stacks = new int[count];
+            var order = new List<int>();
+            for (int i = 0; i < count; i++)
+                if (bottom[i].z > 0.01f) order.Add(i);
+            order.Sort((a, b) => bottom[a].z != bottom[b].z ? bottom[a].z.CompareTo(bottom[b].z) : a.CompareTo(b));
+
+            var placed = new List<Rect>();
+            foreach (int i in order)
+            {
+                bool canRise = rise[i].sqrMagnitude > 1e-12f;
+                int was = previous != null && i < previous.Length ? previous[i] : 0;
+                int level = 0;
+                Rect box = ViewBox(bottom[i], size[i], 0f);
+                for (; ; level++)
+                {
+                    Vector3 at = bottom[i] + rise[i] * level;
+                    if (at.z <= 0.01f) break;
+                    box = ViewBox(at, size[i], 0f);
+                    // Below where it was a moment ago it needs room to spare, or it would flicker up and down.
+                    Rect test = level < was ? ViewBox(at, size[i], ViewStackMargin) : box;
+                    bool covered = false;
+                    foreach (Rect other in placed)
+                        if (test.Overlaps(other)) { covered = true; break; }
+                    if (!covered || !canRise || level >= MaxViewStack) break;
+                }
+                stacks[i] = level;
+                placed.Add(box);
+            }
+            return stacks;
+        }
+
+        /// <summary>A label's box on the view plane (1 m in front of the camera), grown by a fraction of its size on every side.</summary>
+        static Rect ViewBox(Vector3 bottom, Vector2 size, float margin)
+        {
+            float z = bottom.z;
+            float w = size.x * (1f + 2f * margin), h = size.y * (1f + 2f * margin);
+            return new Rect((bottom.x - w / 2f) / z, (bottom.y - size.y * margin) / z, w / z, h / z);
         }
 
         void Update()

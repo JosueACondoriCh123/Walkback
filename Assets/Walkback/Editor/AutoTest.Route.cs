@@ -106,6 +106,7 @@ namespace Walkback.EditorTools
             Check("Route ribbon: clears", !view.HasRoute);
 
             CheckRouteSmoothing();
+            CheckLabelLifting(app, pillars);
 
             // Mission plan B on the site itself: the amber route and the verdict come from the relief.
             MapLayer layerBeforePlan = app.terrain.Layer;
@@ -196,6 +197,73 @@ namespace Walkback.EditorTools
             cam.transform.SetPositionAndRotation(homePosition, homeRotation);
             app.stopPillars.FaceCamera(cam);
             Canvas.ForceUpdateCanvases();
+        }
+
+        /// <summary>Pillar labels that would cover each other from where the user looks go up until every one reads.</summary>
+        static void CheckLabelLifting(WalkbackApp app, StopPillars pillars)
+        {
+            // The rule on its own, in camera space (z forward): labels 30 cm wide and 5 cm tall, a step of 5.5 cm.
+            var label = new Vector2(0.3f, 0.05f);
+            var up = new Vector3(0f, 0.055f, 0f);
+            int[] behind = StopPillars.ViewStacks(new[] { new Vector3(0f, 0f, 1f), new Vector3(0f, 0f, 1.05f) }, new[] { label, label }, new[] { up, up }, null);
+            int[] swapped = StopPillars.ViewStacks(new[] { new Vector3(0f, 0f, 1.05f), new Vector3(0f, 0f, 1f) }, new[] { label, label }, new[] { up, up }, null);
+            int[] beside = StopPillars.ViewStacks(new[] { new Vector3(-0.3f, 0f, 1f), new Vector3(0.3f, 0f, 1.2f) }, new[] { label, label }, new[] { up, up }, null);
+            int[] three = StopPillars.ViewStacks(new[] { new Vector3(0f, 0f, 1f), new Vector3(0f, 0f, 1.04f), new Vector3(0f, 0f, 1.08f) }, new[] { label, label, label }, new[] { up, up, up }, null);
+            int[] fromAbove = StopPillars.ViewStacks(new[] { new Vector3(0f, 0f, 1f), new Vector3(0f, 0f, 1.05f) }, new[] { label, label }, new[] { up, Vector3.zero }, null);
+            int[] unseen = StopPillars.ViewStacks(new[] { new Vector3(0f, 0f, 1f), new Vector3(0f, 0f, -1f) }, new[] { label, label }, new[] { up, up }, null);
+            Check("Pillar labels: a label behind another goes up one step, the nearer one keeps its place; side by side nobody moves",
+                behind[0] == 0 && behind[1] == 1 && swapped[0] == 1 && swapped[1] == 0 && beside[0] == 0 && beside[1] == 0 && three[0] == 0 && three[1] == 1 && three[2] == 2 &&
+                fromAbove[1] == 0 && unseen[1] == 0, "three in a row: " + three[0] + ", " + three[1] + ", " + three[2]);
+            // 1 cm clear of each other: stays down if it was down, stays up if it was up (no flicker at the edge).
+            var close = new[] { new Vector3(0f, 0f, 1f), new Vector3(0.31f, 0f, 1f) };
+            int[] wasDown = StopPillars.ViewStacks(close, new[] { label, label }, new[] { up, up }, new[] { 0, 0 });
+            int[] wasUp = StopPillars.ViewStacks(close, new[] { label, label }, new[] { up, up }, new[] { 0, 1 });
+            Check("Pillar labels: a lifted label comes down only when it is clear by a margin", wasDown[1] == 0 && wasUp[1] == 1);
+
+            // The map on the table from the user's place in front of it (the habitat's label covered Altadena's from there).
+            var cam = app.desktopCamera;
+            Vector3 wasAt = cam.transform.position;
+            Quaternion wasLooking = cam.transform.rotation;
+            cam.transform.position = MissionPanel.UserEye;
+            cam.transform.rotation = Quaternion.LookRotation(app.mapRoot.position - MissionPanel.UserEye, Vector3.up);
+            pillars.SetGrowth(1f);
+            pillars.FaceCamera(cam);
+            Canvas.ForceUpdateCanvases();
+            var views = new List<PillarView> { pillars.Habitat };
+            views.AddRange(pillars.Stops);
+            float worst = 0f;
+            string worstPair = "none", lifted = "";
+            for (int i = 0; i < views.Count; i++)
+            {
+                if (views[i].viewLift > 0f) lifted += (lifted.Length > 0 ? ", " : "") + views[i].label.text;
+                for (int j = 0; j < i; j++)
+                {
+                    Rect a = LabelViewRect(cam, views[i].labelRoot), b = LabelViewRect(cam, views[j].labelRoot);
+                    float w = Mathf.Min(a.xMax, b.xMax) - Mathf.Max(a.xMin, b.xMin), h = Mathf.Min(a.yMax, b.yMax) - Mathf.Max(a.yMin, b.yMin);
+                    if (w <= 0f || h <= 0f) continue;
+                    float share = w * h / Mathf.Max(1e-9f, Mathf.Min(a.width * a.height, b.width * b.height));
+                    if (share > worst) { worst = share; worstPair = views[i].label.text + " / " + views[j].label.text; }
+                }
+            }
+            Check("Pillar labels: from the front of the table no label covers another (under 5 % of the smaller one at most)", worst < 0.05f,
+                "worst " + (worst * 100f).ToString("F0") + " % (" + worstPair + "); lifted: " + (lifted.Length > 0 ? lifted : "none"));
+            cam.transform.SetPositionAndRotation(wasAt, wasLooking);
+            pillars.FaceCamera(cam);
+        }
+
+        /// <summary>The box a pillar's label takes on screen, in viewport units.</summary>
+        static Rect LabelViewRect(Camera cam, RectTransform label)
+        {
+            var corners = new Vector3[4];
+            label.GetWorldCorners(corners);
+            float x0 = float.MaxValue, y0 = float.MaxValue, x1 = float.MinValue, y1 = float.MinValue;
+            foreach (Vector3 corner in corners)
+            {
+                Vector3 v = cam.WorldToViewportPoint(corner);
+                x0 = Mathf.Min(x0, v.x); x1 = Mathf.Max(x1, v.x);
+                y0 = Mathf.Min(y0, v.y); y1 = Mathf.Max(y1, v.y);
+            }
+            return Rect.MinMaxRect(x0, y0, x1, y1);
         }
 
         /// <summary>Degrees the route turns, left and right added up, over the last <paramref name="meters"/> of a leg.</summary>
