@@ -41,7 +41,7 @@ rems = {
     'airMinC': num(latest, 'min_temp'), 'airMaxC': num(latest, 'max_temp'),
     'groundMinC': num(latest, 'min_gts_temp'), 'groundMaxC': num(latest, 'max_gts_temp'),
     'pressurePa': num(latest, 'pressure'),
-    'source': 'REMS: NASA/JPL-Caltech/CAB (CSIC-INTA)',
+    'source': 'NASA/JPL-Caltech/CAB',
 }
 
 # 2. Same season one Mars year earlier.
@@ -61,9 +61,9 @@ events = [{'type': 'Solar particle event', 'time': e.get('eventTime', '')} for e
 
 conditions = {
     'rems': rems,
-    'season': {'value': 'Ls %d°, %s' % (ls, season), 'source': 'REMS sol %d, one Mars year ago' % year_ago},
-    'daylight': {'value': '%s to %s local time' % (y['sunrise'], y['sunset']), 'source': 'REMS sol %d, same season' % year_ago},
-    'radiation': {'value': '0.64 mSv/day at the surface', 'source': 'Curiosity RAD, Hassler et al. 2014'},
+    'season': {'value': 'Ls %d°, %s' % (ls, season), 'source': 'REMS, a Mars year ago'},
+    'daylight': {'value': '%s to %s local time' % (y['sunrise'], y['sunset']), 'source': 'REMS sol %d' % year_ago},
+    'radiation': {'value': '0.64 mSv/day', 'source': 'Curiosity RAD'},
     'donki': {
         'from': d_from, 'to': d_to,
         'events': events if events else 'no solar particle events',

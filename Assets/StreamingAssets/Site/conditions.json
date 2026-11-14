@@ -7,19 +7,19 @@
   "groundMinC": -84.0,
   "groundMaxC": 4.0,
   "pressurePa": 777.0,
-  "source": "REMS: NASA/JPL-Caltech/CAB (CSIC-INTA)"
+  "source": "NASA/JPL-Caltech/CAB"
  },
  "season": {
   "value": "Ls 20°, early southern autumn, the low-dust season",
-  "source": "REMS sol 4404, one Mars year ago"
+  "source": "REMS, a Mars year ago"
  },
  "daylight": {
   "value": "06:29 to 18:23 local time",
-  "source": "REMS sol 4404, same season"
+  "source": "REMS sol 4404"
  },
  "radiation": {
-  "value": "0.64 mSv/day at the surface",
-  "source": "Curiosity RAD, Hassler et al. 2014"
+  "value": "0.64 mSv/day",
+  "source": "Curiosity RAD"
  },
  "donki": {
   "from": "2026-11-07",
