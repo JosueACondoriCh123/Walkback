@@ -118,7 +118,9 @@
       "taskSource": "Task times proposed from NASA/TP-2017-219457, table 30",
       "risk": "Floor of a hollow, 2 m below the ridge next to it; edges up to 18° slope.",
       "photoCredit": "",
-      "panorama": ""
+      "panorama": "",
+      "tag": "Curiosity drilled here · Oct 2025",
+      "tagSource": "Drill sols from the NASA Curiosity blog; Earth dates from the REMS feed (sol 4693 = 2025-10-19, sol 4718 = 2025-11-13)"
     },
     {
       "id": "nevado-sajama",
@@ -144,7 +146,9 @@
       "taskSource": "Task times proposed from NASA/TP-2017-219457, table 30",
       "risk": "Ridge top, 2 m above the hollow; slopes up to 18° on the way up.",
       "photoCredit": "",
-      "panorama": ""
+      "panorama": "",
+      "tag": "Curiosity drilled here · Nov 2025",
+      "tagSource": "Drill sols from the NASA Curiosity blog; Earth dates from the REMS feed (sol 4693 = 2025-10-19, sol 4718 = 2025-11-13)"
     }
   ]
 }

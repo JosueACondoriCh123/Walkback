@@ -26,6 +26,8 @@
   "panorama": "",
   "x": 502.1,
   "y": 450.3,
+  "tag": "Curiosity drilled here · Oct 2025",
+  "tagSource": "Drill sols from the NASA Curiosity blog; Earth dates from the REMS feed (sol 4693 = 2025-10-19, sol 4718 = 2025-11-13)",
   "scienceSource": "NASA Curiosity blog, sols 4695-4701 (13 Nov 2025): drill hole 44 inside the Monte Grande hollow",
   "taskSource": "Task times proposed from NASA/TP-2017-219457, table 30"
  },
@@ -52,6 +54,8 @@
   "panorama": "PIA26696",
   "x": 500.2,
   "y": 440.3,
+  "tag": "Curiosity drilled here · Nov 2025",
+  "tagSource": "Drill sols from the NASA Curiosity blog; Earth dates from the REMS feed (sol 4693 = 2025-10-19, sol 4718 = 2025-11-13)",
   "scienceSource": "NASA Curiosity blog, sols 4716-4722 (18 Nov 2025): drilled on top of a ridge, Navcam sol 4718",
   "taskSource": "Task times proposed from NASA/TP-2017-219457, table 30",
   "nameOrigin": "NASA named the target after an extinct volcano, the highest peak in Bolivia"

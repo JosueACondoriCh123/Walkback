@@ -212,7 +212,7 @@ def main():
         if st['id'] in panoramas:
             out['panorama'], out['photoCredit'] = panoramas[st['id']]
         out.update({'x': round(x, 1), 'y': round(y, 1)})
-        for k in ('scienceSource', 'taskSource', 'nameOrigin'):
+        for k in ('tag', 'tagSource', 'scienceSource', 'taskSource', 'nameOrigin'):
             if k in st:
                 out[k] = st[k]
         stops.append(out)

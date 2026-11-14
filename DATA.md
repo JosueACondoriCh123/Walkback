@@ -41,7 +41,7 @@ GDAL 3.13.3 from QGIS (`C:\Program Files\QGIS 3.44.15\bin`, not on PATH). In Git
 
 1. **Elevation, Mars Trek** (4.2 MB, 64 s): one `exportImage` request for the window at 1 m.
    `curl -o data-pipeline/cache/marstrek/gale_dem_window.tif "https://trek.nasa.gov/mars/trekarcgis/rest/services/Gale_DEM_SMG_1m/ImageServer/exportImage?bbox=137.37253,-4.81544,137.38947,-4.79856&bboxSR=104905&size=1004,1001&format=tiff&pixelType=F32&f=image"`
-2. **Elevation, USGS** (not finished: see decisions). The file is stored in strips one row high, LZW: the square needs about 1030 full rows of 33 km, ~80 MB.
+2. **Elevation, USGS** (reference; 1036 x 1028 px, 2.76 MB, finished on the second try at 12:51 after a 54 KB/s and 5 KB/s network). The file is stored in strips one row high, LZW: the square needs about 1030 full rows of 33 km, ~80 MB.
    `gdal_translate -srcwin 14706 39638 1036 1028 /vsicurl/https://asc-pds-services.s3.us-west-2.amazonaws.com/mosaic/Mars/MSL/MSL_Gale_DEM_Mosaic_1m_v3.tif data-pipeline/cache/usgs/gale_dem_window.tif`
    A 60-row strip across the stops was read (`strip_rows40192_60.tif`, 0.24 MB) and is used for the alignment check.
 3. **Base photo** (16.2 MB): the same window at 25 cm, 4026 x 4012 px.
@@ -76,17 +76,19 @@ Both `.glb` need the glTFast package in Unity (offline kit, guion §5.5); withou
 | The step from the hollow to the ridge (NASA: 10 m apart, 2 m higher) | USGS 2.80 m · Mars Trek 2.41 m · rover 2.71 m |
 | Slope along the rover's path (a rover drove there) | Median 8.8°, 90 % under 13.1°, max 16.7° |
 | Slope over the square | 53 % under 10°, 28 % 10-20°, 19 % over 20° (real scarps: the mesa to the west and the Mount Sharp slopes to the east, both visible in the photo) |
+| **DEM slope against Curiosity's own tilt sensor**, 85 positions (independent of any orbital DEM; `check_tilt.py`, 14 Nov 13:35) | **Mars Trek: 2.0° mean difference, r = 0.77, max 21°** (rover tilt: median 8.3°, max 17.5°). The full USGS v3 window (downloaded 12:51): 6.2° mean difference, r = 0.49, max 44.5°: noisier at 1 m. Over the whole square the two DEMs differ by 1.59 m (std) after removing the 17.4 m offset |
+| DEM height against the rover's elevation, full USGS window | USGS - rover = -0.01 m mean, 0.14 m std. Probably not independent: the rover's localized elevation is likely tied to this same DEM |
 | Heightmap quantization | Under 1.74 mm |
 | **Does the 1 m DEM show the boxwork hollows?** | **No.** Hollows from the DEM (more than 0.5 m below the 20 m mean) cover 3.2 % of the grid and are no darker in the photo (116.5 vs 117.8). At 1 m only 6.3 % of the dark ground in the photo is a DEM hollow (3.2 % by chance). The USGS strip does no better (r = 0.03 against the photo, Mars Trek 0.15) |
 | Unity automatic test with this package (session A's test, 11:56) | 215 of 217. Every site check passes (contract, r16, sources, panel naming mission, instrument and resolution, pillars on the ground). The two failures are session A's: the panel data line wraps out of its one-line box, and the habitat pillar has no collider |
 
 ## Decisions (proposed by Claude; Daniel decides)
 
-1. **Elevation from Mars Trek** (plan B of guion §5.1 and §5.6). The USGS server read 54 KB/s and then 5 KB/s; the square needs ~80 MB from it. Swap when the network allows: rerun step 2, then step 5 with `--dem-source usgs --dem data-pipeline/cache/usgs/gale_dem_window.tif`.
+1. **Elevation from Mars Trek, kept on the data** (first plan B of guion §5.1 and §5.6, because the USGS server was slow; once the USGS window arrived at 12:51, Mars Trek stayed because its slopes match Curiosity's tilt sensor three times better: 2.0° against 6.2°). Its absolute heights read 17 m higher than the USGS DEM and the rover; slopes, routes and times do not change with that offset. To use the USGS DEM anyway: step 5 with `--dem-source usgs --dem data-pipeline/cache/usgs/gale_dem_window.tif`.
 2. **No sand map** (plan B of guion §22.5): rock everywhere (η 1.2) and the legend says the 1 m elevation misses the hollows. `--sand dem` writes the DEM hollows instead.
 3. **Habitat at x 514.8, y 777.0**: on Curiosity's own path (its sol 4580 position), 330 m north of the stops, 5° slope. *Proposal.*
 4. **Stops at the rover's positions** during each drill campaign: Valle de la Luna at the sol 4687 position (parked to sol 4709; drilled sols 4689-4695), Nevado Sajama at the sol 4711 position (parked to sol 4741; drilled sol 4718). They are 10 m apart.
 
 ## Still to make
 
-`thermal.png` (THEMIS: needs the tile link) · the 3D models in `Assets/Walkback/Models3D/` (downloading; `.glb` needs the glTFast package in Unity, which the project does not have yet) · the USGS DEM in place of Mars Trek. Valle de la Luna has no official 360° panorama (guion §5.1, row 3b): the app says "No panorama for this stop yet".
+`thermal.png` (THEMIS: needs the tile link) · glTFast in Unity for the two `.glb` models · more real Curiosity stops inside the square (research prompt given to Daniel, 14 Nov 13:40). Valle de la Luna has no official 360° panorama (guion §5.1, row 3b): the app says "No panorama for this stop yet".
