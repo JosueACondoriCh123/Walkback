@@ -58,6 +58,11 @@ namespace Walkback.EditorTools
                     "visor " + hud.Current.returnMinutes.ToString("F1") + " min, map " + onMap.ToString("F1") + " min");
             }
             Check("HUD: no TURN BACK warning at this stop", !hud.warningCard.gameObject.activeSelf);
+            Text estimateText = hud.estimateTag.lines[0];
+            float estimateBox = ((RectTransform)estimateText.transform).rect.width;
+            Check("HUD: the estimate line is short (40 characters at most) and fits its box on one line",
+                HelmetHud.EstimateLine.StartsWith("ESTIMATE") && HelmetHud.EstimateLine.Length <= 40 && estimateText.text.StartsWith(HelmetHud.EstimateLine) && (!site.IsMarsData || estimateText.preferredWidth <= estimateBox),
+                HelmetHud.EstimateLine.Length + " characters, " + estimateText.preferredWidth.ToString("F0") + " of " + estimateBox.ToString("F0") + " px");
 
             Vector3 eye = cam.transform.position;
             float worst = 0f;

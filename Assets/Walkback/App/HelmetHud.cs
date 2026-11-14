@@ -16,6 +16,11 @@ namespace Walkback
     {
         public const float Distance = 1.2f;
         public const float FollowSpeed = 6f;
+        /// <summary>
+        /// The one line that says what every number on the visor is. Short on purpose (36 characters):
+        /// the visor is read at a glance, and the long version is on the verdict card.
+        /// </summary>
+        public const string EstimateLine = "ESTIMATE · not the walking model yet";
 
         public WalkbackApp app;
         /// <summary>Everything that shows; inactive while the HUD is off.</summary>
@@ -48,9 +53,7 @@ namespace Walkback
             nextCard.SetLines("NEXT  " + s.nextName,
                 MetersText(s.nextMeters) + "  ·  " + MinutesText(s.nextMinutes) + "  ·  O2 -" + F(s.nextOxygenPercent, "0.0") + " %",
                 s.taskMinutes > 0f ? "Tasks here: " + F(s.taskMinutes, "0") + " min" : "");
-            // Say what the numbers are: only the fallback's return layer follows the relief.
-            string tag = s.returnFromMap && app.terrain.ReturnPlaceholderLabel == ReturnFallback.Label ? HudEstimate.LabelWithReturnMap : HudEstimate.Label;
-            estimateTag.SetLines(site.IsMarsData ? tag : tag + "  ·  TEST TERRAIN, not Mars data");
+            estimateTag.SetLines(site.IsMarsData ? EstimateLine : EstimateLine + "  ·  TEST TERRAIN, not Mars data");
             warningCard.SetLines("TURN BACK NOW");
             warningCard.gameObject.SetActive(s.turnBack);
 
@@ -73,7 +76,7 @@ namespace Walkback
             nextCard.SetLines("NEXT  " + s.nextName,
                 s.arrived ? "You are here" : MetersText(s.nextMeters) + "  ·  " + MinutesText(s.nextMinutes),
                 s.taskMinutesAtNext > 0f ? "Work there: " + F(s.taskMinutesAtNext, "0") + " min" : "");
-            estimateTag.SetLines(site != null && !site.IsMarsData ? MissionFallback.Note + "  ·  TEST TERRAIN, not Mars data" : MissionFallback.Note);
+            estimateTag.SetLines(site != null && !site.IsMarsData ? EstimateLine + "  ·  TEST TERRAIN, not Mars data" : EstimateLine);
             warningCard.SetLines("TURN BACK NOW");
             warningCard.gameObject.SetActive(s.turnBack);
             content.gameObject.SetActive(true);
