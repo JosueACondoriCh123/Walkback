@@ -55,7 +55,7 @@ namespace Walkback
                 s.taskMinutes > 0f ? "Tasks here: " + F(s.taskMinutes, "0") + " min" : "");
             estimateTag.SetLines(site.IsMarsData ? EstimateLine : EstimateLine + "  ·  TEST TERRAIN, not Mars data");
             warningCard.SetLines("TURN BACK NOW");
-            warningCard.gameObject.SetActive(s.turnBack);
+            SetWarning(s.turnBack);
 
             content.gameObject.SetActive(true);
             miniMap.Show(app, s.here, s.nextPoint);
@@ -81,7 +81,7 @@ namespace Walkback
                 s.taskMinutesAtNext > 0f ? "Work there: " + F(s.taskMinutesAtNext, "0") + " min" : "");
             estimateTag.SetLines(site != null && !site.IsMarsData ? EstimateLine + "  ·  TEST TERRAIN, not Mars data" : EstimateLine);
             warningCard.SetLines("TURN BACK NOW");
-            warningCard.gameObject.SetActive(s.turnBack);
+            SetWarning(s.turnBack);
             content.gameObject.SetActive(true);
             miniMap.Show(app, s.here, s.nextPoint);
         }
@@ -90,6 +90,68 @@ namespace Walkback
         {
             if (content != null) content.gameObject.SetActive(false);
             AtStop = -1;
+            // Hidden is not "safe": the next time the visor shows with the warning on, it sounds again.
+            warningOn = false;
+        }
+
+        /// <summary>How many times TURN BACK NOW has come on (each one sounds the alert once).</summary>
+        public int TurnBackAlerts { get; private set; }
+
+        public const int AlertRate = 44100;
+        public const float AlertSeconds = 0.62f;
+        public const float AlertVolume = 0.5f;
+
+        bool warningOn;
+        AudioSource alertAudio;
+
+        /// <summary>
+        /// Shows or hides TURN BACK NOW. The warning used to be only a red card, easy to miss while looking
+        /// at the ground: the moment it comes on (not while it stays on) a two-beep alert sounds.
+        /// </summary>
+        void SetWarning(bool on)
+        {
+            warningCard.gameObject.SetActive(on);
+            if (on && !warningOn)
+            {
+                TurnBackAlerts++;
+                // Sound only while running: the editor test builds no clips and plays nothing.
+                if (Application.isPlaying)
+                {
+                    if (alertAudio == null)
+                    {
+                        alertAudio = gameObject.AddComponent<AudioSource>();
+                        alertAudio.playOnAwake = false;
+                        alertAudio.spatialBlend = 0f;
+                        alertAudio.volume = AlertVolume;
+                        float[] tone = AlertTone(AlertRate);
+                        alertAudio.clip = AudioClip.Create("TurnBackAlert", tone.Length, 1, AlertRate, false);
+                        alertAudio.clip.SetData(tone, 0);
+                    }
+                    alertAudio.Play();
+                }
+                WalkbackLog.Info("HUD: TURN BACK NOW came on");
+            }
+            warningOn = on;
+        }
+
+        /// <summary>
+        /// The alert, made in code like the pointer's click and the globe's chime (no audio file to credit):
+        /// two 0.22 s beeps at 880 Hz with 0.12 s of silence between them, each with a soft start and end.
+        /// </summary>
+        public static float[] AlertTone(int rate)
+        {
+            int n = Mathf.RoundToInt(rate * AlertSeconds);
+            var samples = new float[n];
+            for (int i = 0; i < n; i++)
+            {
+                float t = i / (float)rate;
+                // Beeps at 0.00–0.22 s and 0.34–0.56 s.
+                float inBeep = t < 0.22f ? t : (t >= 0.34f && t < 0.56f ? t - 0.34f : -1f);
+                if (inBeep < 0f) continue;
+                float envelope = Mathf.Clamp01(inBeep / 0.01f) * Mathf.Clamp01((0.22f - inBeep) / 0.03f);
+                samples[i] = 0.6f * envelope * Mathf.Sin(2f * Mathf.PI * 880f * t);
+            }
+            return samples;
         }
 
         /// <summary>Jumps to its place in front of <paramref name="head"/> (on entering a stop).</summary>

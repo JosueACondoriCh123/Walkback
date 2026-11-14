@@ -150,6 +150,37 @@ namespace Walkback.EditorTools
                 Check("Mission maps: the \"you\" marks are arrows that point where the user looks (toward the stop, then 90° to the right)",
                     arrowAhead && arrowTurned, "heading " + mission.HeadingDegrees.ToString("F0") + "°, stop at " + bearing.ToString("F0") + "°");
 
+                // ---- TURN BACK NOW sounds once each time it comes on, not while it stays on
+                {
+                    int alertsBefore = app.hud.TurnBackAlerts;
+                    var calm = new MissionProgress.Snapshot { nextName = "test" };
+                    var alarm = calm;
+                    alarm.turnBack = true;
+                    app.hud.ShowLive(calm, app.terrain.Site);
+                    app.hud.ShowLive(alarm, app.terrain.Site);
+                    bool cardOn = app.hud.warningCard.gameObject.activeSelf;
+                    app.hud.ShowLive(alarm, app.terrain.Site);
+                    int afterStaying = app.hud.TurnBackAlerts - alertsBefore;
+                    app.hud.ShowLive(calm, app.terrain.Site);
+                    bool cardOff = !app.hud.warningCard.gameObject.activeSelf;
+                    app.hud.ShowLive(alarm, app.terrain.Site);
+                    int afterSecond = app.hud.TurnBackAlerts - alertsBefore;
+                    app.hud.ShowLive(calm, app.terrain.Site);
+                    float[] tone = HelmetHud.AlertTone(HelmetHud.AlertRate);
+                    float peak = 0f, gap = 0f;
+                    for (int i = 0; i < tone.Length; i++)
+                    {
+                        peak = Mathf.Max(peak, Mathf.Abs(tone[i]));
+                        float t = i / (float)HelmetHud.AlertRate;
+                        if (t > 0.23f && t < 0.33f) gap = Mathf.Max(gap, Mathf.Abs(tone[i]));
+                    }
+                    Check("Mission HUD: TURN BACK NOW sounds once each time it comes on (two beeps under one second, made in code)",
+                        cardOn && cardOff && afterStaying == 1 && afterSecond == 2 && tone.Length > 0 && tone.Length <= HelmetHud.AlertRate && peak > 0.3f && peak <= 1f && gap == 0f,
+                        afterSecond + " alerts for two turn-ons, " + (tone.Length / (float)HelmetHud.AlertRate).ToString("F2") + " s, peak " + peak.ToString("F2"));
+                    // A full refresh puts the real numbers back on the visor.
+                    mission.Tick(cam.transform, 0.3f);
+                }
+
                 // ---- Walking: the headset's position moves the numbers; nothing else moves
                 Vector3 marsBefore = mission.mars.position;
                 var before = mission.Last;
