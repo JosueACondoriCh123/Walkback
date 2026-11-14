@@ -22,7 +22,12 @@ namespace Walkback
         public const float MetersPerPixel = 0.001f;
 
         public const int SidePixelsWide = 760;
-        public const int SidePixelsHigh = 940;
+        public const int SidePixelsHigh = 1130;
+        /// <summary>
+        /// Every button on the boards is at least this tall (1 px = 1 mm): 100 mm at about 2 m is 2.9°,
+        /// inside the 2.5° to 3° that a hand ray needs to hit a target comfortably.
+        /// </summary>
+        public const float ButtonHeight = 100f;
         /// <summary>Side board center relative to the panel center (the panel is not rotated).</summary>
         public static readonly Vector3 SideBoardOffset = new Vector3(1.22f, 0f, -0.22f);
         /// <summary>Where the user's eyes are when the scene starts (floor origin, standing).</summary>
@@ -185,19 +190,18 @@ namespace Walkback
             if (stopButtonRow == null || stops == null) return;
             int n = Mathf.Min(stops.Length, 4);
             if (n == 0) return;
+            // Up to two buttons side by side; three or four go in two rows of two. A button is then never
+            // narrower than 294 px, so a name like "Valle de la Luna" stays on one line at full size
+            // (four in a row left 141 px each and broke the names in two).
             const float rowWidth = 600f, gap = 12f;
-            float w = (rowWidth - gap * (n - 1)) / n;
+            int columns = Mathf.Min(n, 2);
+            float w = (rowWidth - gap * (columns - 1)) / columns;
             for (int i = 0; i < n; i++)
             {
                 int index = i;
                 string label = string.IsNullOrEmpty(stops[i].name) ? "Stop " + (i + 1) : stops[i].name;
-                var button = PanelButton.Create(stopButtonRow, "Stop" + i, label, font, uiMaterial, n <= 2 ? 30 : 28, i * (w + gap), 0f, w, 64f);
-                if (n > 2)
-                {
-                    button.label.resizeTextForBestFit = true;
-                    button.label.resizeTextMinSize = 24;
-                    button.label.resizeTextMaxSize = 28;
-                }
+                var button = PanelButton.Create(stopButtonRow, "Stop" + i, label, font, uiMaterial, n <= 2 ? 30 : 28,
+                    (i % columns) * (w + gap), (i / columns) * (ButtonHeight + gap), w, ButtonHeight);
                 button.onClick = () => { if (boundApp != null) boundApp.SelectStop(index); };
                 stopButtons.Add(button);
             }
@@ -303,7 +307,7 @@ namespace Walkback
             foreach (var layer in order)
             {
                 int i = (int)layer;
-                layerButtons[i] = PanelButton.Create(rect, "Layer" + LayerLabels[i], LayerLabels[i], font, uiMaterial, 32, bx, 52f, buttonWidth, 84f);
+                layerButtons[i] = PanelButton.Create(rect, "Layer" + LayerLabels[i], LayerLabels[i], font, uiMaterial, 32, bx, 52f, buttonWidth, ButtonHeight);
                 bx += buttonWidth + 12f;
             }
             AddText(rect, "LayerCaption", "MAP LAYER", font, uiMaterial, 28, FontStyle.Bold, WalkbackTheme.TextSoft, 754, 12, 400, 38);
@@ -345,31 +349,31 @@ namespace Walkback
             var rect = MakeBoard(board.transform, "SideBackPlate", "SideCanvas", SidePixelsWide, SidePixelsHigh, wM, hM);
 
             // Stop chooser: one button per stop, filled in by Bind once the site is loaded.
-            stopsLabel = AddText(rect, "StopsLabel", "STOPS", font, uiMaterial, 30, FontStyle.Bold, WalkbackTheme.TextSoft, 30, 24, 110, 64);
+            stopsLabel = AddText(rect, "StopsLabel", "STOPS", font, uiMaterial, 30, FontStyle.Bold, WalkbackTheme.TextSoft, 30, 24, 110, ButtonHeight);
             var row = new GameObject("StopButtons", typeof(RectTransform));
             stopButtonRow = (RectTransform)row.transform;
-            Place(rect, stopButtonRow, 140, 24, 600, 64);
+            Place(rect, stopButtonRow, 140, 24, 600, 2f * ButtonHeight + 12f);
 
             // Stop card
-            AddBox(rect, "StopCard", uiMaterial, WalkbackTheme.CardBack, 30, 106, 700, 366);
-            stopName = AddText(rect, "StopName", "NO STOP SELECTED", font, uiMaterial, 46, FontStyle.Bold, WalkbackTheme.Text, 54, 114, 400, 66);
+            AddBox(rect, "StopCard", uiMaterial, WalkbackTheme.CardBack, 30, 254, 700, 404);
+            stopName = AddText(rect, "StopName", "NO STOP SELECTED", font, uiMaterial, 46, FontStyle.Bold, WalkbackTheme.Text, 54, 262, 400, 66);
             // Real stop names vary in length: shrink to fit one line, never under 32 px.
             stopName.resizeTextForBestFit = true;
             stopName.resizeTextMinSize = 32;
             stopName.resizeTextMaxSize = 46;
-            jumpButton = PanelButton.Create(rect, "JumpToSite", "JUMP TO SITE", font, uiMaterial, 30, 464, 118, 250, 62);
-            stopBadge = AddText(rect, "StopBadge", "Point at a pillar to see the stop.", font, uiMaterial, 28, FontStyle.Bold, WalkbackTheme.Live, 54, 184, 660, 40);
-            stopScience = AddText(rect, "StopScience", "Science, tasks and minutes of each stop.", font, uiMaterial, 30, FontStyle.Normal, WalkbackTheme.Text, 54, 228, 660, 76);
+            jumpButton = PanelButton.Create(rect, "JumpToSite", "JUMP TO SITE", font, uiMaterial, 30, 464, 266, 250, ButtonHeight);
+            stopBadge = AddText(rect, "StopBadge", "Point at a pillar to see the stop.", font, uiMaterial, 28, FontStyle.Bold, WalkbackTheme.Live, 54, 370, 660, 40);
+            stopScience = AddText(rect, "StopScience", "Science, tasks and minutes of each stop.", font, uiMaterial, 30, FontStyle.Normal, WalkbackTheme.Text, 54, 414, 660, 76);
             stopScience.alignment = TextAnchor.UpperLeft;
-            stopTasks = AddText(rect, "StopTasks", "No stops on this map yet.", font, uiMaterial, 30, FontStyle.Normal, WalkbackTheme.Text, 54, 310, 660, 76);
+            stopTasks = AddText(rect, "StopTasks", "No stops on this map yet.", font, uiMaterial, 30, FontStyle.Normal, WalkbackTheme.Text, 54, 496, 660, 76);
             stopTasks.alignment = TextAnchor.UpperLeft;
-            stopFooter = AddText(rect, "StopFooter", "Task minutes count in time and oxygen.", font, uiMaterial, 28, FontStyle.Normal, WalkbackTheme.TextSoft, 54, 392, 660, 72);
+            stopFooter = AddText(rect, "StopFooter", "Task minutes count in time and oxygen.", font, uiMaterial, 28, FontStyle.Normal, WalkbackTheme.TextSoft, 54, 578, 660, 72);
             stopFooter.alignment = TextAnchor.UpperLeft;
             jumpButton.SetInteractable(false);
 
             // Current conditions (ficha C)
-            conditionsTitle = AddText(rect, "ConditionsTitle", "CURRENT CONDITIONS", font, uiMaterial, 30, FontStyle.Bold, WalkbackTheme.TextSoft, 30, 486, 700, 40);
-            conditionsText = AddText(rect, "ConditionsText", Conditions.WaitingText, font, uiMaterial, 28, FontStyle.Normal, WalkbackTheme.TextSoft, 30, 530, 700, 400);
+            conditionsTitle = AddText(rect, "ConditionsTitle", "CURRENT CONDITIONS", font, uiMaterial, 30, FontStyle.Bold, WalkbackTheme.TextSoft, 30, 672, 700, 40);
+            conditionsText = AddText(rect, "ConditionsText", Conditions.WaitingText, font, uiMaterial, 28, FontStyle.Normal, WalkbackTheme.TextSoft, 30, 716, 700, 400);
             conditionsText.alignment = TextAnchor.UpperLeft;
         }
 

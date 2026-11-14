@@ -184,6 +184,22 @@ namespace Walkback.EditorTools
                 if (button.label.preferredWidth > r.width) wrapped += button.label.text + " " + button.label.preferredWidth.ToString("F0") + "/" + r.width.ToString("F0") + " px; ";
             }
             Check("Panel: every button label fits on one line", wrapped.Length == 0, wrapped);
+
+            // Every button is at least 100 mm tall in the room (2.9° at 2 m: a hand ray hits it), and none
+            // shrinks its text to fit: a name too long for its button must fail the check above, not get small.
+            string small = "";
+            bool shrinks = false;
+            float lowest = float.MaxValue;
+            foreach (var button in panel.GetComponentsInChildren<PanelButton>(true))
+            {
+                var rt = (RectTransform)button.transform;
+                float tall = rt.rect.height * Mathf.Abs(rt.lossyScale.y);
+                lowest = Mathf.Min(lowest, tall);
+                if (tall < 0.0999f) small += button.label.text + " " + (tall * 1000f).ToString("F0") + " mm; ";
+                if (button.label.resizeTextForBestFit) shrinks = true;
+            }
+            Check("Panel: every button is at least 100 mm tall and keeps its text size", small.Length == 0 && !shrinks && lowest < float.MaxValue,
+                small.Length > 0 ? small : (lowest * 1000f).ToString("F0") + " mm the lowest");
         }
 
         static partial void ShotsPanelPiece(WalkbackApp app)
