@@ -1,4 +1,4 @@
-// Written with Claude (AI), directed and tested by team MARSXR
+// Written with Claude Code (AI), directed and tested by team MARSXR
 using System.Collections.Generic;
 using System.Globalization;
 using UnityEngine;

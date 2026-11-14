@@ -1,4 +1,4 @@
-// Written with Claude (AI), directed and tested by team MARSXR
+// Written with Claude Code (AI), directed and tested by team MARSXR
 using UnityEngine;
 
 namespace Walkback
