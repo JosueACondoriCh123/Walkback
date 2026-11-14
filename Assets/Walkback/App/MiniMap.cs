@@ -15,6 +15,7 @@ namespace Walkback
     public class MiniMap : MonoBehaviour
     {
         public const float SizeMeters = 0.24f;
+        /// <summary>Widest photo the mini map would load for itself. It now shares the terrain's photo, so it loads none.</summary>
         public const int PhotoWidth = 1024;
         public const float MinWindow = 120f;
 
@@ -128,27 +129,29 @@ namespace Walkback
         }
 
         /// <summary>The photo once, scaled down to 1024 px (memory on the Quest); the height paint if there is no photo.</summary>
+        /// <summary>
+        /// The photo under the mini map. The terrain already holds the HiRISE photo (GaleTerrain.PhotoSize px,
+        /// with mipmaps): the mini map shares that texture instead of reading and decoding ortho.jpg again
+        /// (4096 x 4096, about 48 MB while decoding, on the main thread at the moment of the jump).
+        /// The mini map never owns it: the terrain destroys it. Without a photo: the height paint.
+        /// </summary>
         void EnsurePhoto(WalkbackApp app)
         {
             if (photo != null) return;
-            byte[] bytes = null;
-            try { bytes = SiteLoader.ReadStreamingAsset(SiteLoader.SiteFolder + "/ortho.jpg"); }
-            catch (Exception e) { WalkbackLog.Warn("Mini map: ortho.jpg could not be read: " + e.Message); }
-            if (bytes != null)
+            GaleTerrain terrain = app.terrain;
+            if (terrain.HasPhoto)
             {
-                var full = new Texture2D(2, 2, TextureFormat.RGB24, false) { hideFlags = HideFlags.DontSave };
-                if (full.LoadImage(bytes, false))
+                Texture2D shared = terrain.LayerTexture(MapLayer.Photo);
+                // LayerTexture falls back to the height paint if the photo cannot be read: check which one came.
+                if (shared != null && shared.name == "Paint_Photo")
                 {
-                    photo = SiteJump.CapWidth(full, PhotoWidth);
-                    if (photo != full) DestroySafe(full);
-                    photo.wrapMode = TextureWrapMode.Clamp;
+                    photo = shared;
                     PhotoIsOrtho = true;
-                    WalkbackLog.Info("Mini map: HiRISE photo " + photo.width + " x " + photo.height);
+                    WalkbackLog.Info("Mini map: shares the terrain's HiRISE photo, " + photo.width + " x " + photo.height);
                     return;
                 }
-                DestroySafe(full);
             }
-            photo = app.terrain.LayerTexture(MapLayer.Height);
+            photo = terrain.LayerTexture(MapLayer.Height);
             PhotoIsOrtho = false;
         }
 

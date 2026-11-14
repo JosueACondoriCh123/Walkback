@@ -75,7 +75,9 @@ namespace Walkback.EditorTools
                 "window " + map.WindowMeters.ToString("F0") + " m around " + map.WindowCenter.x.ToString("F0") + ", " + map.WindowCenter.y.ToString("F0"));
             Check("Mini map: the habitat and the next target fit in the window", map.InWindow(site.Habitat) && map.InWindow(hud.Current.nextPoint));
             Check("Mini map: north is up (a point 10 m north is higher on the map)", map.LocalOf(here + new Vector2(0f, 10f), 0f).y > map.LocalOf(here, 0f).y && map.LocalOf(here + new Vector2(10f, 0f), 0f).x > map.LocalOf(here, 0f).x);
-            Check("Mini map: shows the HiRISE photo at most 1024 px wide (memory)", map.Photo != null && (!site.IsMarsData || (map.PhotoIsOrtho && map.Photo.width <= MiniMap.PhotoWidth)),
+            // No second copy in memory: either the terrain's own photo texture (shared), or a small one.
+            bool sharedPhoto = app.terrain.HasPhoto && ReferenceEquals(map.Photo, app.terrain.LayerTexture(MapLayer.Photo));
+            Check("Mini map: shows the HiRISE photo without a second copy in memory (shares the terrain's)", map.Photo != null && (!site.IsMarsData || (map.PhotoIsOrtho && (sharedPhoto || map.Photo.width <= MiniMap.PhotoWidth))),
                 map.Photo != null ? map.Photo.width + " x " + map.Photo.height + (map.PhotoIsOrtho ? ", ortho.jpg" : ", height paint") : "no image");
 
             var copyMesh = wrist.terrainCopy.sharedMesh;
