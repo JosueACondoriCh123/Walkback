@@ -123,6 +123,14 @@ namespace Walkback.EditorTools
             RaycastHit hit;
             bool hits = sphereCollider.Raycast(new Ray(jumpEye, Vector3.right), out hit, 20f);
             Check("Jump: pressing anywhere hits the photo sphere, which leads back", hits && sphereCollider.GetComponentInParent<IPointerTarget>() == (IPointerTarget)jump);
+            // The same press through the real pointer: its ray is only Pointer.MaxDistance long, so it must
+            // be longer than the sphere's radius, or hands (no B button) can never leave the photo.
+            // The ray points up, right and behind the viewer: away from the table setup, so only the sphere is there.
+            Physics.SyncTransforms();
+            RaycastHit reach;
+            bool reaches = Physics.Raycast(new Ray(jumpEye, new Vector3(0.6f, 0.5f, -0.6f).normalized), out reach, Pointer.MaxDistance, ~0, QueryTriggerInteraction.Collide) && reach.collider == sphereCollider;
+            Check("Jump: the pointer's own ray is long enough to reach the photo sphere", Pointer.MaxDistance > SiteJump.SphereRadius && reaches,
+                "ray " + Pointer.MaxDistance.ToString("0.#", System.Globalization.CultureInfo.InvariantCulture) + " m, sphere " + SiteJump.SphereRadius.ToString("0.#", System.Globalization.CultureInfo.InvariantCulture) + " m");
             jump.OnPointerClick(hit.point);
             Check("Jump: back at the table, everything as before",
                 !jump.Inside && !jump.sphere.activeSelf && app.table.gameObject.activeSelf == tableWas && app.mapRoot.gameObject.activeSelf && app.panel.gameObject.activeSelf == panelWas && !app.MapControlsLocked);

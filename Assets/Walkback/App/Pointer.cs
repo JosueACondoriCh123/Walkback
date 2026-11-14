@@ -17,7 +17,11 @@ namespace Walkback
     {
         public enum Source { None, RightController, RightHand, LeftController, LeftHand, Mouse, Test }
 
-        public const float MaxDistance = 4f;
+        /// <summary>
+        /// How far the ray reaches. It must be longer than SiteJump.SphereRadius (6 m): inside the 360° photo
+        /// the only collider around the user is the photo sphere, and pressing it is the way back to the table.
+        /// </summary>
+        public const float MaxDistance = 8f;
         const float RayWidth = 0.004f;
         const float RayWidthHover = 0.006f;
         const float DotSize = 0.014f;
