@@ -22,6 +22,8 @@ namespace Walkback
         public MeshFilter terrainCopy;
         public MeshRenderer terrainRenderer;
         public Transform youPin;
+        /// <summary>A nose on the you-pin pointing the way the astronaut looks (hidden while that is not known).</summary>
+        public Transform youNose;
         public Transform habitatPin;
         public Material stopMaterial;
         public GlobeLabel label;
@@ -31,6 +33,16 @@ namespace Walkback
         public Vector2 You { get; private set; }
 
         readonly List<Transform> stopPins = new List<Transform>();
+
+        /// <summary>
+        /// Which way the astronaut looks, in degrees clockwise from north: the you-pin turns and shows its
+        /// nose. The model's +z is north and +x east, so the heading is a turn about its up axis.
+        /// </summary>
+        public void SetHeading(bool known, float degreesFromNorth)
+        {
+            if (youPin != null) youPin.localRotation = Quaternion.Euler(0f, known ? degreesFromNorth : 0f, 0f);
+            if (youNose != null) youNose.gameObject.SetActive(known);
+        }
 
         /// <summary>Copies the table's terrain and puts the pins for an astronaut standing at <paramref name="here"/>.</summary>
         public void Prepare(WalkbackApp app, Vector2 here, string hereName)

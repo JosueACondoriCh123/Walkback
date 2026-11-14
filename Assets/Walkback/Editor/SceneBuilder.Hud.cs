@@ -49,6 +49,9 @@ namespace Walkback.EditorTools
             map.nextRing = HudQuad("NextRing", mapObject.transform, mark, new Vector3(0f, 0f, -0.0025f), new Vector3(0.016f, 0.016f, 1f));
             map.habitat = HudQuad("Habitat", mapObject.transform, safe, new Vector3(0f, 0f, -0.003f), new Vector3(0.012f, 0.012f, 1f));
             map.you = HudQuad("You", mapObject.transform, live, new Vector3(0f, 0f, -0.005f), new Vector3(0.013f, 0.013f, 1f));
+            // The heading tick rides on the "you" dot and sticks out of it toward where the astronaut looks.
+            map.youHeading = HudQuad("Heading", map.you, live, new Vector3(0f, 0.95f, 0f), new Vector3(0.36f, 0.9f, 1f));
+            map.youHeading.gameObject.SetActive(false);
             map.scaleBar = HudQuad("ScaleBar", mapObject.transform, mark, new Vector3(0f, 0f, -0.003f), new Vector3(0.05f, 0.003f, 1f));
             map.stopMaterial = watch;
             map.caption = Card(mapObject.transform, "MapCaption", 340f, 34f, new[] { 17 }, new[] { soft }, backPlate, ui, new Vector3(0f, -s / 2f - 0.026f, 0f));
@@ -71,6 +74,9 @@ namespace Walkback.EditorTools
             wrist.terrainRenderer.sharedMaterial = terrainMaterial;
             wrist.terrainRenderer.shadowCastingMode = ShadowCastingMode.Off;
             wrist.youPin = HudPrimitive(PrimitiveType.Sphere, "YouPin", model, live, new Vector3(30f, 30f, 30f));
+            wrist.youNose = HudPrimitive(PrimitiveType.Cube, "YouNose", wrist.youPin, live, new Vector3(0.35f, 0.35f, 1.6f));
+            wrist.youNose.localPosition = new Vector3(0f, 0f, 1.1f);
+            wrist.youNose.gameObject.SetActive(false);
             wrist.habitatPin = HudPrimitive(PrimitiveType.Cylinder, "HabitatPin", model, safe, new Vector3(18f, 22f, 18f));
             wrist.stopMaterial = watch;
             wrist.label = Card(wristObject.transform, "WristLabel", 200f, 26f, new[] { 13 }, new[] { text }, backPlate, ui, new Vector3(0f, 0.03f, 0.085f));

@@ -21,6 +21,8 @@ namespace Walkback
 
         public Renderer photoQuad;
         public Transform you;
+        /// <summary>A tick on the "you" dot pointing the way the astronaut looks (hidden while that is not known).</summary>
+        public Transform youHeading;
         public Transform habitat;
         public Transform nextRing;
         public Transform line;
@@ -36,6 +38,23 @@ namespace Walkback
         readonly List<Transform> stopDots = new List<Transform>();
         Texture photo;
         float side = 1000f;
+
+        /// <summary>
+        /// Which way the astronaut looks, in degrees clockwise from north (the map is north up), so the
+        /// "you" dot is an arrow while walking and turning. Not known (standing inside a 360° photo,
+        /// where the headset's direction is not a direction on Mars): the tick hides and the dot is a dot.
+        /// </summary>
+        public void SetHeading(bool known, float degreesFromNorth)
+        {
+            HeadingKnown = known;
+            HeadingDegrees = known ? Mathf.Repeat(degreesFromNorth, 360f) : 0f;
+            // The map is seen with x to the right and y up: clockwise on it is a negative turn about z.
+            if (you != null) you.localRotation = Quaternion.Euler(0f, 0f, -HeadingDegrees);
+            if (youHeading != null) youHeading.gameObject.SetActive(known);
+        }
+
+        public bool HeadingKnown { get; private set; }
+        public float HeadingDegrees { get; private set; }
 
         void OnDestroy()
         {

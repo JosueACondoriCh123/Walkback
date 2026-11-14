@@ -59,6 +59,9 @@ namespace Walkback
 
             content.gameObject.SetActive(true);
             miniMap.Show(app, s.here, s.nextPoint);
+            // Inside a 360° photo the way the headset looks is not a direction on Mars: no heading arrow.
+            miniMap.SetHeading(false, 0f);
+            if (app.wristMap != null) app.wristMap.SetHeading(false, 0f);
             WalkbackLog.Info("HUD at " + s.stopName + ": O2 " + s.oxygenLeftPercent.ToString("F1") + " %, back " + s.returnMinutes.ToString("F1") + " min, next " + s.nextName + " " + s.nextMeters.ToString("F0") + " m");
         }
 

@@ -78,6 +78,8 @@ namespace Walkback
         public bool Fading { get; private set; }
         public float CurtainAlpha { get; private set; }
         public bool CardShown { get; private set; }
+        /// <summary>Which way the user looks on Mars, in degrees clockwise from north (for the arrows on the maps).</summary>
+        public float HeadingDegrees { get; private set; }
         /// <summary>True in the room: the route and the pillar lie on the flat real floor instead of the relief.</summary>
         public bool Flat { get { return Current == Mode.Room; } }
 
@@ -165,6 +167,7 @@ namespace Walkback
             }
             else if (head != null) SetGroundHeight(MetersOf(head.position));
             if (head != null) Refresh(head, MetersOf(head.position));
+            if (head != null) ShowHeading(head);
             if (app.hud != null && head != null) app.hud.SnapTo(head);
             WalkbackLog.Info("Mission mode: " + Current + (Current == Mode.Mars ? " (Mars all around, 1:1)" : " (the room, HUD and route on the real floor)"));
         }
@@ -381,6 +384,7 @@ namespace Walkback
             Vector2 here = MetersOf(head.position);
             Progress.Walk(here);
             if (followGround) SetGroundHeight(here);
+            ShowHeading(head);
 
             refreshIn -= deltaTime;
             if (refreshIn <= 0f) Refresh(head, here);
@@ -388,6 +392,15 @@ namespace Walkback
             // Every frame, so a press of X (keep the wrist map) is never missed.
             if (app.wristMap != null && Application.isPlaying) app.HoldWristMap(head);
             if (pillarLabel != null) pillarLabel.Face(head.position);
+        }
+
+        /// <summary>The way the head looks, as a direction on Mars, goes to the "you" arrows of the mini map and the wrist map.</summary>
+        void ShowHeading(Transform head)
+        {
+            Vector3 onMars = mars.InverseTransformDirection(FlatForward(head));
+            HeadingDegrees = Mathf.Repeat(Mathf.Atan2(onMars.x, onMars.z) * Mathf.Rad2Deg, 360f);
+            if (app.hud != null && app.hud.miniMap != null) app.hud.miniMap.SetHeading(true, HeadingDegrees);
+            if (app.wristMap != null) app.wristMap.SetHeading(true, HeadingDegrees);
         }
 
         /// <summary>

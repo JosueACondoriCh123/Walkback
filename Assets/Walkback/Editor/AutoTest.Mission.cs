@@ -133,6 +133,23 @@ namespace Walkback.EditorTools
                     (mission.MetersOf(cam.transform.position) - mission.Progress.PointAt(mission.Progress.RouteMeters)).magnitude < 0.01f,
                     pillarMeters.ToString("F2") + " m ahead, " + Vector3.Angle(toPillar, Vector3.forward).ToString("F1") + "° off");
 
+                // ---- The arrows on the maps: the way the user looks, as a direction on Mars
+                Vector2 toStop = mission.Progress.LegTarget(mission.Progress.Leg) - mission.MetersOf(cam.transform.position);
+                float bearing = Mathf.Repeat(Mathf.Atan2(toStop.x, toStop.y) * Mathf.Rad2Deg, 360f);
+                mission.Tick(cam.transform, 0.01f);
+                MiniMap miniMap = app.hud.miniMap;
+                bool arrowAhead = Mathf.Abs(Mathf.DeltaAngle(mission.HeadingDegrees, bearing)) < 1f && miniMap.HeadingKnown && miniMap.youHeading != null && miniMap.youHeading.gameObject.activeSelf &&
+                    Mathf.Abs(Mathf.DeltaAngle(miniMap.you.localEulerAngles.z, -bearing)) < 1f && app.wristMap.youNose != null && app.wristMap.youNose.gameObject.activeSelf &&
+                    Mathf.Abs(Mathf.DeltaAngle(app.wristMap.youPin.localEulerAngles.y, bearing)) < 1f;
+                Quaternion lookingAtStop = cam.transform.rotation;
+                cam.transform.rotation = Quaternion.AngleAxis(90f, Vector3.up) * lookingAtStop;
+                mission.Tick(cam.transform, 0.01f);
+                bool arrowTurned = Mathf.Abs(Mathf.DeltaAngle(mission.HeadingDegrees, bearing + 90f)) < 1f && Mathf.Abs(Mathf.DeltaAngle(miniMap.you.localEulerAngles.z, -(bearing + 90f))) < 1f;
+                cam.transform.rotation = lookingAtStop;
+                mission.Tick(cam.transform, 0.01f);
+                Check("Mission maps: the \"you\" marks are arrows that point where the user looks (toward the stop, then 90° to the right)",
+                    arrowAhead && arrowTurned, "heading " + mission.HeadingDegrees.ToString("F0") + "°, stop at " + bearing.ToString("F0") + "°");
+
                 // ---- Walking: the headset's position moves the numbers; nothing else moves
                 Vector3 marsBefore = mission.mars.position;
                 var before = mission.Last;
