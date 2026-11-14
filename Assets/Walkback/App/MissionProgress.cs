@@ -89,8 +89,35 @@ namespace Walkback
         public float TotalMeters { get { return along[along.Length - 1]; } }
         public float LegStart(int leg) { return along[plan.Legs[leg].FirstPoint]; }
         public float LegEnd(int leg) { return along[plan.Legs[leg].LastPoint]; }
-        /// <summary>Route meters of the point a jump lands on for this leg: ApproachMeters before its end (or its start, if shorter).</summary>
-        public float ApproachOf(int leg) { return Mathf.Max(LegStart(leg), LegEnd(leg) - ApproachMeters); }
+        /// <summary>
+        /// Route meters of the point a jump lands on for this leg: the last point of its route that is
+        /// ApproachMeters from the stop IN A STRAIGHT LINE (so the user really walks that far to the pillar),
+        /// or the leg's start if the whole leg is closer. On a grid the route zigzags near its end:
+        /// 5 m of route back can be under 2 m from the stop, which is why it is not counted along the route.
+        /// </summary>
+        public float ApproachOf(int leg)
+        {
+            MissionFallback.Leg l = plan.Legs[leg];
+            Vector2 target = plan.Path[l.LastPoint];
+            float r = ApproachMeters;
+            for (int i = l.LastPoint - 1; i >= l.FirstPoint; i--)
+            {
+                Vector2 a = plan.Path[i], b = plan.Path[i + 1];
+                if (Vector2.Distance(a, target) < r) continue;
+                // a is at least r from the stop and b is closer: find t on a -> b with |a + t(b - a) - target| = r.
+                Vector2 d = b - a, f = a - target;
+                float qa = Vector2.Dot(d, d), qb = 2f * Vector2.Dot(f, d), qc = Vector2.Dot(f, f) - r * r;
+                float t = 0f;
+                if (qa > 1e-8f)
+                {
+                    float disc = Mathf.Max(0f, qb * qb - 4f * qa * qc);
+                    // Walking from a toward b, the first crossing of the circle is the smaller root.
+                    t = Mathf.Clamp01((-qb - Mathf.Sqrt(disc)) / (2f * qa));
+                }
+                return along[i] + t * (along[i + 1] - along[i]);
+            }
+            return LegStart(leg);
+        }
         /// <summary>The stop (or the habitat) the leg ends at, in local meters.</summary>
         public Vector2 LegTarget(int leg) { return plan.Path[plan.Legs[leg].LastPoint]; }
 

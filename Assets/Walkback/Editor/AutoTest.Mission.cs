@@ -128,8 +128,8 @@ namespace Walkback.EditorTools
                 Vector3 toPillar = mission.pillar.position - cam.transform.position;
                 toPillar.y = 0f;
                 float pillarMeters = toPillar.magnitude;
-                Check("Mission jump: the stop's pillar stands a few meters straight ahead (5 m of route or less)",
-                    pillarMeters > 0.5f && pillarMeters <= MissionProgress.ApproachMeters + 0.05f && Vector3.Angle(toPillar, Vector3.forward) < 1f &&
+                Check("Mission jump: the stop's pillar stands 5 m straight ahead (a real walk to it, not one step)",
+                    pillarMeters > MissionProgress.ApproachMeters - 0.1f && pillarMeters <= MissionProgress.ApproachMeters + 0.05f && Vector3.Angle(toPillar, Vector3.forward) < 1f &&
                     (mission.MetersOf(cam.transform.position) - mission.Progress.PointAt(mission.Progress.RouteMeters)).magnitude < 0.01f,
                     pillarMeters.ToString("F2") + " m ahead, " + Vector3.Angle(toPillar, Vector3.forward).ToString("F1") + "° off");
 

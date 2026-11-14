@@ -30,7 +30,7 @@ namespace Walkback
             var keyboard = Keyboard.current;
             Transform head = HeadTransform();
 
-            // VERIFY IN THE SDK: OVRInput.Button.Start (the left controller's menu button) is not used anywhere else in the project.
+            // OVRInput.Button.Start is the left controller's menu button (checked in Meta XR SDK 209: "Touch, LTouch: Start").
             bool next = (keyboard != null && keyboard.mKey.wasPressedThisFrame) || (!DesktopMode && OVRInput.GetDown(OVRInput.Button.Start));
             if (next) mission.NextMode(head);
             if (!MissionActive) return;
