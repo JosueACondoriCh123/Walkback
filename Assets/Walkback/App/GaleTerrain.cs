@@ -165,7 +165,7 @@ namespace Walkback
             if (!Site.IsMarsData)
                 return "TEST TERRAIN · synthetic shape for development · not Mars data";
             var info = Site.Info;
-            string place = (string.IsNullOrEmpty(info.name) ? "Mars" : info.name.ToUpperInvariant()) + " · " + (Site.SideMeters / 1000f).ToString("0.#") + " km²";
+            string place = (string.IsNullOrEmpty(info.name) ? "Mars" : info.name.ToUpperInvariant()) + " · " + (Site.SideMeters / 1000f).ToString("0.#", System.Globalization.CultureInfo.InvariantCulture) + " km²";
             place += " · " + Math.Abs(info.centerLat).ToString("F2", System.Globalization.CultureInfo.InvariantCulture) + "° " + (info.centerLat < 0 ? "S" : "N") +
                      ", " + Math.Abs(info.centerLon).ToString("F2", System.Globalization.CultureInfo.InvariantCulture) + "° " + (info.centerLon < 0 ? "W" : "E");
             var source = Site.ElevationSource;

@@ -263,7 +263,9 @@ namespace Walkback
 
         static string Minutes(float m)
         {
-            return (Mathf.Approximately(m, Mathf.Round(m)) ? m.ToString("0") : m.ToString("0.#")) + " min";
+            // Always a decimal point: the UI is in English whatever the headset's language ("7.5 min", never "7,5 min").
+            var culture = System.Globalization.CultureInfo.InvariantCulture;
+            return (Mathf.Approximately(m, Mathf.Round(m)) ? m.ToString("0", culture) : m.ToString("0.#", culture)) + " min";
         }
 
         // ---------------------------------------------------------------- conditions
