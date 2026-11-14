@@ -48,10 +48,10 @@
   {
    "layer": "globe",
    "mission": "Viking",
-   "instrument": "Orbiter cameras (NASA 3D Resources texture)",
-   "resolution": "0.25° per pixel (1440 x 720)",
-   "id": "Mars.jpg",
-   "credit": "NASA/JPL-Caltech; Viking images processed at the USGS"
+   "instrument": "Orbiter cameras (MDIM 2.1 colour mosaic)",
+   "resolution": "1 km per pixel, shown at 4096 x 2048",
+   "id": "mars_viking_mdim21_clrmosaic_1km",
+   "credit": "NASA/JPL/USGS"
   },
   {
    "layer": "panorama",
