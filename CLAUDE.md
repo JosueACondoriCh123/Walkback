@@ -12,16 +12,17 @@ Deadlines: code freeze Sun 15/11 10:00 · submit 11:00 · the venue closes submi
 - **Fable 5.2 only for:** (1) wiring C's model into the app (route, return map, verdict: a wrong number on screen loses the defense), (2) mission mode and the MR ↔ VR button (guion §22.9), (3) a bug Opus could not close in two tries, (4) the last check before the freeze on Sunday. Close the Fable session when that piece is done.
 - Check Claude usage at noon and at 17:00; if Fable is above 70 % of its limit, everything goes to Opus.
 
-**Where things stand (14/11, 11:15):**
+**Where things stand (14/11, 13:50):**
 
-1. Four local commits on `main`; the last one (`49b3df9`) is "Gale terrain and layers". Branches `model`, `docs` and `web` exist locally at commit 2.
-2. **On GitHub since 11:18:** `main`, `model`, `docs` and `web` pushed and tracking `origin` (7 s, after Daniel changed WiFi). Five earlier pushes (10:49 to 11:14) failed on the first venue WiFi (SSL cut, connection reset, no DNS for github.com). If a push hangs again, ask Daniel which network the laptop is on before retrying.
-3. **"Gale terrain and layers" is written and passes the test** (65 checks, seven screenshots, still on the synthetic terrain). `SiteLoader` reads `Assets/StreamingAssets/Site/` by the contract and falls back to the synthetic terrain with its "not Mars data" label; `GaleTerrain` paints height (10 m contours), slope (Okabe-Ito blue under 10°, orange 10–20°, vermilion hatched over 20°) and return on foot (5-minute rings, habitat dot). The return layer is `ReturnStandIn` (straight line at 19.3 min/km), labelled PLACEHOLDER on the panel: swap it for C's `ReturnMap` (a Fable piece). Desktop mode: keys 1, 2, 3 switch layers. **When B's package lands**, just rerun the test: the site checks (contract fields, every source named, panel naming mission, instrument and resolution) switch on by themselves.
-4. **Next piece: "Route, return map, stops and pillars"** needs C's model in `Assets/Walkback/Model/` (Fable). While it is missing, Opus can do the piece after it: "Pointer, table, globe and jump" (layer buttons on the panel go there).
-5. `ProjectSettings/AudioManager.asset` changed by itself (Meta XR Audio as spatializer, likely Meta's setup tool). Left uncommitted: ask Daniel.
-6. Running the test with Unity open: the trigger file can be picked up *before* Unity recompiles new code, so the first run after an edit may test the old scripts. Give Unity focus, wait for the compile, then create `Temp/walkback-run-test` again and check the report's time.
-7. Unity closed by itself at 10:42 with a GPU error (`d3d12: device removed`, 887a0005) right after importing scripts. Not caused by the code. If it repeats, tell Daniel and start Unity with `-force-d3d11`. It did not repeat at 11:09–11:12.
-8. Still unseen in the Quest: the scene and the three layers (passthrough, table, panel text over the room). Daniel builds it; read `adb logcat` yourself. Also unseen by Daniel: the seven screenshots in `TestOutput/`.
+1. **`main` on GitHub has every piece** (last push 13:20). The automatic test passed 246 of 246 at 13:20. History rewritten without AI co-author lines at 12:57 (see below).
+2. **Session A was not running at 12:35.** The session that did the data (session B, "Gale boxwork DEM analysis") took over A's role: it reviewed, tested and committed the four agents' pieces and wrote the helmet HUD.
+3. **B's site package is on `main`:** real Gale from the Mars Trek HiRISE DEM (its slopes match Curiosity's own tilt sensor within 2.0° on 85 positions; the USGS v3 DEM was worse, 6.2°: `DATA.md`), the HiRISE 25 cm photo, two stops at the rover's drill positions, Curiosity's path, current conditions (REMS sol 4995, DONKI), the Viking globe, the Nevado Sajama 360° photo, two NASA 3D models (they need glTFast, not installed).
+4. **App pieces done:** terrain with four layers (PHOTO first: the HiRISE photo on the relief; HEIGHT, SLOPE, RETURN), panel, pillars with the straight line, pointer and table, globe and jump, **helmet HUD with the 2D corner map and the 3D wrist map** (they show after JUMP TO SITE, inside the 360° photo). The HUD numbers are `HudEstimate` (straight lines, flat ground, ficha A test numbers) and say ESTIMATE on screen; the return layer is `ReturnStandIn` (PLACEHOLDER); the verdict says NO ROUTE YET. All three wait for C's model.
+5. **Next (Fable pieces):** wire C's model (`Assets/Walkback/Model/`, not on any branch yet at 13:50) into the route, the return map, the verdict and the HUD numbers (replace `HudEstimate` and `ReturnStandIn`); then mission mode and the MR ↔ VR button.
+6. **Waiting on Daniel:** the habitat (proposal x 514.8, y 777, on Curiosity's path, 330 m north of the stops); more real stops (the two are 10 m apart: research prompts R8-1 and R8-2 in the vault's prompt file); the project settings his 13:44 build changed (uncommitted: ProjectSettings, OVRBuildConfig, URP assets, AudioManager); installing glTFast; the `pitch` branch (another session's worktree) still sits on the old history and needs a rebase onto `main`.
+7. Running the test with Unity open: the trigger file can be picked up *before* Unity recompiles new code, so the first run after an edit may test the old scripts. Give Unity focus, wait for the compile, then create `Temp/walkback-run-test` again and check the report's time. During a player build the runner says NO UNITY (the window title changes): wait.
+8. Unity closed by itself at 10:42 with a GPU error (`d3d12: device removed`, 887a0005) right after importing scripts. Not caused by the code. If it repeats, tell Daniel and start Unity with `-force-d3d11`.
+9. Still unseen in the Quest: everything after the first build (Daniel's build at 13:44 has the HUD and the photo). Read `adb logcat` yourself.
 
 **Parallel burst (Daniel, 14/11 11:20: "abrí aunque sea 3 agentes que cada uno toque partes diferentes"), started 11:35:**
 
@@ -85,15 +86,15 @@ Unity **6000.4.6f1** (the 2022.3 also installed is not used) · Meta XR SDK **20
 
 | Piece | Written | Compiles | Passes the test without headset | Seen in the Quest |
 |---|---|---|---|---|
-| Scene built by code + automatic test | ✅ | ✅ | ✅ 10:46, 32 checks | ⬜ |
-| Gale terrain and layers (height, slope, return) | ✅ | ✅ | ✅ 11:12, 65 checks (synthetic terrain; return is a placeholder) | ⬜ |
-| Route, return map, stops and pillars (with C's model) | ⬜ | ⬜ | ⬜ | ⬜ |
-| Panel: verdict, legend, conditions, stop cards | ⬜ | ⬜ | ⬜ | ⬜ |
-| Pointer, table, globe and jump | ⬜ | ⬜ | ⬜ | ⬜ |
-| Helmet HUD | ⬜ | ⬜ | ⬜ | ⬜ |
+| Scene built by code + automatic test | ✅ | ✅ | ✅ 13:20, 246 checks | ⬜ |
+| Gale terrain and layers (photo, height, slope, return) | ✅ | ✅ | ✅ 13:20, real Gale (return is a placeholder) | ⬜ |
+| Route, return map, stops and pillars (with C's model) | Pillars and straight line ✅; route with C's model ⬜ | ✅ | ✅ 13:20 (pillars) | ⬜ |
+| Panel: verdict, legend, conditions, stop cards | ✅ (verdict waits for C) | ✅ | ✅ 13:20 | ⬜ |
+| Pointer, table, globe and jump | ✅ | ✅ | ✅ 13:20 | ⬜ |
+| Helmet HUD, 2D corner map, 3D wrist map | ✅ (numbers are estimates until C) | ✅ | ✅ 13:20 | ⬜ |
 | Mission mode + MR ↔ VR button | ⬜ | ⬜ | ⬜ | ⬜ |
 
-**The test without the headset** (`Assets/Walkback/Editor/AutoTest.cs`; report and screenshots in `TestOutput/`, not committed; ~50 s): Unity closed → `Unity.exe -batchmode -projectPath . -executeMethod Walkback.EditorTools.AutoTest.RunBatch -logFile TestOutput/unity.log` · Unity open → menu *Walkback > Run Auto Test*, or create the file `Temp/walkback-run-test` and the editor runs it by itself once its window has had focus. The scene is rebuilt by `Walkback > Build Scene` (`SceneBuilder.cs`): never edit `Walkback.unity` by hand. The terrain on the table is still `TestTerrain` (synthetic, labelled on the panel as not Mars data) until B's site package arrives.
+**The test without the headset** (`Assets/Walkback/Editor/AutoTest.cs`; report and screenshots in `TestOutput/`, not committed; ~50 s): Unity closed → `Unity.exe -batchmode -projectPath . -executeMethod Walkback.EditorTools.AutoTest.RunBatch -logFile TestOutput/unity.log` · Unity open → menu *Walkback > Run Auto Test*, or create the file `Temp/walkback-run-test` and the editor runs it by itself once its window has had focus. The scene is rebuilt by `Walkback > Build Scene` (`SceneBuilder.cs`): never edit `Walkback.unity` by hand. Since 11:56 the terrain on the table is B's real Gale package; without it the app falls back to the synthetic `TestTerrain`, labelled as not Mars data.
 
 A piece is done when it compiles, passes the automatic test without the headset (with screenshots) and Daniel has seen it, in a screenshot or in the headset (guion §24).
 
