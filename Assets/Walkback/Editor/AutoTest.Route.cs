@@ -299,10 +299,11 @@ namespace Walkback.EditorTools
                 flat.GridMeters > flat.WalkMeters + 100f && flat.Shortcuts > 0 && flat.Path.Count > 100,
                 (flat.GridMeters / 2f).ToString("F0") + " m on the grid -> " + flat.Legs[0].Meters.ToString("F0") + " m, straight " + straight.ToString("F0") + " m");
 
-            // A no-go wall from the north edge down to y = 250 m, across the straight line: the route goes around its end.
+            // A no-go wall from the north edge down to y = 150 m, well across the straight line (which passes x = 500 m at
+            // y = 250 m): the route goes around its end. (Ending the wall at 250 m left a legal path past its tip only 0.07 m longer.)
             int wallColumn = n / 2;
             for (int r = 0; r < n; r++)
-                if (site.SideMeters - r * spacing > 250f) slope[r * n + wallColumn] = TerrainLayers.SlopeLimitDegrees + 5f;
+                if (site.SideMeters - r * spacing > 150f) slope[r * n + wallColumn] = TerrainLayers.SlopeLimitDegrees + 5f;
             var walled = MissionFallback.Make(site, slope, 100f);
             int onWall = 0;
             foreach (Vector2 p in walled.Path)

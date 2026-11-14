@@ -267,7 +267,8 @@ namespace Walkback
         /// <summary>
         /// Minutes to walk the straight line from a to b by the same rules as the grid (ReturnFallback):
         /// same flat pace and slope factor, no step steeper than the limit, and no point of the line
-        /// inside a cell that has a no-go corner. It reads the ground every half grid step.
+        /// inside a cell that has a no-go corner. It reads the ground every quarter grid step (about 1 m), so a
+        /// shortcut cannot clip the corner of no-go ground between two readings.
         /// False when the line is not walkable.
         /// </summary>
         public static bool StraightMinutes(SiteData site, float[] slopeDegrees, Vector2 a, Vector2 b, out float minutes)
@@ -278,7 +279,7 @@ namespace Walkback
             if (!Walkable(site, slopeDegrees, a)) return false;
             float maxGrade = Mathf.Tan(TerrainLayers.SlopeLimitDegrees * Mathf.Deg2Rad);
             float pace = ReturnStandIn.FlatMinutesPerKilometer / 1000f;
-            int steps = Mathf.Max(1, Mathf.CeilToInt(meters / (site.NodeSpacing / 2f)));
+            int steps = Mathf.Max(1, Mathf.CeilToInt(meters / (site.NodeSpacing / 4f)));
             float step = meters / steps;
             float previous = RouteGeometry.HeightAt(site, a.x, a.y);
             double total = 0.0;
