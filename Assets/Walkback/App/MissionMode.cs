@@ -466,6 +466,24 @@ namespace Walkback
             return t < 0.5f ? t * 2f : (1f - t) * 2f;
         }
 
+        /// <summary>
+        /// Runs a change of world behind the curtain: it closes, <paramref name="change"/> runs, it opens.
+        /// For other pieces that swap what surrounds the user (the jump into a stop's 360° photo).
+        /// Without a curtain, or outside Play (the automatic test), the change runs at once.
+        /// False, and nothing happens, while another fade is still running.
+        /// </summary>
+        public bool BehindCurtain(float seconds, Transform head, System.Action change)
+        {
+            if (Fading || change == null) return false;
+            if (curtain == null || head == null || !Application.isPlaying)
+            {
+                change();
+                return true;
+            }
+            StartCoroutine(FadeThen(seconds, head, change));
+            return true;
+        }
+
         IEnumerator FadeThen(float seconds, Transform head, System.Action change)
         {
             Fading = true;

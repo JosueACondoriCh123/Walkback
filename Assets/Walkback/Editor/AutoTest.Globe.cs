@@ -132,6 +132,12 @@ namespace Walkback.EditorTools
             Check("Jump: the pointer's own ray is long enough to reach the photo sphere", Pointer.MaxDistance > SiteJump.SphereRadius && reaches,
                 "ray " + Pointer.MaxDistance.ToString("0.#", System.Globalization.CultureInfo.InvariantCulture) + " m, sphere " + SiteJump.SphereRadius.ToString("0.#", System.Globalization.CultureInfo.InvariantCulture) + " m");
             jump.OnPointerClick(hit.point);
+            // In and out of the photo go behind the mission mode's curtain at runtime; outside Play the
+            // same calls change the world at once, which is what this test drives.
+            bool curtainRan = false;
+            bool curtainTook = app.mission != null && app.mission.BehindCurtain(MissionMode.FadeSeconds, app.desktopCamera.transform, () => curtainRan = true);
+            Check("Jump: the way in and out of the photo goes behind the fade curtain (at once outside Play)",
+                !jump.Inside && app.mission != null && app.mission.curtain != null && curtainTook && curtainRan && !app.mission.Fading && !app.mission.curtain.gameObject.activeSelf);
             Check("Jump: back at the table, everything as before",
                 !jump.Inside && !jump.sphere.activeSelf && app.table.gameObject.activeSelf == tableWas && app.mapRoot.gameObject.activeSelf && app.panel.gameObject.activeSelf == panelWas && !app.MapControlsLocked);
 

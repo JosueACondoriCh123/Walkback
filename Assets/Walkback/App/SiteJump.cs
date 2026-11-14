@@ -61,8 +61,45 @@ namespace Walkback
             return "Site/panorama_" + stop.panorama + ".jpg";
         }
 
-        /// <summary>Runtime: jump to stop <paramref name="index"/> of the site, or say there is no photo.</summary>
+        /// <summary>
+        /// Runtime: jump to stop <paramref name="index"/> of the site, or say there is no photo.
+        /// The room never turns into the photo in one frame: the change runs behind the mission mode's
+        /// curtain (Walkback/Fade), which also hides the moment the photo is decoded. A stop without a
+        /// photo says so at once, with no curtain. Outside Play (the automatic test) it is immediate.
+        /// </summary>
         public void Jump(int index)
+        {
+            EnsureBuilt();
+            var stops = app != null && app.terrain != null && app.terrain.Site != null ? app.terrain.Site.Stops : null;
+            bool hasPhoto = stops != null && index >= 0 && index < stops.Length && !string.IsNullOrEmpty(stops[index].panorama);
+            MissionMode mission = app != null ? app.mission : null;
+            if (hasPhoto && mission != null)
+            {
+                // False while another fade runs: the press is dropped, nothing half-changes.
+                mission.BehindCurtain(MissionMode.FadeSeconds, ViewerTransform(), () => JumpNow(index));
+                return;
+            }
+            JumpNow(index);
+        }
+
+        /// <summary>
+        /// Back to the table the same way: behind the curtain. Called by a press on the photo, by B and
+        /// by Escape or Backspace.
+        /// </summary>
+        public void Leave()
+        {
+            if (!Inside) return;
+            MissionMode mission = app != null ? app.mission : null;
+            if (mission != null)
+            {
+                mission.BehindCurtain(MissionMode.FadeSeconds, ViewerTransform(), ExitJump);
+                return;
+            }
+            ExitJump();
+        }
+
+        /// <summary>The jump itself, at once: loads the stop's photo and surrounds the viewer with it.</summary>
+        public void JumpNow(int index)
         {
             EnsureBuilt();
             var stops = app != null && app.terrain != null && app.terrain.Site != null ? app.terrain.Site.Stops : null;
@@ -184,7 +221,7 @@ namespace Walkback
             // Ways back besides pressing: B on the right controller, Escape or Backspace on the keyboard.
             var keyboard = UnityEngine.InputSystem.Keyboard.current;
             bool key = keyboard != null && (keyboard.escapeKey.wasPressedThisFrame || keyboard.backspaceKey.wasPressedThisFrame);
-            if (key || OVRInput.GetDown(OVRInput.Button.Two)) ExitJump();
+            if (key || OVRInput.GetDown(OVRInput.Button.Two)) Leave();
         }
 
         /// <summary>The photo as is, or a copy scaled down to <paramref name="maxWidth"/> (keeps the 2:1 shape).</summary>
@@ -238,6 +275,6 @@ namespace Walkback
 
         public void OnPointerEnter() { }
         public void OnPointerExit() { }
-        public void OnPointerClick(Vector3 worldPoint) { if (Inside) ExitJump(); }
+        public void OnPointerClick(Vector3 worldPoint) { if (Inside) Leave(); }
     }
 }
