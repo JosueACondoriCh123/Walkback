@@ -48,6 +48,15 @@ namespace Walkback.EditorTools
                 hud.oxygenCard.lines[0].text.Contains("%") && hud.returnCard.lines[0].text.Contains("min") && hud.nextCard.lines[0].text.StartsWith("NEXT"),
                 hud.oxygenCard.lines[0].text + " | " + hud.returnCard.lines[0].text + " | " + hud.nextCard.lines[0].text + " | " + hud.nextCard.lines[1].text);
             Check("HUD: every number is labelled as an estimate until session C's model lands (rule 1)", hud.estimateTag.gameObject.activeSelf && hud.estimateTag.lines[0].text.StartsWith("ESTIMATE"));
+            // The visor and the map on the table must agree on the way back from this stop.
+            {
+                int hn = site.GridSize;
+                int hc = Mathf.Clamp(Mathf.RoundToInt(stopInfo.x / site.NodeSpacing), 0, hn - 1);
+                int hr = Mathf.Clamp(Mathf.RoundToInt((site.SideMeters - stopInfo.y) / site.NodeSpacing), 0, hn - 1);
+                float onMap = app.terrain.ReturnMinutes[hr * hn + hc];
+                Check("HUD: the way back is the same number as the map's return layer", float.IsInfinity(onMap) || Mathf.Abs(hud.Current.returnMinutes - onMap) < 0.01f,
+                    "visor " + hud.Current.returnMinutes.ToString("F1") + " min, map " + onMap.ToString("F1") + " min");
+            }
             Check("HUD: no TURN BACK warning at this stop", !hud.warningCard.gameObject.activeSelf);
 
             Vector3 eye = cam.transform.position;

@@ -36,7 +36,8 @@ namespace Walkback
         {
             SiteData site = app != null && app.terrain != null ? app.terrain.Site : null;
             if (site == null || site.Stops.Length == 0) { Hide(); return; }
-            var s = HudEstimate.AtStop(site, index);
+            // The way back is read from the same return layer the map on the table shows.
+            var s = HudEstimate.AtStop(site, index, app.terrain.ReturnMinutes);
             Current = s;
             AtStop = s.stop;
 
@@ -47,7 +48,9 @@ namespace Walkback
             nextCard.SetLines("NEXT  " + s.nextName,
                 MetersText(s.nextMeters) + "  ·  " + MinutesText(s.nextMinutes) + "  ·  O2 -" + F(s.nextOxygenPercent, "0.0") + " %",
                 s.taskMinutes > 0f ? "Tasks here: " + F(s.taskMinutes, "0") + " min" : "");
-            estimateTag.SetLines(site.IsMarsData ? HudEstimate.Label : HudEstimate.Label + "  ·  TEST TERRAIN, not Mars data");
+            // Say what the numbers are: only the fallback's return layer follows the relief.
+            string tag = s.returnFromMap && app.terrain.ReturnPlaceholderLabel == ReturnFallback.Label ? HudEstimate.LabelWithReturnMap : HudEstimate.Label;
+            estimateTag.SetLines(site.IsMarsData ? tag : tag + "  ·  TEST TERRAIN, not Mars data");
             warningCard.SetLines("TURN BACK NOW");
             warningCard.gameObject.SetActive(s.turnBack);
 

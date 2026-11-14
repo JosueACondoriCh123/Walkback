@@ -19,6 +19,10 @@ namespace Walkback
         public const float FlatMinutesPerKilometer = ReturnStandIn.FlatMinutesPerKilometer;
         public const float DesignLitersPerMinute = TankLiters / 480f;
         public const string Label = "ESTIMATE: straight lines on flat ground, not the walking model yet";
+        /// <summary>The tag when the way back is read from the map's return layer (ReturnFallback) instead of a straight line.</summary>
+        public const string LabelWithReturnMap = "ESTIMATE: way back over the relief, rest in straight lines, no walking model yet";
+        /// <summary>Oxygen per minute of walking, from the same two test numbers (20 L and 19.3 min per km on flat ground).</summary>
+        public const float WalkLitersPerMinute = FlatLitersPerKilometer / FlatMinutesPerKilometer;
 
         /// <summary>What the astronaut's visor shows on arrival at a stop of the plan.</summary>
         public struct State
@@ -31,6 +35,8 @@ namespace Walkback
             public float returnMinutes;
             public float returnLiters;
             public bool turnBack;
+            /// <summary>True when returnMinutes was read from the map's return layer, not a straight line.</summary>
+            public bool returnFromMap;
             public string nextName;
             public Vector2 nextPoint;
             public float nextMeters;
@@ -54,6 +60,31 @@ namespace Walkback
             if (stop != null && stop.tasks != null)
                 foreach (var t in stop.tasks) if (t != null) total += t.minutes;
             return total;
+        }
+
+        /// <summary>
+        /// Same as AtStop(site, index), but the way back comes from the map's own return layer
+        /// (<paramref name="returnMinutes"/>: minutes back from every node, row 0 = north), so the visor and
+        /// the map on the table never show two different numbers for the same place. Oxygen for the way
+        /// back is those minutes at the walking rate. If the map has no value for the stop's node (no way
+        /// back on foot, or no map), the straight-line estimate stays.
+        /// </summary>
+        public static State AtStop(SiteData site, int index, float[] returnMinutes)
+        {
+            State s = AtStop(site, index);
+            int n = site.GridSize;
+            if (returnMinutes == null || returnMinutes.Length != n * n) return s;
+            float spacing = site.NodeSpacing;
+            int column = Mathf.Clamp(Mathf.RoundToInt(s.here.x / spacing), 0, n - 1);
+            int row = Mathf.Clamp(Mathf.RoundToInt((site.SideMeters - s.here.y) / spacing), 0, n - 1);
+            float minutes = returnMinutes[row * n + column];
+            if (float.IsNaN(minutes) || float.IsInfinity(minutes)) return s;
+            float used = TankLiters * (1f - s.oxygenLeftPercent / 100f);
+            s.returnMinutes = minutes;
+            s.returnLiters = minutes * WalkLitersPerMinute;
+            s.turnBack = TurnBack(used, s.returnLiters);
+            s.returnFromMap = true;
+            return s;
         }
 
         /// <summary>On arrival at stop <paramref name="index"/>, walking habitat -> stops in order (work done at the earlier stops).</summary>
