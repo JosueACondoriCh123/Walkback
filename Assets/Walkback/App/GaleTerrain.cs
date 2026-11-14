@@ -46,7 +46,7 @@ namespace Walkback
         }
         public MapLayer Layer { get; private set; } = MapLayer.Photo;
         /// <summary>Width of the photo on the table (memory on the Quest: 2048 px is 0.5 mm per pixel on a 1 m map).</summary>
-        public const int PhotoSize = 2048;
+        public const int PhotoSize = 4096;
         /// <summary>False when the site package has no ortho.jpg (the synthetic terrain): PHOTO shows HEIGHT instead.</summary>
         public bool HasPhoto { get; private set; }
         /// <summary>Milliseconds each layer took to paint (0 = not painted yet).</summary>
@@ -165,13 +165,37 @@ namespace Walkback
             return texture;
         }
 
-        /// <summary>Site/ortho.jpg scaled to size x size with mipmaps; null if it cannot be read.</summary>
+        /// <summary>Anisotropic filtering of the photo: the ground is seen at a grazing angle (above all at real scale, in mission mode).</summary>
+        public const int PhotoAniso = 16;
+
+        /// <summary>
+        /// Site/ortho.jpg with mipmaps; null if it cannot be read. At its own size (4096 px over 1 km = 24 cm per
+        /// pixel, the resolution of the HiRISE mosaic) it is decoded straight into the texture, with no resampling;
+        /// a larger file is scaled down to size x size.
+        /// </summary>
         static Texture2D LoadPhoto(int size)
         {
             byte[] bytes = SiteLoader.ReadStreamingAsset(SiteLoader.SiteFolder + "/ortho.jpg");
             if (bytes == null) return null;
-            var full = new Texture2D(2, 2, TextureFormat.RGB24, false) { hideFlags = HideFlags.DontSave };
-            if (!full.LoadImage(bytes, false)) { DestroySafe(full); return null; }
+            var direct = new Texture2D(2, 2, TextureFormat.RGB24, true)
+            {
+                name = "Paint_Photo",
+                wrapMode = TextureWrapMode.Clamp,
+                filterMode = FilterMode.Trilinear,
+                anisoLevel = PhotoAniso,
+                hideFlags = HideFlags.DontSave,
+            };
+            if (!direct.LoadImage(bytes, false)) { DestroySafe(direct); return null; }
+            if (direct.width <= size && direct.height <= size)
+            {
+                direct.wrapMode = TextureWrapMode.Clamp;
+                direct.filterMode = FilterMode.Trilinear;
+                direct.anisoLevel = PhotoAniso;
+                // In the headset the CPU copy is dropped once the mipmaps are on the GPU.
+                direct.Apply(true, Application.isPlaying);
+                return direct;
+            }
+            var full = direct;
             var rt = RenderTexture.GetTemporary(size, size, 0, RenderTextureFormat.ARGB32, RenderTextureReadWrite.sRGB);
             Graphics.Blit(full, rt);
             var previous = RenderTexture.active;
@@ -181,7 +205,7 @@ namespace Walkback
                 name = "Paint_Photo",
                 wrapMode = TextureWrapMode.Clamp,
                 filterMode = FilterMode.Trilinear,
-                anisoLevel = 4,
+                anisoLevel = PhotoAniso,
                 hideFlags = HideFlags.DontSave,
             };
             photo.ReadPixels(new Rect(0, 0, size, size), 0, 0);

@@ -432,7 +432,7 @@ namespace Walkback.EditorTools
             {
                 renderer.GetPropertyBlock(block);
                 var photo = terrain.LayerTexture(MapLayer.Photo);
-                Check("Layer Photo: the HiRISE photo lies on the relief, 2048 px", block.GetTexture("_BaseMap") == photo && photo.width == GaleTerrain.PhotoSize && terrain.Layer == MapLayer.Photo,
+                Check("Layer Photo: the HiRISE photo lies on the relief at full resolution (4096 px, 24 cm per pixel), anisotropic 16", block.GetTexture("_BaseMap") == photo && photo.width == GaleTerrain.PhotoSize && photo.anisoLevel == GaleTerrain.PhotoAniso && photo.mipmapCount > 1 && terrain.Layer == MapLayer.Photo,
                     "loaded in " + terrain.PaintMilliseconds[(int)MapLayer.Photo] + " ms");
                 Check("Layer Photo names its mission, instrument and resolution on the panel", app.panel.legendLine.text.StartsWith("PHOTO") && app.panel.legendLine.text.Contains("HiRISE"), app.panel.legendLine.text);
             }
