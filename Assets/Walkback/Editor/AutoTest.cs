@@ -39,6 +39,8 @@ namespace Walkback.EditorTools
         static partial void ShotsPointer(WalkbackApp app);
         static partial void CheckHud(WalkbackApp app);
         static partial void ShotsHud(WalkbackApp app);
+        static partial void CheckMission(WalkbackApp app);
+        static partial void ShotsMission(WalkbackApp app);
 
         static AutoTest()
         {
@@ -106,12 +108,14 @@ namespace Walkback.EditorTools
                 Guard("Globe", () => CheckGlobe(app));
                 Guard("Pointer", () => CheckPointer(app));
                 Guard("HUD", () => CheckHud(app));
+                Guard("Mission", () => CheckMission(app));
                 Screenshots(app);
                 Guard("Route shots", () => ShotsRoute(app));
                 Guard("Panel shots", () => ShotsPanelPiece(app));
                 Guard("Globe shots", () => ShotsGlobe(app));
                 Guard("Pointer shots", () => ShotsPointer(app));
                 Guard("HUD shots", () => ShotsHud(app));
+                Guard("Mission shots", () => ShotsMission(app));
             }
             catch (Exception e)
             {

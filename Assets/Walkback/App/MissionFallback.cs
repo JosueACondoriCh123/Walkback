@@ -47,8 +47,27 @@ namespace Walkback
             public bool FailsOnArrival;
             public string FailsAtName = "";
 
+            /// <summary>One entry per leg walked, in order: habitat -> stop 1, stop 1 -> stop 2 ... last stop -> habitat.</summary>
+            public readonly List<Leg> Legs = new List<Leg>();
+
             public float TotalMinutes { get { return WalkMinutes + WorkMinutes; } }
             public bool Viable { get { return HasRoute && FailsAtStop < 0 && SpareLiters >= 0f; } }
+        }
+
+        /// <summary>One leg of the plan: where it starts and ends in Plan.Path, and what it costs.</summary>
+        public class Leg
+        {
+            public string FromName = "";
+            public string ToName = "";
+            /// <summary>Index into site.Stops of the stop this leg ends at, or -1 for the habitat.</summary>
+            public int ToStop = -1;
+            /// <summary>Indices into Plan.Path of the leg's first and last point (the next leg starts where this one ends).</summary>
+            public int FirstPoint;
+            public int LastPoint;
+            public float Meters;
+            public float Minutes;
+            /// <summary>Minutes of work at the stop this leg ends at (0 for the habitat).</summary>
+            public float WorkMinutesAtEnd;
         }
 
         /// <summary>Minutes of walking that the oxygen above the reserve covers, starting with this much of a tank.</summary>
@@ -91,6 +110,8 @@ namespace Walkback
                 }
 
                 // The leg's way: node by node to the target's node, then the target itself.
+                int legFirstPoint = plan.Path.Count - 1;
+                float legStartMeters = plan.WalkMeters;
                 Vector2 previous = from;
                 int guard = n * n;
                 while (node >= 0 && guard-- > 0)
@@ -106,6 +127,17 @@ namespace Walkback
 
                 plan.WalkMinutes += legMinutes;
                 used += legMinutes * HudEstimate.WalkLitersPerMinute;
+                plan.Legs.Add(new Leg
+                {
+                    FromName = fromName,
+                    ToName = toName,
+                    ToStop = lastLeg ? -1 : leg,
+                    FirstPoint = legFirstPoint,
+                    LastPoint = plan.Path.Count - 1,
+                    Meters = plan.WalkMeters - legStartMeters,
+                    Minutes = legMinutes,
+                    WorkMinutesAtEnd = lastLeg ? 0f : HudEstimate.TaskMinutes(stops[leg]),
+                });
 
                 if (!lastLeg)
                 {
