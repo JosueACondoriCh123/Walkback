@@ -1,0 +1,33 @@
+{
+ "rems": {
+  "sol": 4995,
+  "earthDate": "2026-08-25, 78 sols old",
+  "airMinC": -71.0,
+  "airMaxC": -5.0,
+  "groundMinC": -84.0,
+  "groundMaxC": 4.0,
+  "pressurePa": 777.0,
+  "source": "REMS: NASA/JPL-Caltech/CAB (CSIC-INTA)"
+ },
+ "season": {
+  "value": "Ls 20°, early southern autumn, the low-dust season",
+  "source": "REMS sol 4404, one Mars year ago"
+ },
+ "daylight": {
+  "value": "06:29 to 18:23 local time",
+  "source": "REMS sol 4404, same season"
+ },
+ "radiation": {
+  "value": "0.64 mSv/day at the surface",
+  "source": "Curiosity RAD, Hassler et al. 2014"
+ },
+ "donki": {
+  "from": "2026-11-07",
+  "to": "2026-11-14",
+  "events": "no solar particle events",
+  "checked": "2026-11-14 16:06 UTC",
+  "geomagneticStorms": 0,
+  "coronalMassEjections": 22
+ },
+ "todaySol": 5073
+}

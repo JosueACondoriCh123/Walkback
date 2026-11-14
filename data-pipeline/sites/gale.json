@@ -61,6 +61,33 @@
       "id": "MSL_waypoints.json",
       "credit": "NASA/JPL-Caltech",
       "url": "https://mars.nasa.gov/mmgis-maps/MSL/Layers/json/MSL_waypoints.json"
+    },
+    "globe_nasa3d": {
+      "layer": "globe",
+      "mission": "Viking",
+      "instrument": "Orbiter cameras (NASA 3D Resources texture)",
+      "resolution": "0.25° per pixel (1440 x 720)",
+      "id": "Mars.jpg",
+      "credit": "NASA/JPL-Caltech; Viking images processed at the USGS",
+      "url": "https://assets.science.nasa.gov/content/dam/science/cds/3d/resources/image/mars/Mars.jpg"
+    },
+    "globe_mdim": {
+      "layer": "globe",
+      "mission": "Viking",
+      "instrument": "Orbiter cameras (MDIM 2.1 colour mosaic)",
+      "resolution": "1 km per pixel, shown at 4096 x 2048",
+      "id": "mars_viking_mdim21_clrmosaic_1km",
+      "credit": "NASA/JPL/USGS",
+      "url": "https://astrogeology.usgs.gov/ckan/dataset/7131d503-cdc9-45a5-8f83-5126c0fd397e/resource/5ea881c6-01b3-41fa-a7af-42d2131b54f1/download/mars_viking_mdim21_clrmosaic_1km.jpg"
+    },
+    "panorama_sajama": {
+      "layer": "panorama",
+      "mission": "Mars Science Laboratory",
+      "instrument": "Mastcam (360° mosaic, sols 4714-4741)",
+      "resolution": "4096 x 2048 (sky and ground filled plain)",
+      "id": "PIA26696",
+      "credit": "NASA/JPL-Caltech/MSSS",
+      "url": "https://assets.science.nasa.gov/content/dam/science/psd/photojournal/pia/pia26/pia26696/PIA26696.jpg"
     }
   },
   "stops": [

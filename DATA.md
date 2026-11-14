@@ -12,6 +12,9 @@ What the app reads from `Assets/StreamingAssets/Site/`, where each file comes fr
 | `sand.png` | 257 x 257, 255 = sandy hollow, 0 = rock. **All 0 for now** (plan B, see decisions) | 143 | Calculated from the elevation |
 | `stops.json` | Valle de la Luna and Nevado Sajama: position, science (under 20 words), tasks with minutes, risk | 1 648 | Rover positions + NASA blog |
 | `curiosity_traverse.json` | 85 rover positions inside the square, sols 4548 to 4914, `{sol, x, y}` | 4 586 | MSL waypoints |
+| `conditions.json` | Latest REMS report, season, daylight, surface radiation, the week's space weather; each with its date and source | see below | REMS feed, NASA DONKI, RAD |
+| `mars_global.jpg` | The globe: equirectangular, left edge 180° W (trap 11), 1440 x 720 | 972 896 | NASA 3D Resources Mars texture (Viking) |
+| `panorama_PIA26696.jpg` | Nevado Sajama, 360°, 4096 x 2048 | see below | MSL Mastcam mosaic PIA26696 |
 
 Local coordinates: meters from the south-west corner, x east, y north. The square is centered on 4.807° S, 137.381° E; the projection is equirectangular on the Mars 2000 sphere (R = 3 396 190 m) with true scale at the center latitude.
 
@@ -25,6 +28,12 @@ Local coordinates: meters from the south-west corner, x east, y north. The squar
 | Curiosity positions | MSL waypoints (one point per drive) | `https://mars.nasa.gov/mmgis-maps/MSL/Layers/json/MSL_waypoints.json` | NASA/JPL-Caltech |
 | Stop science | Curiosity blog, sols 4695-4701 (13 Nov 2025) and sols 4716-4722 (18 Nov 2025) | `science.nasa.gov/blog/` | NASA/JPL-Caltech |
 | Stop task times | Proposed from NASA/TP-2017-219457, table 30 | | NASA |
+| Weather | Curiosity REMS weather feed (the data CAB publishes) | `https://mars.nasa.gov/rss/api/?feed=weather&category=msl&feedtype=json` | NASA/JPL-Caltech/CAB (CSIC-INTA) |
+| Space weather | NASA DONKI: SEP, GST, CME for the week | `https://api.nasa.gov/DONKI/SEP?startDate=2026-11-07&endDate=2026-11-14&api_key=DEMO_KEY` (same for GST, CME) | NASA CCMC |
+| Surface radiation | 0.64 mSv/day (dose equivalent), Curiosity RAD | Hassler et al. (2014), *Science* 343 | NASA/JPL-Caltech/SwRI |
+| Globe (in use) | Mars image texture, from Viking images processed at the USGS | `https://assets.science.nasa.gov/content/dam/science/cds/3d/resources/image/mars/Mars.jpg` | NASA/JPL-Caltech |
+| Globe (better, when the network allows) | Viking MDIM 2.1 colour mosaic, 1 km/px (36.7 MB) | guion §5.1, row 4 | NASA/JPL/USGS |
+| Nevado Sajama panorama | PIA26696, Mastcam 360°, sols 4714-4741 (14.0 MB) | `https://assets.science.nasa.gov/content/dam/science/psd/photojournal/pia/pia26/pia26696/PIA26696.jpg` | NASA/JPL-Caltech/MSSS |
 
 ## How it is built
 
@@ -41,7 +50,12 @@ GDAL 3.13.3 from QGIS (`C:\Program Files\QGIS 3.44.15\bin`, not on PATH). In Git
 5. **The package** (2 s):
    `python -I data-pipeline/build_site.py --site data-pipeline/sites/gale.json --dem-source marstrek --dem data-pipeline/cache/marstrek/gale_dem_window.tif --ortho data-pipeline/cache/ortho/gale_ortho_window.tif --waypoints data-pipeline/cache/waypoints/MSL_waypoints.json --habitat 514.8,777.0 --sand none --out Assets/StreamingAssets/Site --work data-pipeline/cache/work --report data-pipeline/reports/gale_controls.json`
    It warps the DEM to the 513 points (`average`), the photo to 4096 px (`cubic`, linear stretch 0.5-99.5 %), puts the stops at the rover's positions and writes the controls report. The same program serves any other site: a new `data-pipeline/sites/<site>.json` and its two windows.
-6. **Checks**: `python -I data-pipeline/check_alignment.py <dem 1 m local> <usgs strip 1 m local>` and `python -I data-pipeline/preview_package.py Assets/StreamingAssets/Site <out prefix>` (photo, hillshade and slope side by side).
+6. **Conditions** (1.7 MB feed, 8 s; DONKI 37 KB): download the weather feed and the three DONKI answers into `data-pipeline/cache/rems/` (`msl_weather.json`, `donki_sep.json`, `donki_gst.json`, `donki_cme.json`), then
+   `python -I data-pipeline/build_conditions.py data-pipeline/cache/rems 5073 2026-11-07 2026-11-14 "2026-11-14 16:06 UTC" Assets/StreamingAssets/Site/conditions.json`
+   Today's sol, 5073, is the rover's latest position in the waypoints file. The CAB page of guion §5.1 (`cab.inta-csic.es/rems/en/`) no longer exists: on 14 Nov it redirects to a 2019 news item, also in a browser.
+7. **Globe**: `Mars.jpg` copied as it is to `mars_global.jpg` (Olympus Mons at 134° W and Hellas at 68° E confirm the left edge is 180° W).
+8. **Panorama**: `python -I data-pipeline/process_panorama.py data-pipeline/cache/panorama/PIA26696.jpg Assets/StreamingAssets/Site/panorama_PIA26696.jpg <horizon>`, then step 5 again with `--panorama nevado-sajama=PIA26696="NASA/JPL-Caltech/MSSS, Mastcam mosaic PIA26696" --extra-sources globe_nasa3d,panorama_sajama`.
+9. **Checks**: `python -I data-pipeline/check_alignment.py <dem 1 m local> <usgs strip 1 m local>` and `python -I data-pipeline/preview_package.py Assets/StreamingAssets/Site <out prefix>` (photo, hillshade and slope side by side).
 
 ## Checks (14 Nov 2026, 11:56; full numbers in `data-pipeline/reports/gale_controls.json`)
 
@@ -65,4 +79,4 @@ GDAL 3.13.3 from QGIS (`C:\Program Files\QGIS 3.44.15\bin`, not on PATH). In Git
 
 ## Still to make
 
-`thermal.png` (THEMIS: needs the tile link) · `conditions.json` (REMS values from the CAB page, DONKI) · `panorama_<id>.jpg` (PIA26696 for Nevado Sajama) · `mars_global.jpg` (Viking MDIM 2.1, for the globe) · the 3D models in `Assets/Walkback/Models3D/`.
+`thermal.png` (THEMIS: needs the tile link) · the 3D models in `Assets/Walkback/Models3D/` (downloading; `.glb` needs the glTFast package in Unity, which the project does not have yet) · the Viking MDIM 2.1 globe in place of the 1440 px texture · the USGS DEM in place of Mars Trek. Valle de la Luna has no official 360° panorama (guion §5.1, row 3b): the app says "No panorama for this stop yet".

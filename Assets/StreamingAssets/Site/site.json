@@ -44,6 +44,22 @@
    "resolution": "one point per drive",
    "id": "MSL_waypoints.json",
    "credit": "NASA/JPL-Caltech"
+  },
+  {
+   "layer": "globe",
+   "mission": "Viking",
+   "instrument": "Orbiter cameras (NASA 3D Resources texture)",
+   "resolution": "0.25° per pixel (1440 x 720)",
+   "id": "Mars.jpg",
+   "credit": "NASA/JPL-Caltech; Viking images processed at the USGS"
+  },
+  {
+   "layer": "panorama",
+   "mission": "Mars Science Laboratory",
+   "instrument": "Mastcam (360° mosaic, sols 4714-4741)",
+   "resolution": "4096 x 2048 (sky and ground filled plain)",
+   "id": "PIA26696",
+   "credit": "NASA/JPL-Caltech/MSSS"
   }
  ]
 }

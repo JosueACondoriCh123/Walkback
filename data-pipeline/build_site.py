@@ -108,6 +108,10 @@ def main():
     ap.add_argument('--habitat', required=True, help='x,y in local meters')
     ap.add_argument('--sand', choices=('none', 'dem'), default='none',
                     help='none: plan B, rock everywhere (default); dem: hollows from the DEM (ficha A)')
+    ap.add_argument('--extra-sources', default='',
+                    help='comma list of more source keys of the site file to list in site.json (globe, panoramas)')
+    ap.add_argument('--panorama', action='append', default=[],
+                    help='stopId=panoramaId=photoCredit: the stop gets Site/panorama_<panoramaId>.jpg')
     ap.add_argument('--out', required=True)
     ap.add_argument('--work', required=True)
     ap.add_argument('--report', required=True)
@@ -194,11 +198,19 @@ def main():
                            'demMinusRoverElevationMean': round(float(diffs.mean()), 2), 'demMinusRoverElevationStd': round(float(diffs.std()), 2)}
 
     by_sol = {s: (x, y) for s, x, y, e in pts}
+    panoramas = {}
+    for p in a.panorama:
+        stop_id, pano_id, credit = p.split('=', 2)
+        if not os.path.exists(os.path.join(a.out, 'panorama_%s.jpg' % pano_id)):
+            raise SystemExit('panorama_%s.jpg is not in %s' % (pano_id, a.out))
+        panoramas[stop_id] = (pano_id, credit)
     stops, stop_report = [], []
     for st in site['stops']:
         x, y = by_sol[st['roverWaypointSol']]
         rr, cc = node_of(x, y, side)
         out = {k: st[k] for k in ('id', 'name', 'science', 'tasks', 'risk', 'photoCredit', 'panorama')}
+        if st['id'] in panoramas:
+            out['panorama'], out['photoCredit'] = panoramas[st['id']]
         out.update({'x': round(x, 1), 'y': round(y, 1)})
         for k in ('scienceSource', 'taskSource', 'nameOrigin'):
             if k in st:
@@ -221,7 +233,8 @@ def main():
                          'straightLineToStops': [round(math.hypot(hx - s['x'], hy - s['y'])) for s in stops]}
     src = site['sources']
     sources = []
-    for key in (a.dem_source, 'ortho', 'sand' if a.sand == 'dem' else 'sand_none', 'traverse'):
+    extra = [k for k in a.extra_sources.split(',') if k]
+    for key in [a.dem_source, 'ortho', 'sand' if a.sand == 'dem' else 'sand_none', 'traverse'] + extra:
         s = {k: src[key][k] for k in ('layer', 'mission', 'instrument', 'resolution', 'id', 'credit')}
         sources.append(s)
     info = {
