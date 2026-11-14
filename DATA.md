@@ -54,7 +54,7 @@ GDAL 3.13.3 from QGIS (`C:\Program Files\QGIS 3.44.15\bin`, not on PATH). In Git
    `python -I data-pipeline/build_conditions.py data-pipeline/cache/rems 5073 2026-11-07 2026-11-14 "2026-11-14 16:06 UTC" Assets/StreamingAssets/Site/conditions.json`
    Today's sol, 5073, is the rover's latest position in the waypoints file. The CAB page of guion §5.1 (`cab.inta-csic.es/rems/en/`) no longer exists: on 14 Nov it redirects to a 2019 news item, also in a browser.
 7. **Globe**: the MDIM 2.1 mosaic resized to 4096 x 2048 (Lanczos, JPEG quality 90) as `mars_global.jpg`; Olympus Mons at 134° W and Hellas at 68° E confirm the left edge is 180° W. The download needed three tries (connection reset, then no DNS for the USGS server), resumed with `curl -C -`.
-8. **Panorama**: `python -I data-pipeline/process_panorama.py data-pipeline/cache/panorama/PIA26696.jpg Assets/StreamingAssets/Site/panorama_PIA26696.jpg <horizon>`, then step 5 again with `--panorama nevado-sajama=PIA26696="NASA/JPL-Caltech/MSSS, Mastcam mosaic PIA26696" --extra-sources globe_mdim,panorama_sajama`.
+8. **Panorama**: `python -I data-pipeline/process_panorama.py data-pipeline/cache/panorama/PIA26696.jpg Assets/StreamingAssets/Site/panorama_PIA26696.jpg 0.255` (the horizon sits at 25.5 % of the mosaic height, from the top), then step 5 again with `--panorama nevado-sajama=PIA26696="NASA/JPL-Caltech/MSSS, Mastcam mosaic PIA26696" --extra-sources globe_mdim,panorama_sajama`.
 9. **Checks**: `python -I data-pipeline/check_alignment.py <dem 1 m local> <usgs strip 1 m local>` and `python -I data-pipeline/preview_package.py Assets/StreamingAssets/Site <out prefix>` (photo, hillshade and slope side by side).
 
 ## 3D models (`Assets/Walkback/Models3D/`, NASA 3D Resources, public domain)
