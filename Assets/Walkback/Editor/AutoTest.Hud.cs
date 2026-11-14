@@ -107,6 +107,43 @@ namespace Walkback.EditorTools
             Check("Wrist map: the raised-hand test (in view = shown, at the side = hidden)",
                 WristMap.LookingAt(wrist.transform, cam.transform) && !WristMap.LookingAt(MakeProbe(eye + Vector3.right), cam.transform));
 
+            // The map off the wrist: left in the air it is bigger and stays where it was put when the head moves.
+            {
+                Vector3 wristAt = wrist.transform.position;
+                Check("Wrist map: on the wrist until X is pressed", !wrist.Placed && Mathf.Abs(wrist.Width - WristMap.WidthMeters) < 1e-5f);
+                app.ToggleMapPlaced(cam.transform, null);
+                Vector3 placedAt = wrist.transform.position;
+                Quaternion placedRotation = wrist.transform.rotation;
+                float placedWide = Mathf.Max(wrist.terrainRenderer.bounds.size.x, wrist.terrainRenderer.bounds.size.z);
+                Vector3 camWas = cam.transform.position;
+                Quaternion camLooked = cam.transform.rotation;
+                cam.transform.SetPositionAndRotation(camWas + new Vector3(0.6f, 0f, -0.4f), Quaternion.LookRotation(new Vector3(-0.5f, -0.2f, 1f)));
+                wrist.KeepPlaced(cam.transform, false, Quaternion.identity);
+                bool stayed = (wrist.transform.position - placedAt).magnitude < 1e-5f && Quaternion.Angle(wrist.transform.rotation, placedRotation) < 0.01f;
+                Check("Wrist map: X leaves it in the air, 40 cm wide, within reach in front of the viewer",
+                    wrist.Placed && wrist.Visible && Mathf.Abs(wrist.Width - WristMap.PlacedWidthMeters) < 1e-5f && placedWide > 0.36f && placedWide < 0.62f &&
+                    Vector3.Distance(placedAt, camWas) < 1.2f && Vector3.Dot(camLooked * Vector3.forward, placedAt - camWas) > 0f && (placedAt - wristAt).magnitude > 0.05f,
+                    (placedWide * 100f).ToString("F0") + " cm (tilted box), " + Vector3.Distance(placedAt, camWas).ToString("F2") + " m from the eyes");
+                Check("Wrist map: left in the air it is fixed in the room (it does not follow the head), and its label turns to the viewer",
+                    stayed && Vector3.Dot(wrist.label.transform.forward, (wrist.label.transform.position - cam.transform.position).normalized) > 0.99f);
+                Check("Wrist map: inside a 360° photo north is not known, so the placed map is not turned to it", !wrist.NorthAligned);
+                // With north known (mission mode) it lies flat, its north on Mars' north.
+                Quaternion marsTurn = Quaternion.Euler(0f, 37f, 0f);
+                wrist.KeepPlaced(cam.transform, true, marsTurn);
+                Vector3 mapNorth = wrist.model.TransformDirection(Vector3.forward);
+                Check("Wrist map: with north known the placed map lies flat with its north on Mars' north",
+                    wrist.NorthAligned && Vector3.Angle(wrist.transform.up, Vector3.up) < 0.01f && Vector3.Angle(mapNorth, marsTurn * Vector3.forward) < 0.01f &&
+                    (wrist.transform.position - placedAt).magnitude < 1e-5f);
+                float labelMm = wrist.label.lines[0].fontSize * wrist.label.lines[0].transform.lossyScale.y * 1000f;
+                Check("Wrist map: the placed map's label is 24 mm or more (read from over a meter)", labelMm >= 24f, labelMm.ToString("F0") + " mm");
+                app.ToggleMapPlaced(cam.transform, null);
+                cam.transform.SetPositionAndRotation(camWas, camLooked);
+                wrist.HoldInFrontOf(cam.transform);
+                float backWide = Mathf.Max(wrist.terrainRenderer.bounds.size.x, wrist.terrainRenderer.bounds.size.z);
+                Check("Wrist map: X again takes it back to the wrist, 14 cm wide", !wrist.Placed && !wrist.NorthAligned && backWide > 0.12f && backWide < 0.22f &&
+                    (wrist.transform.position - wristAt).magnitude < 0.001f, (backWide * 100f).ToString("F1") + " cm");
+            }
+
             // Leave as built.
             hud.Hide();
             wrist.SetVisible(false);

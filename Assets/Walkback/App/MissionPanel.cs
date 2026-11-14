@@ -47,6 +47,7 @@ namespace Walkback
             "WHAT IF · click the left stick",
             "MISSION · left menu button",
             "JUMP · left grip, in the mission",
+            "MAP · X: in the air / on the wrist",
             "RECENTER · B or Y",
         };
         /// <summary>Built by the scene builder as a child of the panel, so it hides and moves with it.</summary>

@@ -32,6 +32,7 @@ namespace Walkback
             if (!atStop || head == null)
             {
                 if (hud.Visible) hud.Hide();
+                wristMap.ReturnToWrist();
                 wristMap.SetVisible(false);
                 return;
             }
@@ -54,18 +55,48 @@ namespace Walkback
         public void HoldWristMap(Transform head)
         {
             if (wristMap == null || head == null) return;
+            var keyboard = UnityEngine.InputSystem.Keyboard.current;
+            var rig = !DesktopMode && cameraRig != null ? cameraRig.GetComponent<OVRCameraRig>() : null;
+            Transform hand = rig != null ? rig.leftHandAnchor : null;
+
+            // X (left controller) or the X key: off the wrist and fixed in the air, or back to the wrist.
+            bool toggle = DesktopMode ? keyboard != null && keyboard.xKey.wasPressedThisFrame : OVRInput.GetDown(OVRInput.Button.Three);
+            if (toggle) ToggleMapPlaced(head, hand);
+
+            if (wristMap.Placed)
+            {
+                wristMap.SetVisible(true);
+                // In mission mode Mars is anchored in the room: the placed map lies with its north on Mars' north.
+                bool north = MissionActive && mission.mars != null;
+                wristMap.KeepPlaced(head, north, north ? mission.mars.rotation : Quaternion.identity);
+                return;
+            }
             if (DesktopMode)
             {
                 wristMap.SetVisible(true);
                 wristMap.HoldInFrontOf(head);
                 return;
             }
-            var rig = cameraRig != null ? cameraRig.GetComponent<OVRCameraRig>() : null;
-            Transform hand = rig != null ? rig.leftHandAnchor : null;
-            if (OVRInput.GetDown(OVRInput.Button.Three)) wristMap.Pinned = !wristMap.Pinned;
-            bool show = hand != null && (wristMap.Pinned || WristMap.LookingAt(hand, head));
+            bool show = hand != null && WristMap.LookingAt(hand, head);
             wristMap.SetVisible(show);
             if (show) wristMap.HoldAt(hand, head);
+        }
+
+        /// <summary>
+        /// Leaves the map in the air where the left hand is (without a hand: low in front of the viewer),
+        /// or takes it back to the wrist if it was already placed.
+        /// </summary>
+        public void ToggleMapPlaced(Transform head, Transform hand)
+        {
+            if (wristMap == null || head == null) return;
+            if (wristMap.Placed)
+            {
+                wristMap.ReturnToWrist();
+                return;
+            }
+            Vector3 flat = Vector3.ProjectOnPlane(head.forward, Vector3.up).normalized;
+            Vector3 at = hand != null ? hand.position + Vector3.up * 0.07f : head.position + flat * 0.7f + Vector3.down * 0.45f;
+            wristMap.PlaceAt(at, head);
         }
 
         /// <summary>The viewer's eyes: the headset's center eye, or the desktop camera.</summary>

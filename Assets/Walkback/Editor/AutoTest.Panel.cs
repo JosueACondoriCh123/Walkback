@@ -195,8 +195,8 @@ namespace Walkback.EditorTools
             if (card == null) return;
             string all = "";
             foreach (var line in card.lines) all += line.text + "\n";
-            Check("Controls card: says how to change layers, WHAT IF, MISSION, JUMP and RECENTER",
-                all.Contains("LAYERS") && all.Contains("WHAT IF") && all.Contains("MISSION") && all.Contains("JUMP") && all.Contains("RECENTER"));
+            Check("Controls card: says how to change layers, WHAT IF, MISSION, JUMP, MAP and RECENTER",
+                all.Contains("LAYERS") && all.Contains("WHAT IF") && all.Contains("MISSION") && all.Contains("JUMP") && all.Contains("MAP · X") && all.Contains("RECENTER"));
             Canvas.ForceUpdateCanvases();
             string wide = "";
             float smallest = float.MaxValue;

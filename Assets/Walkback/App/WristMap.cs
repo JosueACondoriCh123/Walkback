@@ -8,8 +8,10 @@ namespace Walkback
     /// The 3D map on the wrist (guion §22.2, §21.6 "pegado a la mano"): the same square kilometer as the
     /// table (same mesh, same paint as the table's layer), 14 cm wide, relief not exaggerated, held
     /// above the left hand or controller and tilted toward the face. Pins: cyan = you, green = habitat,
-    /// amber = stops. It shows while the astronaut looks at the raised left hand, or stays on after
-    /// pressing X (plan B of guion §22.5). Without a headset it floats low on the left of the view.
+    /// amber = stops. It shows while the astronaut looks at the raised left hand. X on the left
+    /// controller takes it off the wrist and leaves it in the air where the hand is, 40 cm wide and fixed
+    /// in the room (world-locked, not head-locked); X again takes it back to the wrist.
+    /// Without a headset it floats low on the left of the view.
     /// </summary>
     public class WristMap : MonoBehaviour
     {
@@ -29,8 +31,81 @@ namespace Walkback
         public GlobeLabel label;
 
         public bool Visible { get { return gameObject.activeSelf; } }
-        public bool Pinned;
         public Vector2 You { get; private set; }
+
+        /// <summary>Side of the map once it is left in the air: read from 1 to 1.5 m, not from the wrist.</summary>
+        public const float PlacedWidthMeters = 0.40f;
+        /// <summary>The label grows with the map (13 mm letters on the wrist, 26 mm in the air).</summary>
+        public const float PlacedLabelScale = 2f;
+
+        /// <summary>
+        /// True while the map is left in the air: fixed in the room (not on the head, not on the hand),
+        /// until it is taken back to the wrist. X on the left controller switches between the two.
+        /// </summary>
+        public bool Placed { get; private set; }
+        /// <summary>True while the placed map lies flat with its north turned to Mars' north (mission mode).</summary>
+        public bool NorthAligned { get; private set; }
+        /// <summary>Side of the map now, in meters.</summary>
+        public float Width { get { return Placed ? PlacedWidthMeters : WidthMeters; } }
+
+        /// <summary>
+        /// Leaves the map in the air at <paramref name="at"/>, bigger, facing the viewer as it was on the
+        /// wrist. It stays there (the room does not move) until ReturnToWrist.
+        /// </summary>
+        public void PlaceAt(Vector3 at, Transform head)
+        {
+            Placed = true;
+            NorthAligned = false;
+            ApplyWidth();
+            Pose(at, head);
+            SetVisible(true);
+            WalkbackLog.Info("Wrist map: left in the air at " + at.ToString("F2"));
+        }
+
+        /// <summary>Back to the wrist: small again, shown when the user looks at the raised hand.</summary>
+        public void ReturnToWrist()
+        {
+            if (!Placed) return;
+            Placed = false;
+            NorthAligned = false;
+            ApplyWidth();
+            WalkbackLog.Info("Wrist map: back on the wrist");
+        }
+
+        /// <summary>
+        /// Each frame while placed. In mission mode Mars is anchored in the room, so north is known: the
+        /// map lies flat with its north on Mars' north (<paramref name="north"/> = the Mars root's rotation),
+        /// and a direction on the map is the same direction around the user. Where north is not known
+        /// (inside a 360° photo) it keeps the pose it was left in. The label always turns to the viewer.
+        /// </summary>
+        public void KeepPlaced(Transform head, bool northKnown, Quaternion north)
+        {
+            if (!Placed) return;
+            if (northKnown)
+            {
+                transform.rotation = Quaternion.Euler(0f, north.eulerAngles.y, 0f);
+                NorthAligned = true;
+            }
+            if (label != null && head != null)
+            {
+                Vector3 away = label.transform.position - head.position;
+                if (away.sqrMagnitude > 1e-6f) label.transform.rotation = Quaternion.LookRotation(away, Vector3.up);
+            }
+        }
+
+        void ApplyWidth()
+        {
+            // The model's scale is width / site side; before the first Prepare there is no site yet and Prepare sets it.
+            if (model != null && preparedSide > 0f) model.localScale = Vector3.one * (Width / preparedSide);
+            if (label != null)
+            {
+                label.transform.localScale = Vector3.one * (Placed ? PlacedLabelScale : 1f);
+                label.transform.localPosition = new Vector3(0f, 0.03f, Width / 2f + 0.015f * (Placed ? PlacedLabelScale : 1f));
+            }
+        }
+
+        /// <summary>Side of the site of the last Prepare, in meters (0 before the first one).</summary>
+        float preparedSide;
 
         readonly List<Transform> stopPins = new List<Transform>();
 
@@ -57,7 +132,8 @@ namespace Walkback
             if (paint != null) block.SetTexture("_BaseMap", paint);
             block.SetColor("_BaseColor", terrain.Layer == MapLayer.Photo ? terrain.PhotoTint : Color.white);
             terrainRenderer.SetPropertyBlock(block);
-            model.localScale = Vector3.one * (WidthMeters / site.SideMeters);
+            preparedSide = site.SideMeters;
+            model.localScale = Vector3.one * (Width / site.SideMeters);
 
             Pin(youPin, site, here, 26f);
             Pin(habitatPin, site, site.Habitat, 22f);

@@ -236,7 +236,12 @@ namespace Walkback
             CurtainAlpha = 0f;
             CardShown = false;
             if (app != null && app.hud != null) app.hud.Hide();
-            if (app != null && app.wristMap != null) app.wristMap.SetVisible(false);
+            if (app != null && app.wristMap != null)
+            {
+                // A map left in the air belongs to the mission it was placed in: next time it starts on the wrist.
+                app.wristMap.ReturnToWrist();
+                app.wristMap.SetVisible(false);
+            }
         }
 
         /// <summary>What shows in the current mode: Mars or the room behind, relief or flat floor.</summary>

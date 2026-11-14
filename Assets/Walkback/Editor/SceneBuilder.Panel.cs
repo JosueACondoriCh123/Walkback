@@ -31,7 +31,7 @@ namespace Walkback.EditorTools
                 sizes[i] = i == 0 ? 40 : 32;
                 colors[i] = i == 0 ? WalkbackTheme.TextSoft : WalkbackTheme.Text;
             }
-            GlobeLabel card = Card(panel.transform, "ControlsCard", 760f, 300f, sizes, colors, backPlate, ui, MissionPanel.ControlsCardOffset);
+            GlobeLabel card = Card(panel.transform, "ControlsCard", 760f, 350f, sizes, colors, backPlate, ui, MissionPanel.ControlsCardOffset);
             Vector3 toCard = panel.transform.position + MissionPanel.ControlsCardOffset - MissionPanel.UserEye;
             toCard.y = 0f;
             card.transform.localRotation = Quaternion.LookRotation(toCard.normalized, Vector3.up);
