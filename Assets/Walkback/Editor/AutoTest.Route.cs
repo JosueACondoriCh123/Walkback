@@ -105,6 +105,8 @@ namespace Walkback.EditorTools
             app.ClearPlannedRoute();
             Check("Route ribbon: clears", !view.HasRoute);
 
+            CheckRouteSmoothing();
+
             // Mission plan B on the site itself: the amber route and the verdict come from the relief.
             MapLayer layerBeforePlan = app.terrain.Layer;
             app.PlanMission(false);
@@ -114,6 +116,29 @@ namespace Walkback.EditorTools
                 Check("Mission plan B: every leg has a way on the real site, and the amber route is on the map", app.Plan.HasRoute && view.HasRoute, MissionFallback.LogLine(app.Plan));
                 Check("Mission plan B: the route over the relief is never shorter than the straight line", app.Plan.WalkMeters >= view.StraightLengthMeters - 1f,
                     app.Plan.WalkMeters.ToString("F0") + " m, straight " + view.StraightLengthMeters.ToString("F0") + " m");
+                {
+                    // The smoothed route against the grid way it came from, on the real relief.
+                    MissionFallback.Plan real = app.Plan;
+                    SiteData realSite = app.terrain.Site;
+                    float longestStep = 0f;
+                    int onNoGo = 0;
+                    for (int i = 0; i < real.Path.Count; i++)
+                    {
+                        if (i > 0) longestStep = Mathf.Max(longestStep, Vector2.Distance(real.Path[i - 1], real.Path[i]));
+                        // A point is fine on walkable ground (no no-go corner around it) or when it is a grid point of the way itself.
+                        if (!MissionFallback.Walkable(realSite, app.terrain.Slope, real.Path[i]) && app.terrain.Slope[ReturnFallback.NodeOf(realSite, real.Path[i])] > TerrainLayers.SlopeLimitDegrees) onNoGo++;
+                    }
+                    bool legsLongEnough = true;
+                    foreach (var leg in real.Legs)
+                        if (leg.Meters < Vector2.Distance(real.Path[leg.FirstPoint], real.Path[leg.LastPoint]) - 0.01f) legsLongEnough = false;
+                    Check("Mission plan B: the smoothed route is no longer and no slower than the grid way, and no leg is shorter than its straight line",
+                        real.WalkMeters <= real.GridMeters + 0.5f && real.WalkMinutes <= real.GridMinutes + 0.01f && legsLongEnough,
+                        real.GridMeters.ToString("F0") + " m in " + real.GridMinutes.ToString("F1") + " min on the grid -> " + real.WalkMeters.ToString("F0") + " m in " + real.WalkMinutes.ToString("F1") + " min, " + real.Shortcuts + " shortcuts");
+                    Check("Mission plan B: the smoothed route never steps on no-go ground and keeps a point every grid step",
+                        onNoGo == 0 && longestStep <= realSite.NodeSpacing * Mathf.Sqrt(2f) + 0.01f, onNoGo + " points on no-go nodes, longest step " + longestStep.ToString("F2") + " m");
+                    if (real.Legs.Count > 0)
+                        Note("Mission plan B: turning in the last 12 m before " + real.Legs[0].ToName + ": " + TurningDegrees(real, real.Legs[0], 12f).ToString("F0") + "° (the grid way made a Z there)");
+                }
                 Check("Mission plan B: the verdict card shows the plan, labelled as an estimate", app.panel.Verdict != VerdictState.NoRoute && app.panel.verdictNote.text.StartsWith("ESTIMATE"),
                     app.panel.verdictTitle.text + " | " + app.panel.verdictDetail.text + " | " + app.panel.verdictNote.text);
                 app.SetWhatIfTank(8f);
@@ -171,6 +196,74 @@ namespace Walkback.EditorTools
             cam.transform.SetPositionAndRotation(homePosition, homeRotation);
             app.stopPillars.FaceCamera(cam);
             Canvas.ForceUpdateCanvases();
+        }
+
+        /// <summary>Degrees the route turns, left and right added up, over the last <paramref name="meters"/> of a leg.</summary>
+        static float TurningDegrees(MissionFallback.Plan plan, MissionFallback.Leg leg, float meters)
+        {
+            float turned = 0f, back = 0f;
+            for (int i = leg.LastPoint - 1; i > leg.FirstPoint && back < meters; i--)
+            {
+                Vector2 before = plan.Path[i] - plan.Path[i - 1], after = plan.Path[i + 1] - plan.Path[i];
+                back += after.magnitude;
+                if (before.sqrMagnitude > 1e-8f && after.sqrMagnitude > 1e-8f) turned += Vector2.Angle(before, after);
+            }
+            return turned;
+        }
+
+        /// <summary>The smoothing of the plan's route, on made-up ground where the right answer is known.</summary>
+        static void CheckRouteSmoothing()
+        {
+            var site = SiteLoader.Synthetic();
+            int n = site.GridSize;
+            float spacing = site.NodeSpacing, pace = ReturnStandIn.FlatMinutesPerKilometer / 1000f;
+            for (int i = 0; i < site.Heights.Length; i++) site.Heights[i] = 0f;
+            site.Info.habitat = new SitePoint { x = 0f, y = 0f };
+            Vector2 stop = new Vector2(1000f, 500f);
+            site.Stops = new[] { new StopInfo { id = "a", name = "A", x = stop.x, y = stop.y } };
+            var slope = new float[n * n];
+
+            // Flat ground: the grid goes diagonal and then straight (1 207 m); the smoothed leg is the straight line (1 118 m).
+            var flat = MissionFallback.Make(site, slope, 100f);
+            float straight = Vector2.Distance(site.Habitat, stop);
+            Check("Route smoothing: on flat ground the leg becomes the straight line, with the straight line's minutes",
+                flat.HasRoute && flat.Legs.Count == 2 && Mathf.Abs(flat.Legs[0].Meters - straight) < 0.5f && Mathf.Abs(flat.Legs[0].Minutes - straight * pace) < 0.03f &&
+                flat.GridMeters > flat.WalkMeters + 100f && flat.Shortcuts > 0 && flat.Path.Count > 100,
+                (flat.GridMeters / 2f).ToString("F0") + " m on the grid -> " + flat.Legs[0].Meters.ToString("F0") + " m, straight " + straight.ToString("F0") + " m");
+
+            // A no-go wall from the north edge down to y = 250 m, across the straight line: the route goes around its end.
+            int wallColumn = n / 2;
+            for (int r = 0; r < n; r++)
+                if (site.SideMeters - r * spacing > 250f) slope[r * n + wallColumn] = TerrainLayers.SlopeLimitDegrees + 5f;
+            var walled = MissionFallback.Make(site, slope, 100f);
+            int onWall = 0;
+            foreach (Vector2 p in walled.Path)
+                if (!MissionFallback.Walkable(site, slope, p) && slope[ReturnFallback.NodeOf(site, p)] > TerrainLayers.SlopeLimitDegrees) onWall++;
+            float through, beside;
+            bool crosses = MissionFallback.StraightMinutes(site, slope, new Vector2(400f, 600f), new Vector2(600f, 600f), out through);
+            bool passes = MissionFallback.StraightMinutes(site, slope, new Vector2(400f, 100f), new Vector2(600f, 100f), out beside);
+            Check("Route smoothing: a straight line never crosses no-go ground; the route goes around the wall",
+                walled.HasRoute && onWall == 0 && walled.Legs[0].Meters > straight + 1f && walled.Legs[0].Meters <= walled.GridMeters / 2f + 0.5f && !crosses && passes && Mathf.Abs(beside - 200f * pace) < 0.01f,
+                walled.Legs[0].Meters.ToString("F0") + " m around, straight " + straight.ToString("F0") + " m, " + onWall + " points on the wall");
+
+            // A ramp to the east steeper than the limit (1 in 2 = 26.6°) that the slope layer does not mark:
+            // the step rule alone stops a line up it; along it (north) the walk is flat.
+            for (int r = 0; r < n; r++)
+                for (int c = 0; c < n; c++) { site.Heights[r * n + c] = c * spacing * 0.5f; slope[r * n + c] = 0f; }
+            float up, along;
+            bool climbs = MissionFallback.StraightMinutes(site, slope, new Vector2(100f, 500f), new Vector2(200f, 500f), out up);
+            bool contours = MissionFallback.StraightMinutes(site, slope, new Vector2(100f, 400f), new Vector2(100f, 500f), out along);
+            Check("Route smoothing: a line steeper than 20° is not taken, even where the slope layer says nothing",
+                !climbs && contours && Mathf.Abs(along - 100f * pace) < 0.01f, "along the ramp " + along.ToString("F2") + " min for 100 m");
+
+            // A gentle climb (1 in 10): walkable, at the grid's own slope pace.
+            for (int r = 0; r < n; r++)
+                for (int c = 0; c < n; c++) site.Heights[r * n + c] = c * spacing * 0.1f;
+            float gentle;
+            bool walks = MissionFallback.StraightMinutes(site, slope, new Vector2(100f, 500f), new Vector2(200f, 500f), out gentle);
+            float expected = 100f * pace / ReturnFallback.SlopeFactor(0.1f);
+            Check("Route smoothing: a straight line costs the same slope pace as the grid (Tobler on the 19.3 min/km flat pace)",
+                walks && Mathf.Abs(gentle - expected) < expected * 0.01f, gentle.ToString("F2") + " min, expected " + expected.ToString("F2") + " min");
         }
 
         static void RouteShot(WalkbackApp app, string fileName, Vector3 from, Vector3 lookAt, Vector3 up)
