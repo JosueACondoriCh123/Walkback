@@ -25,6 +25,8 @@ namespace Walkback
         partial void UpdatePointer();
         partial void StartHud();
         partial void UpdateHud();
+        partial void StartMission();
+        partial void UpdateMission();
 
         public GameObject cameraRig;
         public Camera desktopCamera;
@@ -110,6 +112,7 @@ namespace Walkback
             StartGlobe();
             StartPointer();
             StartHud();
+            StartMission();
             started = true;
             fpsWindowStart = Time.realtimeSinceStartup;
         }
@@ -133,6 +136,7 @@ namespace Walkback
                 UpdateRoute();
                 UpdatePanelPiece();
                 UpdateHud();
+                UpdateMission();
             }
 
             fpsFrames++;

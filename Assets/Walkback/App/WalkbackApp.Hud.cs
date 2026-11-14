@@ -25,6 +25,8 @@ namespace Walkback
         partial void UpdateHud()
         {
             if (hud == null || wristMap == null) return;
+            // In mission mode the HUD is driven by the headset's position (MissionMode), not by a stop's photo.
+            if (MissionActive) return;
             bool atStop = siteJump != null && siteJump.Inside && hudStop >= 0 && terrain != null && terrain.Site != null && hudStop < terrain.Site.Stops.Length;
             Transform head = HeadTransform();
             if (!atStop || head == null)
@@ -42,7 +44,16 @@ namespace Walkback
                 wristMap.Prepare(this, new Vector2(stop.x, stop.y), stop.name);
             }
             else hud.Follow(head, Time.deltaTime);
+            HoldWristMap(head);
+        }
 
+        /// <summary>
+        /// The 3D map on the left wrist: it shows when the user looks at the hand, or stays with X.
+        /// Without a headset it floats low on the left. Shared by the stop view and the mission mode.
+        /// </summary>
+        public void HoldWristMap(Transform head)
+        {
+            if (wristMap == null || head == null) return;
             if (DesktopMode)
             {
                 wristMap.SetVisible(true);

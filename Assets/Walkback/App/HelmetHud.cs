@@ -59,6 +59,27 @@ namespace Walkback
             WalkbackLog.Info("HUD at " + s.stopName + ": O2 " + s.oxygenLeftPercent.ToString("F1") + " %, back " + s.returnMinutes.ToString("F1") + " min, next " + s.nextName + " " + s.nextMeters.ToString("F0") + " m");
         }
 
+        /// <summary>
+        /// Mission mode: the visor while walking, from the headset's position (MissionProgress). Same cards
+        /// as ShowAt; the numbers come from the plan and the map's return layer, so they stay labelled ESTIMATE.
+        /// </summary>
+        public void ShowLive(MissionProgress.Snapshot s, SiteData site)
+        {
+            AtStop = -1;
+            oxygenCard.SetLines("O2  " + F(s.oxygenLeftPercent, "0") + " %", "oxygen left (estimate)");
+            oxygenCard.lines[0].color = s.oxygenLeftPercent > 50f ? WalkbackTheme.Safe : (s.oxygenLeftPercent > 25f ? WalkbackTheme.Watch : WalkbackTheme.Danger);
+            returnCard.SetLines(s.noWayBack ? "NO WAY BACK" : MinutesText(s.returnMinutes), "back to habitat (estimate)");
+            returnCard.lines[0].color = s.turnBack ? WalkbackTheme.Danger : WalkbackTheme.Live;
+            nextCard.SetLines("NEXT  " + s.nextName,
+                s.arrived ? "You are here" : MetersText(s.nextMeters) + "  ·  " + MinutesText(s.nextMinutes),
+                s.taskMinutesAtNext > 0f ? "Work there: " + F(s.taskMinutesAtNext, "0") + " min" : "");
+            estimateTag.SetLines(site != null && !site.IsMarsData ? MissionFallback.Note + "  ·  TEST TERRAIN, not Mars data" : MissionFallback.Note);
+            warningCard.SetLines("TURN BACK NOW");
+            warningCard.gameObject.SetActive(s.turnBack);
+            content.gameObject.SetActive(true);
+            miniMap.Show(app, s.here, s.nextPoint);
+        }
+
         public void Hide()
         {
             if (content != null) content.gameObject.SetActive(false);
