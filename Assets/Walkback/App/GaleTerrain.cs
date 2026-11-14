@@ -25,6 +25,25 @@ namespace Walkback
         public bool ReturnIsPlaceholder { get; private set; }
         /// <summary>What the legend says under the return layer while it is a placeholder (which stand-in made it).</summary>
         public string ReturnPlaceholderLabel { get; private set; } = ReturnStandIn.Label;
+        /// <summary>
+        /// Minutes of walking the oxygen left covers (infinity = no limit shown). The return layer paints
+        /// in red the ground farther from the habitat than this: from there you no longer make it back.
+        /// </summary>
+        public float ReturnReachMinutes { get; private set; } = float.PositiveInfinity;
+
+        /// <summary>Sets ReturnReachMinutes and repaints the return layer (shown at once if it is the layer on the map).</summary>
+        public void SetReturnReach(float minutes)
+        {
+            if (float.IsNaN(minutes) || minutes < 0f) minutes = 0f;
+            bool same = float.IsInfinity(minutes) ? float.IsInfinity(ReturnReachMinutes) : Mathf.Approximately(minutes, ReturnReachMinutes);
+            if (same) return;
+            ReturnReachMinutes = minutes;
+            int i = (int)MapLayer.Return;
+            DestroySafe(paints[i]);
+            paints[i] = null;
+            PaintMilliseconds[i] = 0;
+            if (Layer == MapLayer.Return) ShowLayer(MapLayer.Return);
+        }
         public MapLayer Layer { get; private set; } = MapLayer.Photo;
         /// <summary>Width of the photo on the table (memory on the Quest: 2048 px is 0.5 mm per pixel on a 1 m map).</summary>
         public const int PhotoSize = 2048;
@@ -123,7 +142,7 @@ namespace Walkback
                     break;
                 case MapLayer.Return:
                     Vector2 h = Site.Habitat;
-                    pixels = TerrainLayers.PaintReturn(ReturnMinutes, n, size, new Vector2(h.x / Site.SideMeters, h.y / Site.SideMeters));
+                    pixels = TerrainLayers.PaintReturn(ReturnMinutes, n, size, new Vector2(h.x / Site.SideMeters, h.y / Site.SideMeters), ReturnReachMinutes);
                     break;
                 default:
                     pixels = TerrainLayers.PaintHeight(Site.Heights, n, Site.MinElevation, Site.MaxElevation, size);
@@ -202,6 +221,9 @@ namespace Walkback
                     float worst = 0f;
                     foreach (float m in ReturnMinutes) if (!float.IsInfinity(m) && m > worst) worst = m;
                     string text = "RETURN ON FOOT   ring every " + TerrainLayers.ReturnRingMinutes.ToString("0") + " min  ·  farthest " + worst.ToString("0") + " min";
+                    if (!float.IsInfinity(ReturnReachMinutes))
+                        text = "RETURN ON FOOT   ring every " + TerrainLayers.ReturnRingMinutes.ToString("0") + " min  ·  " +
+                            Colored(TerrainLayers.TooFar, "red: beyond the " + ReturnReachMinutes.ToString("0") + " min the oxygen left covers");
                     if (ReturnIsPlaceholder)
                         text += "\n" + Colored(WalkbackTheme.Watch, ReturnPlaceholderLabel);
                     return text;

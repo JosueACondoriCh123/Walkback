@@ -41,6 +41,9 @@ namespace Walkback
         static readonly Color32 ReturnRing = new Color32(245, 245, 245, 255);
         static readonly Color32 NoReturn = new Color32(70, 70, 74, 255);
         static readonly Color32 NoReturnHatch = new Color32(140, 140, 146, 255);
+        /// <summary>Ground too far to walk back from with the oxygen left (two reds, hatched the other way from the gray).</summary>
+        public static readonly Color32 TooFar = new Color32(242, 56, 41, 255);
+        public static readonly Color32 TooFarHatch = new Color32(140, 26, 20, 255);
         static readonly Color32 HabitatFill = new Color32(255, 255, 255, 255);
         static readonly Color32 HabitatEdge = new Color32(20, 20, 24, 255);
 
@@ -132,7 +135,7 @@ namespace Walkback
         /// Minutes to walk back to the habitat. Brighter = closer; a white ring every 5 minutes;
         /// nodes with no way back (infinity) in hatched gray; the habitat as a white dot.
         /// </summary>
-        public static Color32[] PaintReturn(float[] minutes, int n, int size, Vector2 habitatUV)
+        public static Color32[] PaintReturn(float[] minutes, int n, int size, Vector2 habitatUV, float reachMinutes = float.PositiveInfinity)
         {
             float[] field = SampleField(minutes, n, size);
             float worst = 0f;
@@ -148,6 +151,8 @@ namespace Walkback
                     float m = field[i];
                     if (float.IsInfinity(m) || float.IsNaN(m))
                         pixels[i] = (px - py + 4 * size) % HatchPeriod < HatchWidth ? NoReturnHatch : NoReturn;
+                    else if (m > reachMinutes)
+                        pixels[i] = (px + py) % HatchPeriod < HatchWidth ? TooFarHatch : TooFar;   // farther than the oxygen left covers
                     else
                         pixels[i] = Color.Lerp(ReturnNear, ReturnFar, Mathf.Sqrt(Mathf.Clamp01(m / worst)));
                 }

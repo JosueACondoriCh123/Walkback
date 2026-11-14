@@ -105,6 +105,30 @@ namespace Walkback.EditorTools
             app.ClearPlannedRoute();
             Check("Route ribbon: clears", !view.HasRoute);
 
+            // Mission plan B on the site itself: the amber route and the verdict come from the relief.
+            MapLayer layerBeforePlan = app.terrain.Layer;
+            app.PlanMission(false);
+            Check("Mission plan B: the app plans the site's stops", app.Plan != null, app.Plan != null ? MissionFallback.LogLine(app.Plan) : "no plan");
+            if (app.Plan != null && app.terrain.Site.IsMarsData)
+            {
+                Check("Mission plan B: every leg has a way on the real site, and the amber route is on the map", app.Plan.HasRoute && view.HasRoute, MissionFallback.LogLine(app.Plan));
+                Check("Mission plan B: the route over the relief is never shorter than the straight line", app.Plan.WalkMeters >= view.StraightLengthMeters - 1f,
+                    app.Plan.WalkMeters.ToString("F0") + " m, straight " + view.StraightLengthMeters.ToString("F0") + " m");
+                Check("Mission plan B: the verdict card shows the plan, labelled as an estimate", app.panel.Verdict != VerdictState.NoRoute && app.panel.verdictNote.text.StartsWith("ESTIMATE"),
+                    app.panel.verdictTitle.text + " | " + app.panel.verdictDetail.text + " | " + app.panel.verdictNote.text);
+                app.SetWhatIfTank(8f);
+                Check("What if: with 8 % of a tank the verdict is NOT VIABLE and the map shows where you no longer walk back from",
+                    app.panel.Verdict == VerdictState.NotViable && app.terrain.Layer == MapLayer.Return && !float.IsInfinity(app.terrain.ReturnReachMinutes) && app.panel.verdictNote.text.StartsWith("WHAT IF"),
+                    app.panel.verdictDetail.text + " | reach " + app.terrain.ReturnReachMinutes.ToString("F1") + " min");
+                app.SetWhatIfTank(100f);
+                Check("What if: back to a full tank, the red is gone", float.IsInfinity(app.terrain.ReturnReachMinutes) && app.panel.verdictNote.text.StartsWith("ESTIMATE"));
+            }
+            // Back to the state the other pieces' checks expect: no amber route, NO ROUTE YET, the layer as it was.
+            app.ClearPlannedRoute();
+            app.panel.ShowNoRoute();
+            app.terrain.ShowLayer(layerBeforePlan);
+            app.RefreshPanel();
+
             // Leave the start state, labels turned to the desktop eye, for the base screenshots.
             pillars.FaceCamera(app.desktopCamera);
             Canvas.ForceUpdateCanvases();

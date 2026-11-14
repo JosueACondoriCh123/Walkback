@@ -41,6 +41,26 @@ namespace Walkback
         /// </summary>
         public static float[] Minutes(SiteData site, float[] slopeDegrees)
         {
+            return MinutesTo(site, slopeDegrees, site.Habitat, null);
+        }
+
+        /// <summary>The node (index = row * GridSize + column, row 0 = north) nearest to a point in local meters.</summary>
+        public static int NodeOf(SiteData site, Vector2 meters)
+        {
+            int n = site.GridSize;
+            float spacing = site.NodeSpacing;
+            int column = Mathf.Clamp(Mathf.RoundToInt(meters.x / spacing), 0, n - 1);
+            int row = Mathf.Clamp(Mathf.RoundToInt((site.SideMeters - meters.y) / spacing), 0, n - 1);
+            return row * n + column;
+        }
+
+        /// <summary>
+        /// Minutes to walk to <paramref name="target"/> (local meters) from every node, by the same rules.
+        /// If <paramref name="next"/> is given (GridSize * GridSize ints), it receives the way: from each
+        /// node, the node to step onto next; -1 at the target's node and where there is no way.
+        /// </summary>
+        public static float[] MinutesTo(SiteData site, float[] slopeDegrees, Vector2 target, int[] next)
+        {
             int n = site.GridSize;
             float spacing = site.NodeSpacing;
             float[] heights = site.Heights;
@@ -51,12 +71,12 @@ namespace Walkback
             var minutes = new float[n * n];
             for (int i = 0; i < minutes.Length; i++) minutes[i] = float.PositiveInfinity;
 
-            // Start at the node nearest to the habitat; the few meters between them count as flat ground.
-            Vector2 habitat = site.Habitat;
-            int startColumn = Mathf.Clamp(Mathf.RoundToInt(habitat.x / spacing), 0, n - 1);
-            int startRow = Mathf.Clamp(Mathf.RoundToInt((site.SideMeters - habitat.y) / spacing), 0, n - 1);
-            int start = startRow * n + startColumn;
-            minutes[start] = Vector2.Distance(site.NodeToMeters(startColumn, startRow), habitat) * pace;
+            if (next != null) for (int i = 0; i < next.Length; i++) next[i] = -1;
+
+            // Start at the node nearest to the target; the few meters between them count as flat ground.
+            int start = NodeOf(site, target);
+            int startRow = start / n, startColumn = start - startRow * n;
+            minutes[start] = Vector2.Distance(site.NodeToMeters(startColumn, startRow), target) * pace;
 
             var heap = new MinHeap(n * n);
             heap.Push(start, minutes[start]);
@@ -81,13 +101,14 @@ namespace Walkback
                         int v = vr * n + vc;
                         if (slopeDegrees[v] > limit) continue;   // no-go ground
                         float run = dr != 0 && dc != 0 ? diagonal : spacing;
-                        // The walk goes from v toward the habitat, so it steps from v onto u.
+                        // The walk goes from v toward the target, so it steps from v onto u.
                         float grade = (heights[u] - heights[v]) / run;
                         if (Mathf.Abs(grade) > maxGrade) continue;
                         float arrival = t + run * pace / SlopeFactor(grade);
                         if (arrival < minutes[v])
                         {
                             minutes[v] = arrival;
+                            if (next != null) next[v] = u;
                             heap.Push(v, arrival);
                         }
                     }

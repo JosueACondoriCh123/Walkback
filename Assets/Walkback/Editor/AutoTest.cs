@@ -312,6 +312,43 @@ namespace Walkback.EditorTools
             flatSlope[(fn - 1) * fn + wallColumn] = TerrainLayers.SlopeLimitDegrees + 5f;
             float[] closed = ReturnFallback.Minutes(line, flatSlope);
             Check("Return fallback: ground cut off from the habitat has no way back", float.IsInfinity(closed[northEast]) && float.IsInfinity(closed[southEast]) && closed[southWest] < 0.001f);
+
+            // Mission plan B on flat ground: 1 km out and 1 km back, 10 minutes of work at the stop.
+            var mfSite = SiteLoader.Synthetic();
+            for (int i = 0; i < mfSite.Heights.Length; i++) mfSite.Heights[i] = 0f;
+            mfSite.Info.habitat = new SitePoint { x = 0f, y = 0f };
+            mfSite.Stops = new[] { new StopInfo { id = "a", name = "A", x = 1000f, y = 0f, tasks = new[] { new StopTask { name = "t", minutes = 10f } } } };
+            var mfSlope = new float[fn * fn];
+            var mfPlan = MissionFallback.Make(mfSite, mfSlope, 100f);
+            float mfLiters = 38.6f * HudEstimate.WalkLitersPerMinute + 10f * HudEstimate.DesignLitersPerMinute;
+            Check("Mission plan B: 1 km out and back on flat ground = 2 km, 38.6 min of walking", mfPlan.HasRoute && Mathf.Abs(mfPlan.WalkMinutes - 38.6f) < 0.05f && Mathf.Abs(mfPlan.WalkMeters - 2000f) < 1f,
+                mfPlan.WalkMeters.ToString("F0") + " m, " + mfPlan.WalkMinutes.ToString("F2") + " min");
+            Check("Mission plan B: oxygen = minutes walked at the walking rate + work at the design rate", Mathf.Abs(mfPlan.UsedLiters - mfLiters) < 0.1f && Mathf.Approximately(mfPlan.WorkMinutes, 10f),
+                mfPlan.UsedLiters.ToString("F2") + " L, expected " + mfLiters.ToString("F2") + " L");
+            Check("Mission plan B: with a full tank it is VIABLE, and the route starts and ends at the habitat",
+                mfPlan.Viable && mfPlan.Path.Count > 100 && mfPlan.Path[0] == mfSite.Habitat && mfPlan.Path[mfPlan.Path.Count - 1] == mfSite.Habitat, mfPlan.Path.Count + " points");
+            var mfShort = MissionFallback.Make(mfSite, mfSlope, 8f);
+            Check("Mission plan B: with 8 % of a tank it is NOT VIABLE already on arrival at the stop", !mfShort.Viable && mfShort.FailsAtStop == 0 && mfShort.FailsOnArrival, MissionFallback.LogLine(mfShort));
+            var mfAfter = MissionFallback.Make(mfSite, mfSlope, 16f);
+            Check("Mission plan B: with 16 % of a tank it reaches the stop but cannot do the work there", !mfAfter.Viable && mfAfter.FailsAtStop == 0 && !mfAfter.FailsOnArrival, MissionFallback.LogLine(mfAfter));
+            VerdictState mfState;
+            string mfHeadline, mfSummary, mfNote;
+            MissionFallback.Describe(mfPlan, out mfState, out mfHeadline, out mfSummary, out mfNote);
+            Check("Mission plan B: the verdict card gives time, oxygen and what is spare, labelled ESTIMATE", mfState == VerdictState.Viable && mfSummary.Contains("min") && mfSummary.Contains("O2 used") && mfSummary.Contains("spare") && mfNote.StartsWith("ESTIMATE"), mfSummary + " | " + mfNote);
+            MissionFallback.Describe(mfShort, out mfState, out mfHeadline, out mfSummary, out mfNote);
+            Check("Mission plan B: a WHAT IF says so on the card and names where the oxygen runs short", mfState == VerdictState.NotViable && mfNote.StartsWith("WHAT IF") && mfSummary.Contains("A"), mfSummary + " | " + mfNote);
+            for (int r = 0; r < fn; r++) mfSlope[r * fn + fn / 2] = TerrainLayers.SlopeLimitDegrees + 5f;
+            var mfWalled = MissionFallback.Make(mfSite, mfSlope, 100f);
+            MissionFallback.Describe(mfWalled, out mfState, out mfHeadline, out mfSummary, out mfNote);
+            Check("Mission plan B: a stop behind no-go ground gives NO SAFE ROUTE, with the leg named", !mfWalled.HasRoute && !mfWalled.Viable && mfWalled.BrokenLeg == "Habitat -> A" && mfHeadline == "NO SAFE ROUTE", mfSummary);
+            Check("Mission plan B: a full tank covers hours of walking, 8 % only minutes", MissionFallback.ReachMinutes(100f) > 400f && MissionFallback.ReachMinutes(8f) > 5f && MissionFallback.ReachMinutes(8f) < 12f,
+                MissionFallback.ReachMinutes(8f).ToString("F1") + " min with 8 %");
+
+            // Return paint with a reach: ground farther than the oxygen left covers is red; without a reach, none is.
+            int redWith = 0, redWithout = 0;
+            foreach (var p in TerrainLayers.PaintReturn(back, 257, 64, Vector2.zero, 10f)) if (Same(p, TerrainLayers.TooFar) || Same(p, TerrainLayers.TooFarHatch)) redWith++;
+            foreach (var p in TerrainLayers.PaintReturn(back, 257, 64, Vector2.zero)) if (Same(p, TerrainLayers.TooFar) || Same(p, TerrainLayers.TooFarHatch)) redWithout++;
+            Check("Return paint: beyond the reach the ground is red, and only then", redWith > 64 * 64 / 2 && redWithout == 0, redWith + " red px of " + (64 * 64) + " with a 10 min reach");
         }
 
         static void CheckLayers(WalkbackApp app, GaleTerrain terrain)

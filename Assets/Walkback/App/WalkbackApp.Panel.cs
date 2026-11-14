@@ -10,6 +10,9 @@ namespace Walkback
             panel.Bind(this);
             // Until session C's model is wired, the verdict card says there is no route: no numbers are made up.
             panel.ShowNoRoute();
+            // PLAN B: if the route piece already planned the mission (MissionFallback), show its verdict,
+            // labelled as an estimate on the card.
+            ShowPlanOnPanel();
             WalkbackLog.Info("Panel bound: " + panel.layerButtons.Length + " layer buttons, " + panel.stopButtons.Count + " stop buttons, conditions " + (panel.ConditionsHaveData ? "loaded" : "waiting for data"));
         }
     }
