@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace Walkback
 {
-    public enum MapLayer { Height = 0, Slope = 1, Return = 2 }
+    public enum MapLayer { Height = 0, Slope = 1, Return = 2, Photo = 3 }
 
     /// <summary>
     /// The three paints of the map, computed in the app from the heights (guion §3, piece 2):

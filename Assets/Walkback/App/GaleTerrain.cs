@@ -9,7 +9,8 @@ namespace Walkback
     /// <summary>
     /// The square kilometer on the table: a 257 x 257 mesh from session B's site package
     /// (or the synthetic test terrain until it lands), relief not exaggerated, and three paints
-    /// computed from the heights: height, slope and return on foot.
+    /// computed from the heights: height, slope and return on foot; plus the HiRISE photo (Site/ortho.jpg)
+    /// draped on the relief, the first thing the user sees when there is one.
     /// Mesh units are meters; the parent scales the kilometer down to the table. North is +z.
     /// </summary>
     [RequireComponent(typeof(MeshFilter), typeof(MeshRenderer))]
@@ -22,14 +23,18 @@ namespace Walkback
         public float[] ReturnMinutes { get; private set; }
         /// <summary>True while the return layer comes from the stand-in, not session C's model.</summary>
         public bool ReturnIsPlaceholder { get; private set; }
-        public MapLayer Layer { get; private set; }
+        public MapLayer Layer { get; private set; } = MapLayer.Photo;
+        /// <summary>Width of the photo on the table (memory on the Quest: 2048 px is 0.5 mm per pixel on a 1 m map).</summary>
+        public const int PhotoSize = 2048;
+        /// <summary>False when the site package has no ortho.jpg (the synthetic terrain): PHOTO shows HEIGHT instead.</summary>
+        public bool HasPhoto { get; private set; }
         /// <summary>Milliseconds each layer took to paint (0 = not painted yet).</summary>
-        public readonly long[] PaintMilliseconds = new long[3];
+        public readonly long[] PaintMilliseconds = new long[4];
 
         public event Action<MapLayer> LayerChanged;
 
         Mesh mesh;
-        readonly Texture2D[] paints = new Texture2D[3];
+        readonly Texture2D[] paints = new Texture2D[4];
         MaterialPropertyBlock block;
 
         void Awake()
@@ -57,6 +62,7 @@ namespace Walkback
             Slope = TerrainLayers.SlopeDegrees(site.Heights, site.GridSize, site.NodeSpacing);
             ReturnMinutes = ReturnStandIn.Minutes(site);
             ReturnIsPlaceholder = true;
+            HasPhoto = site.IsMarsData && SiteLoader.ReadStreamingAsset(SiteLoader.SiteFolder + "/ortho.jpg") != null;
             for (int i = 0; i < paints.Length; i++)
             {
                 DestroySafe(paints[i]);
@@ -70,6 +76,7 @@ namespace Walkback
 
         public void ShowLayer(MapLayer layer)
         {
+            if (layer == MapLayer.Photo && !HasPhoto) layer = MapLayer.Height;
             Layer = layer;
             if (block == null) block = new MaterialPropertyBlock();
             block.SetTexture("_BaseMap", LayerTexture(layer));
@@ -84,6 +91,14 @@ namespace Walkback
             if (paints[i] != null) return paints[i];
 
             var watch = Stopwatch.StartNew();
+            if (layer == MapLayer.Photo)
+            {
+                paints[i] = HasPhoto ? LoadPhoto(PhotoSize) : null;
+                if (paints[i] == null) return LayerTexture(MapLayer.Height);
+                PaintMilliseconds[i] = Math.Max(1, watch.ElapsedMilliseconds);
+                WalkbackLog.Info("Layer Photo loaded in " + PaintMilliseconds[i] + " ms");
+                return paints[i];
+            }
             int size = TerrainLayers.PaintSize;
             int n = Site.GridSize;
             Color32[] pixels;
@@ -117,6 +132,33 @@ namespace Walkback
             return texture;
         }
 
+        /// <summary>Site/ortho.jpg scaled to size x size with mipmaps; null if it cannot be read.</summary>
+        static Texture2D LoadPhoto(int size)
+        {
+            byte[] bytes = SiteLoader.ReadStreamingAsset(SiteLoader.SiteFolder + "/ortho.jpg");
+            if (bytes == null) return null;
+            var full = new Texture2D(2, 2, TextureFormat.RGB24, false) { hideFlags = HideFlags.DontSave };
+            if (!full.LoadImage(bytes, false)) { DestroySafe(full); return null; }
+            var rt = RenderTexture.GetTemporary(size, size, 0, RenderTextureFormat.ARGB32, RenderTextureReadWrite.sRGB);
+            Graphics.Blit(full, rt);
+            var previous = RenderTexture.active;
+            RenderTexture.active = rt;
+            var photo = new Texture2D(size, size, TextureFormat.RGB24, true)
+            {
+                name = "Paint_Photo",
+                wrapMode = TextureWrapMode.Clamp,
+                filterMode = FilterMode.Trilinear,
+                anisoLevel = 4,
+                hideFlags = HideFlags.DontSave,
+            };
+            photo.ReadPixels(new Rect(0, 0, size, size), 0, 0);
+            photo.Apply(true, Application.isPlaying);
+            RenderTexture.active = previous;
+            RenderTexture.ReleaseTemporary(rt);
+            DestroySafe(full);
+            return photo;
+        }
+
         /// <summary>One line under the verdict: what this terrain is and where it comes from.</summary>
         public string SourceLine()
         {
@@ -124,8 +166,8 @@ namespace Walkback
                 return "TEST TERRAIN · synthetic shape for development · not Mars data";
             var info = Site.Info;
             string place = (string.IsNullOrEmpty(info.name) ? "Mars" : info.name.ToUpperInvariant()) + " · " + (Site.SideMeters / 1000f).ToString("0.#") + " km²";
-            place += " · " + Math.Abs(info.centerLat).ToString("F2") + "° " + (info.centerLat < 0 ? "S" : "N") +
-                     ", " + Math.Abs(info.centerLon).ToString("F2") + "° " + (info.centerLon < 0 ? "W" : "E");
+            place += " · " + Math.Abs(info.centerLat).ToString("F2", System.Globalization.CultureInfo.InvariantCulture) + "° " + (info.centerLat < 0 ? "S" : "N") +
+                     ", " + Math.Abs(info.centerLon).ToString("F2", System.Globalization.CultureInfo.InvariantCulture) + "° " + (info.centerLon < 0 ? "W" : "E");
             var source = Site.ElevationSource;
             if (source != null)
                 place += " · heights: " + Join(" ", source.mission, source.instrument) + (string.IsNullOrEmpty(source.resolution) ? "" : ", " + source.resolution);
@@ -141,20 +183,21 @@ namespace Walkback
                     return "SLOPE   " +
                         Colored(TerrainLayers.SlopeGentle, "under " + TerrainLayers.GentleSlopeDegrees.ToString("0") + "°") + "  ·  " +
                         Colored(TerrainLayers.SlopeCareful, TerrainLayers.GentleSlopeDegrees.ToString("0") + "–" + TerrainLayers.SlopeLimitDegrees.ToString("0") + "° with care") + "  ·  " +
-                        Colored(TerrainLayers.SlopeNoGo, "over " + TerrainLayers.SlopeLimitDegrees.ToString("0") + "° no-go, hatched") +
-                        "\nComputed from the heights, node by node (" + Site.NodeSpacing.ToString("F1") + " m apart).";
+                        Colored(TerrainLayers.SlopeNoGo, "over " + TerrainLayers.SlopeLimitDegrees.ToString("0") + "° no-go (hatched)");
                 case MapLayer.Return:
                     float worst = 0f;
                     foreach (float m in ReturnMinutes) if (!float.IsInfinity(m) && m > worst) worst = m;
-                    string text = "RETURN ON FOOT   white dot = habitat, brighter = closer  ·  ring every " +
-                        TerrainLayers.ReturnRingMinutes.ToString("0") + " min  ·  farthest " + worst.ToString("0") + " min";
+                    string text = "RETURN ON FOOT   ring every " + TerrainLayers.ReturnRingMinutes.ToString("0") + " min  ·  farthest " + worst.ToString("0") + " min";
                     if (ReturnIsPlaceholder)
                         text += "\n" + Colored(WalkbackTheme.Watch, ReturnStandIn.Label);
                     return text;
+                case MapLayer.Photo:
+                    var photo = Site.Source("ortho");
+                    return "PHOTO   " + (photo != null ? Join(" ", photo.mission, photo.instrument) + ", " + photo.resolution : "orbital photo") +
+                        "  ·  on the real relief (" + (Site.MaxElevation - Site.MinElevation).ToString("F0") + " m, not exaggerated)";
                 default:
-                    return "HEIGHT   dark = low " + Site.MinElevation.ToString("F0") + " m  ·  light = high " + Site.MaxElevation.ToString("F0") + " m  ·  " +
-                        "contour line every " + TerrainLayers.ContourMeters.ToString("0") + " m\nRelief " + (Site.MaxElevation - Site.MinElevation).ToString("F0") +
-                        " m over " + Site.SideMeters.ToString("0") + " m, not exaggerated.";
+                    return "HEIGHT   dark " + Site.MinElevation.ToString("F0") + " m  ·  light " + Site.MaxElevation.ToString("F0") + " m  ·  " +
+                        "contour every " + TerrainLayers.ContourMeters.ToString("0") + " m  ·  relief " + (Site.MaxElevation - Site.MinElevation).ToString("F0") + " m, not exaggerated";
             }
         }
 

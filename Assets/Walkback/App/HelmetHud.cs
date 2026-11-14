@@ -1,0 +1,100 @@
+// Written with Claude Code (AI), directed and tested by team MARSXR
+using System.Globalization;
+using UnityEngine;
+
+namespace Walkback
+{
+    /// <summary>
+    /// The helmet HUD (guion §16.4, ficha G; §22.2): what the astronaut's visor shows while standing at
+    /// a stop (inside its 360° photo). Few things and big: oxygen left (top left), minutes back to the
+    /// habitat (top right), the next stop (bottom left), the 2D map (bottom right), and a red TURN BACK
+    /// NOW in the middle only when the way back is no longer covered. Pinned to the view with a slight
+    /// lag (§21.6), 1.2 m ahead, everything within about 25° of the center. Numbers come from
+    /// HudEstimate and say so until session C's model lands.
+    /// </summary>
+    public class HelmetHud : MonoBehaviour
+    {
+        public const float Distance = 1.2f;
+        public const float FollowSpeed = 6f;
+
+        public WalkbackApp app;
+        /// <summary>Everything that shows; inactive while the HUD is off.</summary>
+        public Transform content;
+        public GlobeLabel oxygenCard;
+        public GlobeLabel returnCard;
+        public GlobeLabel nextCard;
+        public GlobeLabel estimateTag;
+        public GlobeLabel warningCard;
+        public MiniMap miniMap;
+
+        public bool Visible { get { return content != null && content.gameObject.activeSelf; } }
+        public int AtStop { get; private set; } = -1;
+        public HudEstimate.State Current { get; private set; }
+
+        /// <summary>Shows the visor as on arrival at stop <paramref name="index"/>.</summary>
+        public void ShowAt(int index)
+        {
+            SiteData site = app != null && app.terrain != null ? app.terrain.Site : null;
+            if (site == null || site.Stops.Length == 0) { Hide(); return; }
+            var s = HudEstimate.AtStop(site, index);
+            Current = s;
+            AtStop = s.stop;
+
+            oxygenCard.SetLines("O2  " + F(s.oxygenLeftPercent, "0") + " %", "oxygen left (estimate)");
+            oxygenCard.lines[0].color = s.oxygenLeftPercent > 50f ? WalkbackTheme.Safe : (s.oxygenLeftPercent > 25f ? WalkbackTheme.Watch : WalkbackTheme.Danger);
+            returnCard.SetLines(MinutesText(s.returnMinutes), "back to habitat (estimate)");
+            returnCard.lines[0].color = s.turnBack ? WalkbackTheme.Danger : WalkbackTheme.Live;
+            nextCard.SetLines("NEXT  " + s.nextName,
+                MetersText(s.nextMeters) + "  ·  " + MinutesText(s.nextMinutes) + "  ·  O2 -" + F(s.nextOxygenPercent, "0.0") + " %",
+                s.taskMinutes > 0f ? "Tasks here: " + F(s.taskMinutes, "0") + " min" : "");
+            estimateTag.SetLines(site.IsMarsData ? HudEstimate.Label : HudEstimate.Label + "  ·  TEST TERRAIN, not Mars data");
+            warningCard.SetLines("TURN BACK NOW");
+            warningCard.gameObject.SetActive(s.turnBack);
+
+            content.gameObject.SetActive(true);
+            miniMap.Show(app, s.here, s.nextPoint);
+            WalkbackLog.Info("HUD at " + s.stopName + ": O2 " + s.oxygenLeftPercent.ToString("F1") + " %, back " + s.returnMinutes.ToString("F1") + " min, next " + s.nextName + " " + s.nextMeters.ToString("F0") + " m");
+        }
+
+        public void Hide()
+        {
+            if (content != null) content.gameObject.SetActive(false);
+            AtStop = -1;
+        }
+
+        /// <summary>Jumps to its place in front of <paramref name="head"/> (on entering a stop).</summary>
+        public void SnapTo(Transform head)
+        {
+            if (head == null) return;
+            transform.SetPositionAndRotation(head.position + head.forward * Distance, head.rotation);
+        }
+
+        /// <summary>Follows the head with a slight lag, so the visor feels steady.</summary>
+        public void Follow(Transform head, float deltaTime)
+        {
+            if (head == null) return;
+            float k = 1f - Mathf.Exp(-FollowSpeed * deltaTime);
+            transform.position = Vector3.Lerp(transform.position, head.position + head.forward * Distance, k);
+            transform.rotation = Quaternion.Slerp(transform.rotation, head.rotation, k);
+        }
+
+        public static string MinutesText(float minutes)
+        {
+            if (minutes < 1f) return "under 1 min";
+            if (minutes < 60f) return F(minutes, "0") + " min";
+            int h = Mathf.FloorToInt(minutes / 60f);
+            return h + " h " + Mathf.RoundToInt(minutes - h * 60f) + " min";
+        }
+
+        public static string MetersText(float meters)
+        {
+            return meters >= 1000f ? F(meters / 1000f, "0.0") + " km" : F(meters, "0") + " m";
+        }
+
+        /// <summary>Numbers on the visor always with a decimal point (the UI is in English, whatever the device language).</summary>
+        static string F(float value, string format)
+        {
+            return value.ToString(format, CultureInfo.InvariantCulture);
+        }
+    }
+}

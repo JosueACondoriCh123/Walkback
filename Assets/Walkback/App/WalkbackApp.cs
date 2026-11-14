@@ -23,6 +23,8 @@ namespace Walkback
         partial void UpdatePanelPiece();
         partial void UpdateGlobe();
         partial void UpdatePointer();
+        partial void StartHud();
+        partial void UpdateHud();
 
         public GameObject cameraRig;
         public Camera desktopCamera;
@@ -107,19 +109,21 @@ namespace Walkback
             StartPanelPiece();
             StartGlobe();
             StartPointer();
+            StartHud();
             started = true;
             fpsWindowStart = Time.realtimeSinceStartup;
         }
 
         void Update()
         {
-            // Desktop mode: keys 1, 2, 3 switch the map layer (the pointer and panel buttons come later).
+            // Desktop mode: keys 1, 2, 3, 4 switch the map layer (height, slope, return, photo).
             var keyboard = Keyboard.current;
             if (DesktopMode && terrain != null && keyboard != null)
             {
                 if (keyboard.digit1Key.wasPressedThisFrame) terrain.ShowLayer(MapLayer.Height);
                 if (keyboard.digit2Key.wasPressedThisFrame) terrain.ShowLayer(MapLayer.Slope);
                 if (keyboard.digit3Key.wasPressedThisFrame) terrain.ShowLayer(MapLayer.Return);
+                if (keyboard.digit4Key.wasPressedThisFrame) terrain.ShowLayer(MapLayer.Photo);
             }
 
             if (started)
@@ -128,6 +132,7 @@ namespace Walkback
                 UpdateGlobe();
                 UpdateRoute();
                 UpdatePanelPiece();
+                UpdateHud();
             }
 
             fpsFrames++;

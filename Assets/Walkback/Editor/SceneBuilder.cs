@@ -19,6 +19,7 @@ namespace Walkback.EditorTools
         static partial void BuildPanelPiece(WalkbackApp app);
         static partial void BuildGlobe(WalkbackApp app);
         static partial void BuildPointer(WalkbackApp app);
+        static partial void BuildHud(WalkbackApp app);
 
         public const string ScenePath = "Assets/Walkback/Scenes/Walkback.unity";
         public const string MaterialFolder = "Assets/Walkback/Materials";
@@ -140,6 +141,7 @@ namespace Walkback.EditorTools
             BuildRoute(app);
             BuildPanelPiece(app);
             BuildGlobe(app);
+            BuildHud(app);
             BuildPointer(app);   // last: it looks for every pointer target the others made
 
             EditorSceneManager.SaveScene(scene, ScenePath);

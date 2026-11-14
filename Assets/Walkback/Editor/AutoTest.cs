@@ -37,6 +37,8 @@ namespace Walkback.EditorTools
         static partial void ShotsPanelPiece(WalkbackApp app);
         static partial void ShotsGlobe(WalkbackApp app);
         static partial void ShotsPointer(WalkbackApp app);
+        static partial void CheckHud(WalkbackApp app);
+        static partial void ShotsHud(WalkbackApp app);
 
         static AutoTest()
         {
@@ -103,11 +105,13 @@ namespace Walkback.EditorTools
                 Guard("Panel", () => CheckPanelPiece(app));
                 Guard("Globe", () => CheckGlobe(app));
                 Guard("Pointer", () => CheckPointer(app));
+                Guard("HUD", () => CheckHud(app));
                 Screenshots(app);
                 Guard("Route shots", () => ShotsRoute(app));
                 Guard("Panel shots", () => ShotsPanelPiece(app));
                 Guard("Globe shots", () => ShotsGlobe(app));
                 Guard("Pointer shots", () => ShotsPointer(app));
+                Guard("HUD shots", () => ShotsHud(app));
             }
             catch (Exception e)
             {
@@ -339,6 +343,19 @@ namespace Walkback.EditorTools
             terrain.ShowLayer(MapLayer.Return);
             app.RefreshPanel();
             Check("Return layer is labelled as a placeholder until session C's model lands", !terrain.ReturnIsPlaceholder || app.panel.legendLine.text.Contains("PLACEHOLDER"));
+
+            // Photo: the HiRISE orthophoto draped on the relief (only with session B's package).
+            terrain.ShowLayer(MapLayer.Photo);
+            app.RefreshPanel();
+            if (terrain.HasPhoto)
+            {
+                renderer.GetPropertyBlock(block);
+                var photo = terrain.LayerTexture(MapLayer.Photo);
+                Check("Layer Photo: the HiRISE photo lies on the relief, 2048 px", block.GetTexture("_BaseMap") == photo && photo.width == GaleTerrain.PhotoSize && terrain.Layer == MapLayer.Photo,
+                    "loaded in " + terrain.PaintMilliseconds[(int)MapLayer.Photo] + " ms");
+                Check("Layer Photo names its mission, instrument and resolution on the panel", app.panel.legendLine.text.StartsWith("PHOTO") && app.panel.legendLine.text.Contains("HiRISE"), app.panel.legendLine.text);
+            }
+            else Check("No photo in the package: PHOTO falls back to HEIGHT", terrain.Layer == MapLayer.Height);
             terrain.ShowLayer(MapLayer.Height);
             app.RefreshPanel();
         }
@@ -356,6 +373,9 @@ namespace Walkback.EditorTools
             Vector3 mapCenter = app.mapRoot.position;
             Vector3 aboveMap = mapCenter + new Vector3(0f, 1.0f, 0f);
 
+            ShowLayer(app, MapLayer.Photo);
+            Shot(cam, "00_overview_photo.png", homePosition, new Vector3(0f, 1.05f, 1.4f));
+            ShotDown(cam, "00b_map_photo.png", aboveMap);
             ShowLayer(app, MapLayer.Height);
             Shot(cam, "01_overview.png", homePosition, new Vector3(0f, 1.05f, 1.4f));
             Shot(cam, "02_panel_height.png", new Vector3(0f, 1.5f, 0.35f), SceneBuilder.PanelCenter);
