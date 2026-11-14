@@ -83,6 +83,7 @@ namespace Walkback.EditorTools
 
         static void CheckPanelSideBoard(WalkbackApp app, MissionPanel panel)
         {
+            CheckControlsCard(panel);
             var side = panel.sideBoard;
             Check("Panel: side board present", side != null);
             if (side == null) return;
@@ -161,6 +162,40 @@ namespace Walkback.EditorTools
             var broken = Conditions.Describe("{not json");
             Check("Conditions: a broken file says so and shows no numbers", !broken.HasData && broken.Text.Contains("could not be read") && !HasDigit(broken.Text));
             Check("Conditions: an empty file waits for data", Conditions.Describe("{}").Text == Conditions.WaitingText);
+        }
+
+        /// <summary>The controls card: there, readable, facing the user, clear of the main board, every control on one line.</summary>
+        static void CheckControlsCard(MissionPanel panel)
+        {
+            GlobeLabel card = panel.controlsCard;
+            Check("Controls card: next to the table, a child of the panel (it hides and moves with it)", card != null && card.transform.IsChildOf(panel.transform) && card.gameObject.activeSelf);
+            if (card == null) return;
+            string all = "";
+            foreach (var line in card.lines) all += line.text + "\n";
+            Check("Controls card: says how to change layers, WHAT IF, MISSION, JUMP and RECENTER",
+                all.Contains("LAYERS") && all.Contains("WHAT IF") && all.Contains("MISSION") && all.Contains("JUMP") && all.Contains("RECENTER"));
+            Canvas.ForceUpdateCanvases();
+            string wide = "";
+            float smallest = float.MaxValue;
+            bool uiOnly = true;
+            foreach (var line in card.lines)
+            {
+                float box = ((RectTransform)line.transform).rect.width;
+                if (line.preferredWidth > box) wide += line.text + " " + line.preferredWidth.ToString("F0") + "/" + box.ToString("F0") + " px; ";
+                smallest = Mathf.Min(smallest, line.fontSize * line.transform.lossyScale.y);
+                if (line.material == null || line.material.shader.name != "Walkback/UI") uiOnly = false;
+            }
+            Vector3 toCard = card.transform.position - MissionPanel.UserEye;
+            float meters = toCard.magnitude;
+            // 17 mm at 1.2 m is the project's floor for text; farther away the letters must be that much taller.
+            float needed = 0.017f * meters / 1.2f;
+            Check("Controls card: every control on one line, letters big enough for its distance, never writing alpha",
+                wide.Length == 0 && smallest >= needed && uiOnly, wide.Length > 0 ? wide : (smallest * 1000f).ToString("F0") + " mm letters at " + meters.ToString("F2") + " m (needs " + (needed * 1000f).ToString("F0") + " mm)");
+            toCard.y = 0f;
+            Vector3 innerEdge = card.transform.position + card.transform.right * (card.backPlate.lossyScale.x / 2f);
+            Check("Controls card: faces the user and does not cover the main board",
+                Vector3.Dot(card.transform.forward, toCard.normalized) > 0.99f && innerEdge.x < -(WalkbackTheme.PanelWidthMeters / 2f + 0.02f),
+                "inner edge at x " + innerEdge.x.ToString("F2") + " m");
         }
 
         /// <summary>Every fixed text on both boards fits its box (a text spilling over the next one reads as a bug on the projector).</summary>

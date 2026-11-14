@@ -35,6 +35,23 @@ namespace Walkback
 
         public static readonly string[] LayerLabels = { "HEIGHT", "SLOPE", "RETURN", "PHOTO" };
 
+        /// <summary>
+        /// The controls card to the left of the main board, turned to face the user like the side board
+        /// on the right: what each control does, for someone who puts the headset on for the first time.
+        /// </summary>
+        public static readonly Vector3 ControlsCardOffset = new Vector3(-1.16f, -0.20f, -0.22f);
+        public static readonly string[] ControlsText =
+        {
+            "CONTROLS",
+            "LAYERS · point at a button and press",
+            "WHAT IF · click the left stick",
+            "MISSION · left menu button",
+            "JUMP · left grip, in the mission",
+            "RECENTER · B or Y",
+        };
+        /// <summary>Built by the scene builder as a child of the panel, so it hides and moves with it.</summary>
+        public GlobeLabel controlsCard;
+
         [Header("Main board")]
         public Text title;
         public Text tagline;
