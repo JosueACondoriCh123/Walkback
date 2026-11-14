@@ -181,6 +181,41 @@ namespace Walkback.EditorTools
                     mission.Tick(cam.transform, 0.3f);
                 }
 
+                // ---- The estimate line never covers the name on the pillar (it did, from 7 to 5.5 m, when it was above the cards)
+                {
+                    Vector3 wasAt = cam.transform.position;
+                    Quaternion wasLooking = cam.transform.rotation;
+                    Vector3 labelAt = mission.pillarLabel.transform.position;
+                    Vector3 away = new Vector3(wasAt.x - labelAt.x, 0f, wasAt.z - labelAt.z).normalized;
+                    // Eyes 1.75 m below the name, as on level ground (name at 3.35 m, eyes at 1.6 m).
+                    float eyeY = labelAt.y - (MissionMode.PillarHeightMeters + 0.35f - 1.6f);
+                    int crossings = 0, oldCrossings = 0, poses = 0;
+                    string covered = "";
+                    foreach (float pitch in new[] { 0f, 10f, 20f })
+                        foreach (float meters in new[] { 40f, 20f, 10f, 7.4f, 7f, 6.5f, 6f, 5.6f, 5f, 4f, 3f, 2f })
+                        {
+                            cam.transform.position = new Vector3(labelAt.x, eyeY, labelAt.z) + away * meters;
+                            // Looking toward the stop, level or down at the path (pitch is degrees down).
+                            cam.transform.rotation = Quaternion.LookRotation(-away, Vector3.up) * Quaternion.Euler(pitch, 0f, 0f);
+                            mission.pillarLabel.Face(cam.transform.position);
+                            app.hud.SnapTo(cam.transform);
+                            Rect name = ViewRect(cam, mission.pillarLabel);
+                            app.hud.estimateTag.transform.localPosition = HelmetHud.EstimateBelow;
+                            if (ViewRect(cam, app.hud.estimateTag).Overlaps(name)) { crossings++; covered += " " + meters.ToString("0.#") + " m/" + pitch.ToString("0") + "°"; }
+                            app.hud.estimateTag.transform.localPosition = HelmetHud.EstimateAbove;
+                            if (ViewRect(cam, app.hud.estimateTag).Overlaps(name)) oldCrossings++;
+                            app.hud.estimateTag.transform.localPosition = HelmetHud.EstimateBelow;
+                            poses++;
+                        }
+                    cam.transform.SetPositionAndRotation(wasAt, wasLooking);
+                    mission.pillarLabel.Face(cam.transform.position);
+                    app.hud.SnapTo(cam.transform);
+                    mission.Tick(cam.transform, 0.3f);
+                    Check("Mission HUD: the estimate line sits below the cards and never covers the name on the pillar (2 to 40 m away, looking level or down at the path)",
+                        crossings == 0 && oldCrossings > 0 && app.hud.estimateTag.transform.localPosition == HelmetHud.EstimateBelow,
+                        crossings + " of " + poses + " poses covered" + covered + "; above the cards it was " + oldCrossings);
+                }
+
                 // ---- Walking: the headset's position moves the numbers; nothing else moves
                 Vector3 marsBefore = mission.mars.position;
                 var before = mission.Last;
@@ -308,6 +343,21 @@ namespace Walkback.EditorTools
         }
 
         /// <summary>Flat ground, habitat in the south-west corner, one stop 1 km east with 10 minutes of work.</summary>
+        /// <summary>The box a label takes on screen (viewport units), from the four corners of its canvas.</summary>
+        static Rect ViewRect(Camera cam, GlobeLabel label)
+        {
+            var corners = new Vector3[4];
+            label.canvasRect.GetWorldCorners(corners);
+            float x0 = float.MaxValue, y0 = float.MaxValue, x1 = float.MinValue, y1 = float.MinValue;
+            foreach (Vector3 corner in corners)
+            {
+                Vector3 v = cam.WorldToViewportPoint(corner);
+                x0 = Mathf.Min(x0, v.x); x1 = Mathf.Max(x1, v.x);
+                y0 = Mathf.Min(y0, v.y); y1 = Mathf.Max(y1, v.y);
+            }
+            return Rect.MinMaxRect(x0, y0, x1, y1);
+        }
+
         static SiteData MissionTestSite()
         {
             var site = SiteLoader.Synthetic();

@@ -31,7 +31,7 @@ namespace Walkback.EditorTools
             hud.oxygenCard = Card(content, "Oxygen", 320f, 130f, new[] { 60, 24 }, new[] { WalkbackTheme.Safe, soft }, backPlate, ui, new Vector3(-0.33f, 0.22f, 0f));
             hud.returnCard = Card(content, "Return", 360f, 130f, new[] { 60, 24 }, new[] { WalkbackTheme.Live, soft }, backPlate, ui, new Vector3(0.33f, 0.22f, 0f));
             hud.nextCard = Card(content, "Next", 440f, 130f, new[] { 30, 26, 24 }, new[] { WalkbackTheme.Watch, text, soft }, backPlate, ui, new Vector3(-0.32f, -0.17f, 0f));
-            hud.estimateTag = Card(content, "Estimate", 760f, 42f, new[] { 20 }, new[] { WalkbackTheme.Watch }, backPlate, ui, new Vector3(0f, 0.33f, 0f));
+            hud.estimateTag = Card(content, "Estimate", 760f, 42f, new[] { 20 }, new[] { WalkbackTheme.Watch }, backPlate, ui, HelmetHud.EstimateAbove);
             hud.warningCard = Card(content, "TurnBack", 560f, 96f, new[] { 56 }, new[] { WalkbackTheme.Danger }, backPlate, ui, new Vector3(0f, 0.10f, 0f));
             foreach (var card in new[] { hud.oxygenCard, hud.returnCard, hud.nextCard, hud.estimateTag, hud.warningCard })
                 foreach (var line in card.lines) line.alignment = TextAnchor.MiddleCenter;

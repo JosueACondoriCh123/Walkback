@@ -21,6 +21,14 @@ namespace Walkback
         /// the visor is read at a glance, and the long version is on the verdict card.
         /// </summary>
         public const string EstimateLine = "ESTIMATE · not the walking model yet";
+        /// <summary>The estimate line's place inside a 360° photo: above the cards (the photo's own card is below).</summary>
+        public static readonly Vector3 EstimateAbove = new Vector3(0f, 0.33f, 0f);
+        /// <summary>
+        /// Its place in mission mode: below the cards. The next stop's name stands 3.35 m up on its pillar,
+        /// so while walking it is always above the horizon; a line above the cards crossed it between
+        /// 7 and 5.5 m from the stop (and for most of the walk when looking down at the path).
+        /// </summary>
+        public static readonly Vector3 EstimateBelow = new Vector3(0f, -0.33f, 0f);
 
         public WalkbackApp app;
         /// <summary>Everything that shows; inactive while the HUD is off.</summary>
@@ -54,6 +62,7 @@ namespace Walkback
                 MetersText(s.nextMeters) + "  ·  " + MinutesText(s.nextMinutes) + "  ·  O2 -" + F(s.nextOxygenPercent, "0.0") + " %",
                 s.taskMinutes > 0f ? "Tasks here: " + F(s.taskMinutes, "0") + " min" : "");
             estimateTag.SetLines(site.IsMarsData ? EstimateLine : EstimateLine + "  ·  TEST TERRAIN, not Mars data");
+            estimateTag.transform.localPosition = EstimateAbove;
             warningCard.SetLines("TURN BACK NOW");
             SetWarning(s.turnBack);
 
@@ -80,6 +89,7 @@ namespace Walkback
                 s.arrived ? "You are here" : MetersText(s.nextMeters) + "  ·  " + MinutesText(s.nextMinutes),
                 s.taskMinutesAtNext > 0f ? "Work there: " + F(s.taskMinutesAtNext, "0") + " min" : "");
             estimateTag.SetLines(site != null && !site.IsMarsData ? EstimateLine + "  ·  TEST TERRAIN, not Mars data" : EstimateLine);
+            estimateTag.transform.localPosition = EstimateBelow;
             warningCard.SetLines("TURN BACK NOW");
             SetWarning(s.turnBack);
             content.gameObject.SetActive(true);
