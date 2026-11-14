@@ -92,6 +92,39 @@
   },
   "stops": [
     {
+      "id": "altadena",
+      "name": "Altadena",
+      "roverWaypointSol": 4560,
+      "science": "Curiosity's 43rd drill hole, in the boxwork bedrock: its powder went to the CheMin and SAM labs.",
+      "scienceSource": "NASA Curiosity blog, sols 4568-4569 (planning date 11 Jun 2025): Altadena drill hole imaged on sol 4564 (8 Jun 2025), sample delivered to CheMin and SAM, '42 drill sites that came before'",
+      "tasks": [
+        {
+          "name": "Check the site",
+          "minutes": 5
+        },
+        {
+          "name": "Set up the drill",
+          "minutes": 8
+        },
+        {
+          "name": "Drill",
+          "minutes": 15
+        },
+        {
+          "name": "Extract the core",
+          "minutes": 10
+        }
+      ],
+      "taskSource": "Task times proposed from NASA/TP-2017-219457, table 30 (same set as Valle de la Luna)",
+      "risk": "Gentle bedrock, slopes under 8° around it: the closest stop, 200 m from the habitat.",
+      "photoCredit": "",
+      "panorama": "",
+      "tag": "Curiosity drilled here · Jun 2025",
+      "tagSource": "NASA Curiosity blog, sols 4568-4569: drill hole image of 8 Jun 2025 (sol 4564)",
+      "positionSource": "Rover waypoint of sol 4560, where it stayed until sol 4571 (drill imaged sol 4564, campaign ending sols 4568-4569)",
+      "riskSource": "Slope and distance from the site's own elevation and site.json"
+    },
+    {
       "id": "valle-de-la-luna",
       "name": "Valle de la Luna",
       "roverWaypointSol": 4687,
@@ -149,6 +182,40 @@
       "panorama": "",
       "tag": "Curiosity drilled here · Nov 2025",
       "tagSource": "Drill sols from the NASA Curiosity blog; Earth dates from the REMS feed (sol 4693 = 2025-10-19, sol 4718 = 2025-11-13)"
+    },
+    {
+      "id": "campo-marte",
+      "name": "Campo Marte",
+      "roverWaypointSol": 4893,
+      "science": "Drill hole in the layered sulfate unit just above the boxwork; ChemCam and APXS measured it first.",
+      "scienceSource": "NASA Curiosity blog, sols 4893-4899 (planning date 15 May 2026): same stratum as Atacama, 'the layered sulfate unit above the boxwork structures'; sols 4900-4907: first colour look of the drill hole, 16 May 2026 (sol 4897)",
+      "nameOrigin": "NASA named it after a natural red sandstone feature in Bolivia: 'Field of Mars'",
+      "tasks": [
+        {
+          "name": "Check the site",
+          "minutes": 5
+        },
+        {
+          "name": "Set up the drill",
+          "minutes": 8
+        },
+        {
+          "name": "Drill",
+          "minutes": 15
+        },
+        {
+          "name": "Extract the core",
+          "minutes": 10
+        }
+      ],
+      "taskSource": "Task times proposed from NASA/TP-2017-219457, table 30 (same set as Valle de la Luna)",
+      "risk": "Loose blocks: next door at Atacama the drilled rock came up with the drill. 77 m above the habitat.",
+      "photoCredit": "",
+      "panorama": "",
+      "tag": "Curiosity drilled here · May 2026",
+      "tagSource": "NASA Curiosity blog, sols 4900-4907: drill hole image of 16 May 2026 (sol 4897)",
+      "positionSource": "Rover waypoint of sol 4893, where it stayed until sol 4912 (drilling sols 4895-4897). Proposed by a Fable 5.2 audit, checked against the waypoints and the blog",
+      "riskSource": "NASA Curiosity blog, sols 4900-4907: 'the rover picking up the entire Atacama block along with the drill'; height from the site's own elevation"
     }
   ]
 }
