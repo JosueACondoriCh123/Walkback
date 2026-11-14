@@ -81,8 +81,31 @@ namespace Walkback.EditorTools
                 panel.verdictTitle.color == WalkbackTheme.Watch && !HasDigit(panel.verdictDetail.text) && !HasDigit(panel.verdictNote.text));
         }
 
+        /// <summary>Relative luminance of a color (WCAG 2), for the contrast between text and its box.</summary>
+        static float Luminance(Color c)
+        {
+            Color l = c.linear;
+            return 0.2126f * l.r + 0.7152f * l.g + 0.0722f * l.b;
+        }
+
+        static float Contrast(Color a, Color b)
+        {
+            float la = Luminance(a), lb = Luminance(b);
+            return (Mathf.Max(la, lb) + 0.05f) / (Mathf.Min(la, lb) + 0.05f);
+        }
+
+        static void CheckTextColor()
+        {
+            Color text = WalkbackTheme.Text;
+            float onPanel = Contrast(text, WalkbackTheme.PanelBack), onCard = Contrast(text, WalkbackTheme.CardBack);
+            Check("Theme: text is not pure white (it glares on the headset) and still reads on the dark boxes (contrast 7:1 or more)",
+                text.r < 0.99f && text.g < 0.99f && text.b < 0.99f && text.r >= 0.85f && onPanel >= 7f && onCard >= 7f,
+                "gray " + text.r.ToString("F2") + ", " + onPanel.ToString("F1") + ":1 on the panel, " + onCard.ToString("F1") + ":1 on a card");
+        }
+
         static void CheckPanelSideBoard(WalkbackApp app, MissionPanel panel)
         {
+            CheckTextColor();
             CheckControlsCard(panel);
             var side = panel.sideBoard;
             Check("Panel: side board present", side != null);
