@@ -24,6 +24,18 @@ namespace Walkback
         public SitePoint habitat;
         public string crs;
         public SiteSource[] sources;
+        /// <summary>Optional: the colour multiplied onto the black-and-white photo, with where it comes from.</summary>
+        public SiteTint photoTint;
+    }
+
+    /// <summary>A colour (0-255) and its source, e.g. the ground colour Curiosity's Mastcam saw.</summary>
+    [Serializable]
+    public class SiteTint
+    {
+        public float r;
+        public float g;
+        public float b;
+        public string source;
     }
 
     [Serializable]

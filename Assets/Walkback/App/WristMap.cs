@@ -43,6 +43,7 @@ namespace Walkback
             var block = new MaterialPropertyBlock();
             Texture paint = terrain.LayerTexture(terrain.Layer);
             if (paint != null) block.SetTexture("_BaseMap", paint);
+            block.SetColor("_BaseColor", terrain.Layer == MapLayer.Photo ? terrain.PhotoTint : Color.white);
             terrainRenderer.SetPropertyBlock(block);
             model.localScale = Vector3.one * (WidthMeters / site.SideMeters);
 

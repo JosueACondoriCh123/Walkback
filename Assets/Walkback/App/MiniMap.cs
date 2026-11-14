@@ -68,6 +68,7 @@ namespace Walkback
 
             var block = new MaterialPropertyBlock();
             if (photo != null) block.SetTexture("_BaseMap", photo);
+            block.SetColor("_BaseColor", PhotoIsOrtho ? app.terrain.PhotoTint : Color.white);
             block.SetVector("_BaseMap_ST", new Vector4(WindowMeters / side, WindowMeters / side, (WindowCenter.x - half) / side, (WindowCenter.y - half) / side));
             photoQuad.SetPropertyBlock(block);
 

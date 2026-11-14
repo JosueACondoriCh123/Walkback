@@ -107,12 +107,35 @@ namespace Walkback
                 ", relief " + (site.MaxElevation - site.MinElevation).ToString("F1") + " m");
         }
 
+        /// <summary>True when site.json gives a colour for the black-and-white photo.</summary>
+        public bool PhotoTinted
+        {
+            get { var t = Site != null && Site.Info != null ? Site.Info.photoTint : null; return t != null && t.r + t.g + t.b > 0f; }
+        }
+
+        /// <summary>
+        /// The colour multiplied onto the HiRISE photo (a single red band, black and white): site.json photoTint,
+        /// the ground colour Curiosity's Mastcam saw, scaled so its brightest channel is 1. White without it.
+        /// </summary>
+        public Color PhotoTint
+        {
+            get
+            {
+                if (!PhotoTinted) return Color.white;
+                var t = Site.Info.photoTint;
+                float top = Mathf.Max(t.r, Mathf.Max(t.g, t.b));
+                return new Color(t.r / top, t.g / top, t.b / top, 1f);
+            }
+        }
+
         public void ShowLayer(MapLayer layer)
         {
             if (layer == MapLayer.Photo && !HasPhoto) layer = MapLayer.Height;
             Layer = layer;
             if (block == null) block = new MaterialPropertyBlock();
             block.SetTexture("_BaseMap", LayerTexture(layer));
+            // Only the photo is tinted: the other layers' colours are their legend.
+            block.SetColor("_BaseColor", layer == MapLayer.Photo ? PhotoTint : Color.white);
             GetComponent<MeshRenderer>().SetPropertyBlock(block);
             if (LayerChanged != null) LayerChanged(layer);
         }
@@ -254,7 +277,8 @@ namespace Walkback
                 case MapLayer.Photo:
                     var photo = Site.Source("ortho");
                     return "PHOTO   " + (photo != null ? Join(" ", photo.mission, photo.instrument) + ", " + photo.resolution : "orbital photo") +
-                        "  ·  on the real relief (" + (Site.MaxElevation - Site.MinElevation).ToString("F0") + " m, not exaggerated)";
+                        "  ·  on the real relief (" + (Site.MaxElevation - Site.MinElevation).ToString("F0") + " m, not exaggerated)" +
+                        (PhotoTinted ? "\nColour: the ground as Curiosity's Mastcam saw it at Nevado Sajama (HiRISE is black and white)" : "");
                 default:
                     return "HEIGHT   dark " + Site.MinElevation.ToString("F0") + " m  ·  light " + Site.MaxElevation.ToString("F0") + " m  ·  " +
                         "contour every " + TerrainLayers.ContourMeters.ToString("0") + " m  ·  relief " + (Site.MaxElevation - Site.MinElevation).ToString("F0") + " m, not exaggerated";

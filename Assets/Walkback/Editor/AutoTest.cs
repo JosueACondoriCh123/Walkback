@@ -434,11 +434,18 @@ namespace Walkback.EditorTools
                 var photo = terrain.LayerTexture(MapLayer.Photo);
                 Check("Layer Photo: the HiRISE photo lies on the relief at full resolution (4096 px, 24 cm per pixel), anisotropic 16", block.GetTexture("_BaseMap") == photo && photo.width == GaleTerrain.PhotoSize && photo.anisoLevel == GaleTerrain.PhotoAniso && photo.mipmapCount > 1 && terrain.Layer == MapLayer.Photo,
                     "loaded in " + terrain.PaintMilliseconds[(int)MapLayer.Photo] + " ms");
+                Color tint = block.GetColor("_BaseColor");
+                Check("Layer Photo: tinted with the ground colour Curiosity's Mastcam saw (site.json photoTint), named in the legend",
+                    !terrain.PhotoTinted || (Mathf.Abs(tint.r - terrain.PhotoTint.r) < 0.01f && Mathf.Abs(tint.b - terrain.PhotoTint.b) < 0.01f && app.panel.legendLine.text.Contains("Mastcam")),
+                    terrain.PhotoTinted ? "tint " + tint.r.ToString("F2") + ", " + tint.g.ToString("F2") + ", " + tint.b.ToString("F2") : "no tint in the package");
                 Check("Layer Photo names its mission, instrument and resolution on the panel", app.panel.legendLine.text.StartsWith("PHOTO") && app.panel.legendLine.text.Contains("HiRISE"), app.panel.legendLine.text);
             }
             else Check("No photo in the package: PHOTO falls back to HEIGHT", terrain.Layer == MapLayer.Height);
             terrain.ShowLayer(MapLayer.Height);
             app.RefreshPanel();
+            renderer.GetPropertyBlock(block);
+            Color plain = block.GetColor("_BaseColor");
+            Check("The analysis layers are not tinted (their colours are their legend)", Mathf.Abs(plain.r - 1f) < 0.001f && Mathf.Abs(plain.g - 1f) < 0.001f && Mathf.Abs(plain.b - 1f) < 0.001f);
         }
 
         static bool Same(Color32 a, Color32 b)

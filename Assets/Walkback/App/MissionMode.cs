@@ -190,6 +190,7 @@ namespace Walkback
             if (block == null) block = new MaterialPropertyBlock();
             terrainRenderer.GetPropertyBlock(block);
             if (paint != null) block.SetTexture("_BaseMap", paint);
+            block.SetColor("_BaseColor", terrain.HasPhoto ? terrain.PhotoTint : Color.white);
             terrainRenderer.SetPropertyBlock(block);
 
             if (app.DesktopMode && app.desktopCamera != null && Application.isPlaying)
