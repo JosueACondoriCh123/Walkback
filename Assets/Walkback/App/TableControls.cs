@@ -47,6 +47,18 @@ namespace Walkback
             if (recenterButton != null) recenterButton.Clicked = RecenterFromHead;
         }
 
+        /// <summary>
+        /// The RECENTER sign is not a child of the table: it shows only while the table does (not inside a
+        /// 360° photo, not in mission mode). In the headset at 18:30 it stayed floating inside the photo and
+        /// was pressed about 30 times for nothing.
+        /// </summary>
+        public void SyncRecenterSign()
+        {
+            if (recenterButton == null || app == null || app.table == null) return;
+            bool show = app.table.gameObject.activeSelf;
+            if (recenterButton.gameObject.activeSelf != show) recenterButton.gameObject.SetActive(show);
+        }
+
         public float Zoom { get { return app != null && app.mapRoot != null ? app.mapRoot.localScale.x / baseScale : 1f; } }
 
         bool Ready { get { return app != null && app.mapRoot != null && app.table != null && !app.MapControlsLocked; } }
@@ -59,6 +71,7 @@ namespace Walkback
 
         public void Tick()
         {
+            SyncRecenterSign();
             if (!Ready) { gripDragging = false; twoHandActive = false; return; }
             float dt = Time.deltaTime;
             if (app.DesktopMode) { TickDesktop(); return; }

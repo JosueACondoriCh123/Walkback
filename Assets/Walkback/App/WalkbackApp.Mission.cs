@@ -19,6 +19,14 @@ namespace Walkback
         /// <summary>True while the mission mode shows (on Mars or in the room).</summary>
         public bool MissionActive { get { return mission != null && mission.Current != MissionMode.Mode.Table; } }
 
+        /// <summary>START MISSION on the board: from the table into the mission (Mars, or the room without free space).</summary>
+        public bool StartMissionFromBoard()
+        {
+            if (mission == null || MissionActive) return false;
+            WalkbackLog.Info("Mission button (START MISSION on the board)");
+            return mission.NextMode(HeadTransform());
+        }
+
         partial void StartMission()
         {
             if (mission != null) mission.Begin(this);
@@ -32,7 +40,12 @@ namespace Walkback
 
             // OVRInput.Button.Start is the left controller's menu button (checked in Meta XR SDK 209: "Touch, LTouch: Start").
             bool next = (keyboard != null && keyboard.mKey.wasPressedThisFrame) || (!DesktopMode && OVRInput.GetDown(OVRInput.Button.Start));
-            if (next) mission.NextMode(head);
+            if (next)
+            {
+                // Logged, so the app's log says whether the headset ever saw the menu button (it did not at 18:30).
+                WalkbackLog.Info("Mission button (left menu / M) in mode " + mission.Current);
+                mission.NextMode(head);
+            }
             if (!MissionActive) return;
 
             bool jump = (keyboard != null && keyboard.jKey.wasPressedThisFrame) ||

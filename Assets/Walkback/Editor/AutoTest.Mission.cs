@@ -348,6 +348,24 @@ namespace Walkback.EditorTools
                 mission.NextMode(cam.transform);
                 app.missionWithoutMars = false;
                 Check("Mission: with no free space the button skips Mars (table -> room -> table)", straightToRoom && mission.Current == MissionMode.Mode.Table);
+
+                // ---- START MISSION on the board does what the menu button does; the RECENTER sign hides with the table
+                {
+                    PanelButton startButton = app.panel.missionButton;
+                    TableControls controls = app.tableControls;
+                    if (controls != null && controls.app == null) controls.app = app;
+                    bool ready = startButton != null && startButton.Interactable;
+                    if (startButton != null) startButton.OnPointerClick(startButton.transform.position);
+                    bool inMars = mission.Current == MissionMode.Mode.Mars;
+                    if (controls != null) controls.SyncRecenterSign();
+                    bool signHidden = controls == null || controls.recenterButton == null || !controls.recenterButton.gameObject.activeSelf;
+                    if (mission.Current != MissionMode.Mode.Table) mission.Switch(MissionMode.Mode.Table, cam.transform);
+                    if (controls != null) controls.SyncRecenterSign();
+                    bool signBack = controls == null || controls.recenterButton == null || controls.recenterButton.gameObject.activeSelf;
+                    Check("Mission: START MISSION on the board takes the table into Mars (it works with hands too), and the RECENTER sign hides with the table",
+                        ready && inMars && signHidden && signBack && mission.Current == MissionMode.Mode.Table,
+                        "ready " + ready + ", Mars " + inMars + ", sign hidden " + signHidden + ", back " + signBack);
+                }
             }
             finally
             {

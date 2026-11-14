@@ -47,7 +47,7 @@ namespace Walkback
             "CONTROLS",
             "LAYERS · point at a button and press",
             "WHAT IF · click the left stick",
-            "MISSION · left menu button",
+            "MISSION · START MISSION, or left menu",
             "JUMP · left grip, in the mission",
             "MAP · X: in the air / on the wrist",
             "RECENTER · B or Y",
@@ -68,6 +68,11 @@ namespace Walkback
         public Text legendLine;
         public Text footer;
         public PanelButton[] layerButtons = new PanelButton[0];
+        /// <summary>
+        /// START MISSION on the verdict card: the same as the left menu button, but pressed with the pointer,
+        /// so it works with hands too. In the headset at 18:30 the mission was never entered from the menu button.
+        /// </summary>
+        public PanelButton missionButton;
 
         [Header("Side board")]
         public Transform sideBoard;
@@ -131,11 +136,14 @@ namespace Walkback
         {
             ShowVerdict(VerdictState.NoRoute, null, null, null);
             if (charts != null) charts.ShowNoPlan();
+            if (missionButton != null) missionButton.SetInteractable(false);
         }
 
         /// <summary>The charts for a plan (oxygen, time, height along the route), or empty ones for no plan.</summary>
         public void ShowCharts(SiteData site, MissionFallback.Plan plan)
         {
+            // A route to walk is enough to start the mission, viable or not (a WHAT IF can be walked too).
+            if (missionButton != null) missionButton.SetInteractable(site != null && plan != null && plan.HasRoute && plan.Legs.Count > 0);
             if (charts == null) return;
             if (site == null || plan == null) charts.ShowNoPlan();
             else charts.ShowPlan(site, plan);
@@ -177,6 +185,8 @@ namespace Walkback
             BuildStopButtons(app.terrain != null && app.terrain.Site != null ? app.terrain.Site.Stops : new StopInfo[0]);
             if (jumpButton != null)
                 jumpButton.onClick = () => { if (boundApp != null && boundApp.SelectedStop >= 0) boundApp.RequestJump(boundApp.SelectedStop); };
+            if (missionButton != null)
+                missionButton.onClick = () => { if (boundApp != null) boundApp.StartMissionFromBoard(); };
             ShowConditions(Conditions.Load());
             ShowStop(app.SelectedStop);
         }
@@ -348,7 +358,9 @@ namespace Walkback
             // The verdict: its icon on the left (drawn by the charts), the word, one line of numbers, one line of what they are.
             AddBox(rect, "VerdictCard", uiMaterial, WalkbackTheme.CardBack, 50, 184, 1400, 200);
             verdictAccent = AddBox(rect, "VerdictAccent", uiMaterial, WalkbackTheme.Watch, 50, 184, 16, 200);
-            verdictTitle = AddText(rect, "VerdictTitle", "NO ROUTE YET", font, uiMaterial, 96, FontStyle.Bold, WalkbackTheme.Watch, 262, 188, 1160, 116);
+            verdictTitle = AddText(rect, "VerdictTitle", "NO ROUTE YET", font, uiMaterial, 96, FontStyle.Bold, WalkbackTheme.Watch, 262, 188, 900, 116);
+            missionButton = PanelButton.Create(rect, "StartMission", "START MISSION", font, uiMaterial, 30, 1170, 196, 262, ButtonHeight);
+            missionButton.SetInteractable(false);
             verdictDetail = AddText(rect, "VerdictDetail", "Time  ·  oxygen  ·  margin to return", font, uiMaterial, 34, FontStyle.Normal, WalkbackTheme.Text, 264, 300, 1160, 44);
             verdictNote = AddText(rect, "VerdictNote", DefaultDetail(VerdictState.NoRoute), font, uiMaterial, 26, FontStyle.Normal, WalkbackTheme.TextSoft, 264, 344, 1160, 34);
 
