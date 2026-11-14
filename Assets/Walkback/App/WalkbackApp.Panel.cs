@@ -15,5 +15,12 @@ namespace Walkback
             ShowPlanOnPanel();
             WalkbackLog.Info("Panel bound: " + panel.layerButtons.Length + " layer buttons, " + panel.stopButtons.Count + " stop buttons, conditions " + (panel.ConditionsHaveData ? "loaded" : "waiting for data"));
         }
+
+        partial void UpdatePanelPiece()
+        {
+            // The charts fill in step with the route drawing itself on the map (2.5 s); after that this does nothing.
+            if (panel == null || panel.charts == null || !panel.charts.HasPlan || !panel.gameObject.activeInHierarchy) return;
+            panel.charts.SetProgress(routeView != null && routeView.HasRoute ? routeView.Progress : 1f);
+        }
     }
 }

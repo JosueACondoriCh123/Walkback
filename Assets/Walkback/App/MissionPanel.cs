@@ -9,8 +9,10 @@ namespace Walkback
     public enum VerdictState { NoRoute, Viable, NotViable }
 
     /// <summary>
-    /// The mission board behind the table: 1.50 m x 0.70 m, one canvas pixel = one millimeter.
-    /// Top and biggest: the verdict card. Then the site line, the legend and the layer buttons.
+    /// The mission board behind the table: 1.50 m x 1.00 m, one canvas pixel = one millimeter.
+    /// Top and biggest: the verdict card, with its icon. Under it the charts (MissionCharts): the
+    /// oxygen tank, the mission's time and the height along the route. Last, the lines a chart cannot
+    /// replace: the site and its source, the map layer's legend, and what the map does not show.
     /// A side board to the right, turned to the user, holds the stop card and the current conditions.
     /// Back plates are opaque quads and every text and box uses the Walkback/UI material, which never
     /// writes alpha, so text edges do not open "holes" to the room in passthrough.
@@ -18,7 +20,7 @@ namespace Walkback
     public class MissionPanel : MonoBehaviour
     {
         public const int PixelsWide = 1500;
-        public const int PixelsHigh = 700;
+        public const int PixelsHigh = 1000;
         public const float MetersPerPixel = 0.001f;
 
         public const int SidePixelsWide = 760;
@@ -29,7 +31,7 @@ namespace Walkback
         /// </summary>
         public const float ButtonHeight = 100f;
         /// <summary>Side board center relative to the panel center (the panel is not rotated).</summary>
-        public static readonly Vector3 SideBoardOffset = new Vector3(1.22f, 0f, -0.22f);
+        public static readonly Vector3 SideBoardOffset = new Vector3(1.22f, -0.15f, -0.22f);
         /// <summary>Where the user's eyes are when the scene starts (floor origin, standing).</summary>
         public static readonly Vector3 UserEye = new Vector3(0f, 1.6f, 0f);
 
@@ -39,7 +41,7 @@ namespace Walkback
         /// The controls card to the left of the main board, turned to face the user like the side board
         /// on the right: what each control does, for someone who puts the headset on for the first time.
         /// </summary>
-        public static readonly Vector3 ControlsCardOffset = new Vector3(-1.16f, -0.20f, -0.22f);
+        public static readonly Vector3 ControlsCardOffset = new Vector3(-1.16f, -0.35f, -0.22f);
         public static readonly string[] ControlsText =
         {
             "CONTROLS",
@@ -60,6 +62,8 @@ namespace Walkback
         public Text verdictDetail;
         public Text verdictNote;
         public Image verdictAccent;
+        /// <summary>The verdict's icon and the three charts under the verdict card.</summary>
+        public MissionCharts charts;
         public Text dataLine;
         public Text legendLine;
         public Text footer;
@@ -119,12 +123,22 @@ namespace Walkback
             if (verdictAccent != null) verdictAccent.color = color;
             verdictDetail.text = !string.IsNullOrEmpty(summaryLine) ? summaryLine : "Time  ·  oxygen  ·  margin to return";
             if (verdictNote != null) verdictNote.text = !string.IsNullOrEmpty(detail) ? detail : DefaultDetail(state);
+            if (charts != null) charts.ShowIcon(state);
         }
 
-        /// <summary>The runtime default until the walking model gives a route.</summary>
+        /// <summary>The runtime default until the walking model gives a route: no verdict, and empty charts.</summary>
         public void ShowNoRoute()
         {
             ShowVerdict(VerdictState.NoRoute, null, null, null);
+            if (charts != null) charts.ShowNoPlan();
+        }
+
+        /// <summary>The charts for a plan (oxygen, time, height along the route), or empty ones for no plan.</summary>
+        public void ShowCharts(SiteData site, MissionFallback.Plan plan)
+        {
+            if (charts == null) return;
+            if (site == null || plan == null) charts.ShowNoPlan();
+            else charts.ShowPlan(site, plan);
         }
 
         static string DefaultHeadline(VerdictState state)
@@ -134,8 +148,8 @@ namespace Walkback
 
         static string DefaultDetail(VerdictState state)
         {
-            if (state == VerdictState.Viable) return "From every point of the route there is oxygen to walk back, reserve untouched.";
-            if (state == VerdictState.NotViable) return "Past the point of no return, the oxygen left does not cover the walk back.";
+            if (state == VerdictState.Viable) return "Oxygen to walk back from every point, reserve untouched.";
+            if (state == VerdictState.NotViable) return "The oxygen left does not cover the walk back.";
             return "Point at a stop to start.";
         }
 
@@ -331,16 +345,23 @@ namespace Walkback
             AddText(rect, "LayerCaption", "MAP LAYER", font, uiMaterial, 28, FontStyle.Bold, WalkbackTheme.TextSoft, 754, 12, 400, 38);
             layerButtons[(int)MapLayer.Photo].SetSelected(true);
 
-            AddBox(rect, "VerdictCard", uiMaterial, WalkbackTheme.CardBack, 50, 190, 1400, 270);
-            verdictAccent = AddBox(rect, "VerdictAccent", uiMaterial, WalkbackTheme.Watch, 50, 190, 16, 270);
-            verdictTitle = AddText(rect, "VerdictTitle", "NO ROUTE YET", font, uiMaterial, 96, FontStyle.Bold, WalkbackTheme.Watch, 90, 198, 1330, 124);
-            verdictDetail = AddText(rect, "VerdictDetail", "Time  ·  oxygen  ·  margin to return", font, uiMaterial, 40, FontStyle.Normal, WalkbackTheme.Text, 90, 322, 1330, 64);
-            verdictNote = AddText(rect, "VerdictNote", DefaultDetail(VerdictState.NoRoute), font, uiMaterial, 32, FontStyle.Normal, WalkbackTheme.TextSoft, 90, 390, 1330, 56);
+            // The verdict: its icon on the left (drawn by the charts), the word, one line of numbers, one line of what they are.
+            AddBox(rect, "VerdictCard", uiMaterial, WalkbackTheme.CardBack, 50, 184, 1400, 200);
+            verdictAccent = AddBox(rect, "VerdictAccent", uiMaterial, WalkbackTheme.Watch, 50, 184, 16, 200);
+            verdictTitle = AddText(rect, "VerdictTitle", "NO ROUTE YET", font, uiMaterial, 96, FontStyle.Bold, WalkbackTheme.Watch, 262, 188, 1160, 116);
+            verdictDetail = AddText(rect, "VerdictDetail", "Time  ·  oxygen  ·  margin to return", font, uiMaterial, 34, FontStyle.Normal, WalkbackTheme.Text, 264, 300, 1160, 44);
+            verdictNote = AddText(rect, "VerdictNote", DefaultDetail(VerdictState.NoRoute), font, uiMaterial, 26, FontStyle.Normal, WalkbackTheme.TextSoft, 264, 344, 1160, 34);
 
-            dataLine = AddText(rect, "DataLine", "TEST TERRAIN · synthetic shape for development · not Mars data", font, uiMaterial, 30, FontStyle.Bold, WalkbackTheme.Watch, 50, 470, 1400, 76);
-            legendLine = AddText(rect, "LegendLine", "Map layer legend", font, uiMaterial, 28, FontStyle.Normal, WalkbackTheme.Text, 50, 552, 1400, 72);
+            // The charts: the verdict's icon, the oxygen tank, the mission's time, the height along the route.
+            charts = gameObject.GetComponent<MissionCharts>();
+            if (charts == null) charts = gameObject.AddComponent<MissionCharts>();
+            charts.Build(rect, font, uiMaterial);
+
+            // What a chart cannot say: the site and its source, the map layer's legend, what the map does not show.
+            dataLine = AddText(rect, "DataLine", "TEST TERRAIN · synthetic shape for development · not Mars data", font, uiMaterial, 28, FontStyle.Bold, WalkbackTheme.Watch, 50, 806, 1400, 70);
+            legendLine = AddText(rect, "LegendLine", "Map layer legend", font, uiMaterial, 28, FontStyle.Normal, WalkbackTheme.Text, 50, 878, 1400, 72);
             legendLine.alignment = TextAnchor.UpperLeft;
-            footer = AddText(rect, "Footer", "Meta Quest 3 stands in for the helmet display  ·  Rocks under about 4 m are not on this map", font, uiMaterial, 26, FontStyle.Normal, WalkbackTheme.TextSoft, 50, 636, 1400, 44);
+            footer = AddText(rect, "Footer", "Meta Quest 3 stands in for the helmet display  ·  Rocks under about 4 m are not on this map", font, uiMaterial, 26, FontStyle.Normal, WalkbackTheme.TextSoft, 50, 954, 1400, 36);
             ShowNoRoute();
         }
 
@@ -417,7 +438,7 @@ namespace Walkback
             return rect;
         }
 
-        static Text AddText(RectTransform parent, string name, string content, Font font, Material material, int size, FontStyle style, Color color, float x, float y, float w, float h)
+        public static Text AddText(RectTransform parent, string name, string content, Font font, Material material, int size, FontStyle style, Color color, float x, float y, float w, float h)
         {
             var go = new GameObject(name, typeof(RectTransform), typeof(Text));
             Place(parent, (RectTransform)go.transform, x, y, w, h);
@@ -435,7 +456,7 @@ namespace Walkback
             return text;
         }
 
-        static Image AddBox(RectTransform parent, string name, Material material, Color color, float x, float y, float w, float h)
+        public static Image AddBox(RectTransform parent, string name, Material material, Color color, float x, float y, float w, float h)
         {
             var go = new GameObject(name, typeof(RectTransform), typeof(Image));
             Place(parent, (RectTransform)go.transform, x, y, w, h);
@@ -447,7 +468,7 @@ namespace Walkback
         }
 
         /// <summary>x, y from the top-left corner of the board, in pixels (millimeters).</summary>
-        static void Place(RectTransform parent, RectTransform rect, float x, float y, float w, float h)
+        public static void Place(RectTransform parent, RectTransform rect, float x, float y, float w, float h)
         {
             rect.SetParent(parent, false);
             rect.anchorMin = rect.anchorMax = new Vector2(0f, 1f);

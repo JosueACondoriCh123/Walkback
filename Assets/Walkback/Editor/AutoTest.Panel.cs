@@ -8,7 +8,7 @@ namespace Walkback.EditorTools
     /// <summary>Panel piece checks: verdict card, layer buttons, stop card, conditions, side board.</summary>
     public static partial class AutoTest
     {
-        const string ViableTestLine = "O2 used 23 % · margin to return 5 h 40 min · reserve 30 min untouched";
+        const string ViableTestLine = "O2 used 23 % · margin to return 5 h 40 min · reserve untouched";
 
         static partial void CheckPanelPiece(WalkbackApp app)
         {
@@ -16,6 +16,8 @@ namespace Walkback.EditorTools
             panel.Bind(app);
             CheckPanelButtons(app, panel);
             CheckPanelVerdict(panel);
+            CheckPlanCharts();
+            CheckPanelCharts(app, panel);
             CheckPanelSideBoard(app, panel);
             CheckPanelConditions(panel);
             CheckPanelTextFits(panel);
@@ -79,6 +81,186 @@ namespace Walkback.EditorTools
             panel.ShowNoRoute();
             Check("Panel: back to NO ROUTE YET, with no number on the card (rule 1)", panel.verdictTitle.text == "NO ROUTE YET" && panel.Verdict == VerdictState.NoRoute &&
                 panel.verdictTitle.color == WalkbackTheme.Watch && !HasDigit(panel.verdictDetail.text) && !HasDigit(panel.verdictNote.text));
+        }
+
+        /// <summary>The numbers behind the charts, on hand-made plans: flat ground, then a slope rising to the east.</summary>
+        static void CheckPlanCharts()
+        {
+            // Flat: habitat in the south-west corner, one stop 1 km east with 10 minutes of work.
+            SiteData site = MissionTestSite();
+            var slope = new float[site.GridSize * site.GridSize];
+            var plan = MissionFallback.Make(site, slope, 100f);
+            var profile = PlanCharts.MakeProfile(site, plan);
+            Check("Charts profile: on flat ground the height along the route is 0 all the way, 2 km long, the stop at 1 km",
+                profile.Meters.Length == plan.Path.Count && Mathf.Abs(profile.TotalMeters - 2000f) < 1f && Mathf.Abs(profile.Highest) < 0.001f && Mathf.Abs(profile.Lowest) < 0.001f &&
+                profile.StopMeters.Length == 1 && Mathf.Abs(profile.StopMeters[0] - 1000f) < 1f && profile.StopNames[0] == "A",
+                profile.TotalMeters.ToString("F0") + " m, stop at " + (profile.StopMeters.Length > 0 ? profile.StopMeters[0].ToString("F0") : "?") + " m");
+
+            // The ground rises 5 m every 100 m to the east: the stop is 50 m above the habitat, and nothing is below it.
+            SiteData hill = MissionTestSite();
+            int n = hill.GridSize;
+            for (int r = 0; r < n; r++) for (int c = 0; c < n; c++) hill.Heights[r * n + c] = c * hill.NodeSpacing * 0.05f;
+            var hillPlan = MissionFallback.Make(hill, TerrainLayers.SlopeDegrees(hill.Heights, n, hill.NodeSpacing), 100f);
+            var hillProfile = PlanCharts.MakeProfile(hill, hillPlan);
+            int middle = hillPlan.Legs.Count > 0 ? hillPlan.Legs[0].LastPoint / 2 : 0;
+            Check("Charts profile: on a slope the heights are the relief's, relative to the habitat (stop +50 m, half way +25 m, back to 0)",
+                hillPlan.HasRoute && Mathf.Abs(hillProfile.Highest - 50f) < 0.05f && Mathf.Abs(hillProfile.Lowest) < 0.05f && Mathf.Abs(hillProfile.StopHeight[0] - 50f) < 0.05f &&
+                Mathf.Abs(hillProfile.Height[middle] - hillProfile.Meters[middle] * 0.05f) < 0.1f && Mathf.Abs(hillProfile.Height[hillProfile.Height.Length - 1]) < 0.05f,
+                "highest " + MissionCharts.Signed(hillProfile.Highest) + " m, lowest " + MissionCharts.Signed(hillProfile.Lowest) + " m");
+            Check("Charts: heights relative to the habitat carry their sign", MissionCharts.Signed(77.4f) == "+77" && MissionCharts.Signed(-3.2f) == "-3" && MissionCharts.Signed(0.2f) == "0");
+
+            // Filling with the route: nothing at the start, the stop's work only once the stop is reached, the plan's totals at the end.
+            var start = PlanCharts.At(plan, 0f);
+            var beforeStop = PlanCharts.At(plan, 0.49f);
+            var afterStop = PlanCharts.At(plan, 0.51f);
+            var end = PlanCharts.At(plan, 1f);
+            Check("Charts fill: nothing spent at the start; the work counts once its stop is reached; at the end the plan's own totals",
+                start.usedLiters < 0.001f && start.TotalMinutes < 0.001f && Mathf.Abs(beforeStop.walkMinutes - 38.6f * 0.49f) < 0.05f && beforeStop.workMinutes < 0.001f &&
+                Mathf.Approximately(afterStop.workMinutes, 10f) && Mathf.Abs(afterStop.walkMinutes - 38.6f * 0.51f) < 0.05f &&
+                Mathf.Abs(end.walkMinutes - plan.WalkMinutes) < 0.01f && Mathf.Abs(end.workMinutes - plan.WorkMinutes) < 0.01f && Mathf.Abs(end.usedLiters - plan.UsedLiters) < 0.05f,
+                "half way " + beforeStop.TotalMinutes.ToString("F1") + " -> " + afterStop.TotalMinutes.ToString("F1") + " min, end " + end.usedLiters.ToString("F1") + " L");
+
+            // The tank: with a full one used + spare + reserve fill the bar; the spare is the plan's.
+            var tank = PlanCharts.TankAt(plan, plan.UsedLiters);
+            float full = HudEstimate.TankLiters;
+            Check("Charts tank: used + spare + reserve fill a full tank, and the spare is the plan's spare",
+                Mathf.Abs(tank.used + tank.spare + tank.reserve - 1f) < 0.0001f && tank.missing < 0.0001f && tank.intoReserve < 0.0001f &&
+                Mathf.Abs(tank.used * full - plan.UsedLiters) < 0.05f && Mathf.Abs(tank.spare * full - plan.SpareLiters) < 0.05f && Mathf.Abs(tank.reserve * full - HudEstimate.ReserveLiters) < 0.05f,
+                (tank.used * 100f).ToString("F1") + " % used, " + (tank.spare * 100f).ToString("F1") + " % spare, " + (tank.reserve * 100f).ToString("F1") + " % reserve");
+            // WHAT IF with 16 % of a tank: the plan ends 1.8 L into the reserve. With 8 % it asks for more than the tank holds.
+            var after = MissionFallback.Make(site, slope, 16f);
+            var tight = PlanCharts.TankAt(after, after.UsedLiters);
+            var dry = MissionFallback.Make(site, slope, 8f);
+            var empty = PlanCharts.TankAt(dry, dry.UsedLiters);
+            Check("Charts tank: a WHAT IF shows what was never in the tank, and red where the plan breathes the reserve",
+                Mathf.Abs(tight.missing - 0.84f) < 0.0001f && tight.spare < 0.0001f && Mathf.Abs(tight.intoReserve * full + after.SpareLiters) < 0.05f && tight.shortLiters < 0.001f &&
+                Mathf.Abs(tight.used + tight.intoReserve + tight.reserve + tight.missing - 1f) < 0.0001f &&
+                Mathf.Abs(empty.missing - 0.92f) < 0.0001f && empty.reserve < 0.0001f && empty.spare < 0.0001f && Mathf.Abs(empty.shortLiters - (dry.UsedLiters - dry.TankLiters)) < 0.05f,
+                (tight.intoReserve * full).ToString("F1") + " L of the reserve with 16 %; " + empty.shortLiters.ToString("F1") + " L short of a whole tank with 8 %");
+
+            var spans = PlanCharts.Timeline(plan);
+            Check("Charts time: walking, work at the stop, walking back, in that order and filling the whole bar",
+                spans.Count == 3 && !spans[0].work && spans[1].work && !spans[2].work && spans[0].start < 0.0001f && Mathf.Abs(spans[2].end - 1f) < 0.0001f &&
+                Mathf.Abs(spans[0].end - spans[1].start) < 0.0001f && Mathf.Abs(spans[1].end - spans[2].start) < 0.0001f &&
+                Mathf.Abs(spans[1].end - spans[1].start - 10f / plan.TotalMinutes) < 0.0005f && spans[1].name == "A",
+                spans.Count + " stretches, work from " + (spans.Count > 1 ? (spans[1].start * 100f).ToString("F0") + " % to " + (spans[1].end * 100f).ToString("F0") + " %" : "?"));
+            var none = new MissionFallback.Plan { HasRoute = false };
+            Check("Charts: without a plan there is nothing to draw", PlanCharts.Timeline(none).Count == 0 && PlanCharts.MakeProfile(site, none).Meters.Length == 0 && PlanCharts.At(none, 1f).usedLiters < 0.001f);
+        }
+
+        /// <summary>The charts on the board: empty without a plan, the plan's numbers with one, filling with the route, the icon by shape.</summary>
+        static void CheckPanelCharts(WalkbackApp app, MissionPanel panel)
+        {
+            MissionCharts charts = panel.charts;
+            Check("Charts: the board has the verdict's icon and three charts (oxygen, time, height along the route)",
+                charts != null && charts.icon != null && charts.tankBar != null && charts.timeBar != null && charts.profilePlot != null && charts.stopLabels.Length == MissionCharts.MaxStops);
+            if (charts == null) return;
+            bool uiOnly = true;
+            foreach (var chart in panel.GetComponentsInChildren<ChartGraphic>(true))
+                if (chart.material == null || chart.material.shader.name != "Walkback/UI") uiOnly = false;
+            Check("Charts: drawn with the board's material, which never writes alpha (passthrough)", uiOnly);
+
+            panel.ShowNoRoute();
+            bool noNumbers = true;
+            foreach (var t in new[] { charts.tankCaption, charts.tankUsed, charts.tankSpare, charts.tankReserve, charts.timeCaption, charts.timeWalk, charts.timeWork, charts.timeTotal, charts.profileCaption, charts.profileNumbers })
+                if (HasDigit(t.text)) noNumbers = false;
+            Check("Charts: with no route they are empty and show no number (rule 1); the icon is the waiting bar",
+                !charts.HasPlan && noNumbers && charts.StopsShown == 0 && charts.IconState == VerdictState.NoRoute && charts.icon.TriangleCount > 0 && charts.tankBar.TriangleCount == 2 && charts.timeBar.TriangleCount == 2);
+            int waitingShape = charts.icon.TriangleCount;
+            panel.ShowVerdict(VerdictState.Viable, null, ViableTestLine, null);
+            int checkShape = charts.icon.TriangleCount;
+            panel.ShowVerdict(VerdictState.NotViable, null, null, null);
+            int crossShape = charts.icon.TriangleCount;
+            Check("Charts: the verdict's icon changes shape, not only colour (a check, a cross, a bar)",
+                charts.IconState == VerdictState.NotViable && checkShape != crossShape && crossShape != waitingShape && checkShape != waitingShape,
+                checkShape + " / " + crossShape + " / " + waitingShape + " triangles");
+            panel.ShowNoRoute();
+
+            MapLayer layerBefore = app.terrain.Layer;
+            app.PlanMission(false);
+            MissionFallback.Plan plan = app.Plan;
+            if (plan == null || !plan.HasRoute)
+            {
+                Note("Charts: no planned route on this site, the charts with a plan were not checked");
+                app.ClearPlannedRoute();
+                panel.ShowNoRoute();
+                return;
+            }
+            Canvas.ForceUpdateCanvases();
+            var culture = System.Globalization.CultureInfo.InvariantCulture;
+            var profile = charts.CurrentProfile;
+            Check("Charts: with the plan on the board, the oxygen bar's numbers are the plan's (used, spare, reserve)",
+                charts.HasPlan && charts.tankUsed.text == "USED " + plan.UsedLiters.ToString("0", culture) + " L" && charts.tankSpare.text == "SPARE " + plan.SpareLiters.ToString("0", culture) + " L" &&
+                charts.tankReserve.text == "RESERVE " + HudEstimate.ReserveLiters.ToString("0", culture) + " L" && charts.tankCaption.text.Contains("estimate") && charts.tankBar.TriangleCount >= 8,
+                charts.tankUsed.text + " | " + charts.tankSpare.text + " | " + charts.tankReserve.text);
+            Check("Charts: the time bar's numbers are the plan's (walk, work, total), one stretch per leg and per stop with work",
+                charts.timeWalk.text == "WALK " + HelmetHud.MinutesText(plan.WalkMinutes) && charts.timeWork.text == "WORK " + HelmetHud.MinutesText(plan.WorkMinutes) &&
+                charts.timeTotal.text == "TOTAL " + HelmetHud.MinutesText(plan.TotalMinutes) && charts.timeCaption.text.Contains("estimate") &&
+                charts.timeBar.TriangleCount == 2 + 2 * PlanCharts.Timeline(plan).Count,
+                charts.timeWalk.text + " | " + charts.timeWork.text + " | " + charts.timeTotal.text);
+            Check("Charts: the profile is the relief along the planned route, with its length and its highest and lowest point",
+                profile != null && Mathf.Abs(profile.TotalMeters - plan.WalkMeters) < 0.5f && charts.profileNumbers.text.StartsWith(HelmetHud.MetersText(plan.WalkMeters)) &&
+                charts.profileNumbers.text.Contains("highest " + MissionCharts.Signed(profile.Highest) + " m") && charts.profilePlot.TriangleCount > 200,
+                charts.profileNumbers.text);
+            int stopCount = Mathf.Min(profile.StopNames.Length, MissionCharts.MaxStops);
+            bool labels = charts.StopsShown == profile.StopNames.Length;
+            string clash = "";
+            for (int i = 0; i < stopCount; i++)
+            {
+                Text label = charts.stopLabels[i];
+                if (!label.gameObject.activeSelf || label.text != profile.StopNames[i]) labels = false;
+                var rect = (RectTransform)label.transform;
+                float center = rect.anchoredPosition.x + MissionCharts.StopLabelWidth / 2f;
+                // Under its own post, or pushed in from the edge of the plot by half its width at most.
+                if (Mathf.Abs(center - (MissionCharts.PlotLeft + charts.PlotX(profile.StopMeters[i]))) > MissionCharts.StopLabelWidth / 2f + 8f) labels = false;
+                for (int j = 0; j < i; j++)
+                {
+                    var other = (RectTransform)charts.stopLabels[j].transform;
+                    bool sameRow = Mathf.Abs(other.anchoredPosition.y - rect.anchoredPosition.y) < 1f;
+                    float gap = Mathf.Abs(other.anchoredPosition.x - rect.anchoredPosition.x) - (label.preferredWidth + charts.stopLabels[j].preferredWidth) / 2f;
+                    if (sameRow && gap < 0f) clash += label.text + " over " + charts.stopLabels[j].text + "; ";
+                }
+            }
+            Check("Charts: every stop is marked on the profile with its name under it, and no two names run into each other", labels && clash.Length == 0 && stopCount > 0,
+                stopCount + " stops" + (clash.Length > 0 ? ": " + clash : ""));
+            if (app.terrain.Site.IsMarsData && app.terrain.Site.StopsAreReal)
+                Note("Charts on this site: " + charts.profileNumbers.text + "  |  " + charts.tankUsed.text + ", " + charts.tankSpare.text + "  |  " + charts.timeWalk.text + ", " + charts.timeWork.text);
+
+            // Filling with the route's drawing: at 0 nothing, half way part, at 1 the plan's totals.
+            int wholePlot = charts.profilePlot.TriangleCount;
+            charts.SetProgress(0f);
+            bool emptyAtStart = charts.Shown.usedLiters < 0.001f && charts.StopsShown == 0 && charts.timeBar.TriangleCount == 2 && charts.profilePlot.TriangleCount < 8;
+            charts.SetProgress(0.5f);
+            var half = charts.Shown;
+            bool partHalfWay = half.usedLiters > 0f && half.usedLiters < plan.UsedLiters && charts.profilePlot.TriangleCount < wholePlot && charts.profilePlot.TriangleCount > 8 &&
+                charts.StopsShown <= profile.StopNames.Length && Mathf.Abs(half.usedLiters - PlanCharts.At(plan, 0.5f).usedLiters) < 0.001f;
+            charts.SetProgress(1f);
+            Check("Charts: they fill in step with the route's drawing (empty at the start, part of the plan half way, the whole plan at the end)",
+                emptyAtStart && partHalfWay && Mathf.Abs(charts.Shown.usedLiters - plan.UsedLiters) < 0.05f && charts.profilePlot.TriangleCount == wholePlot && charts.StopsShown == profile.StopNames.Length,
+                "half way " + half.usedLiters.ToString("F0") + " of " + plan.UsedLiters.ToString("F0") + " L");
+
+            // A WHAT IF redraws them at once: less in the tank, and SHORT in red where the plan does not close.
+            app.SetWhatIfTank(8f);
+            Check("Charts: a WHAT IF shows on the oxygen chart (tank at 8 %, SHORT in red instead of SPARE)",
+                charts.tankCaption.text.Contains("tank at 8 %") && charts.tankSpare.text.StartsWith("SHORT") && charts.tankSpare.color == MissionCharts.IntoReserve && charts.IconState == VerdictState.NotViable,
+                charts.tankCaption.text + " | " + charts.tankSpare.text);
+            app.SetWhatIfTank(100f);
+            Check("Charts: back to a full tank the oxygen chart is the plan's again", charts.tankSpare.text.StartsWith("SPARE") && charts.tankCaption.text == "OXYGEN (estimate)" && charts.IconState == VerdictState.Viable == plan.Viable);
+
+            // The charts' texts: big enough for the board's distance, each on one line.
+            string small = "", wide = "";
+            foreach (var t in new[] { charts.tankCaption, charts.tankUsed, charts.tankSpare, charts.tankReserve, charts.timeCaption, charts.timeWalk, charts.timeWork, charts.timeTotal, charts.profileCaption, charts.profileNumbers })
+            {
+                if (t.fontSize < 26) small += t.name + " " + t.fontSize + " px; ";
+                float box = ((RectTransform)t.transform).rect.width;
+                if (t.preferredWidth > box) wide += t.text + " " + t.preferredWidth.ToString("F0") + "/" + box.ToString("F0") + " px; ";
+            }
+            Check("Charts: every text is 26 mm or more and fits its place on one line", small.Length == 0 && wide.Length == 0, small + wide);
+
+            app.ClearPlannedRoute();
+            panel.ShowNoRoute();
+            app.terrain.ShowLayer(layerBefore);
+            app.RefreshPanel();
         }
 
         /// <summary>Relative luminance of a color (WCAG 2), for the contrast between text and its box.</summary>
@@ -303,6 +485,31 @@ namespace Walkback.EditorTools
 
             app.SelectStop(-1);
             panel.ShowNoRoute();
+
+            // 5 to 7. The charts with the real plan: whole, half drawn (as while the route draws itself), and a WHAT IF.
+            MapLayer layerBefore = app.terrain.Layer;
+            app.PlanMission(false);
+            if (app.Plan != null && app.Plan.HasRoute && panel.charts != null)
+            {
+                app.terrain.ShowLayer(MapLayer.Photo);
+                app.RefreshPanel();
+                Canvas.ForceUpdateCanvases();
+                Shot(cam, "panel_05_charts_plan.png", panelEye, SceneBuilder.PanelCenter);
+                Shot(cam, "panel_05b_charts_from_the_user.png", MissionPanel.UserEye, SceneBuilder.PanelCenter);
+                panel.charts.SetProgress(0.5f);
+                Canvas.ForceUpdateCanvases();
+                Shot(cam, "panel_06_charts_half_drawn.png", panelEye, SceneBuilder.PanelCenter);
+                panel.charts.SetProgress(1f);
+                app.SetWhatIfTank(15f);
+                app.RefreshPanel();
+                Canvas.ForceUpdateCanvases();
+                Shot(cam, "panel_07_charts_what_if_15.png", panelEye, SceneBuilder.PanelCenter);
+                app.SetWhatIfTank(100f);
+            }
+            app.ClearPlannedRoute();
+            panel.ShowNoRoute();
+            app.terrain.ShowLayer(layerBefore);
+            app.RefreshPanel();
             cam.transform.SetPositionAndRotation(homePosition, homeRotation);
         }
 

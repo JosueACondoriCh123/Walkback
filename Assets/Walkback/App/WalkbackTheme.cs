@@ -25,9 +25,9 @@ namespace Walkback
         public static readonly Color CardBack = new Color(0.12f, 0.135f, 0.16f);
         public static readonly Color Table = new Color(0.10f, 0.105f, 0.115f);
 
-        /// <summary>Panel size that reads at 1.6 m (a 1 m panel did not).</summary>
+        /// <summary>Panel size that reads at 1.6 m (a 1 m panel did not). One meter tall since the charts went on it.</summary>
         public const float PanelWidthMeters = 1.50f;
-        public const float PanelHeightMeters = 0.70f;
+        public const float PanelHeightMeters = 1.00f;
 
         /// <summary>Titles must be at least this tall to read at 1.5 m and on the projector.</summary>
         public const float MinTitleHeightMeters = 0.05f;

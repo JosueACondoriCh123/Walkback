@@ -64,6 +64,8 @@ namespace Walkback
             string headline, summary, note;
             MissionFallback.Describe(Plan, out state, out headline, out summary, out note);
             panel.ShowVerdict(state, headline, summary, note);
+            // The same plan as charts: oxygen, time and height along the route (empty when there is no route).
+            panel.ShowCharts(terrain != null ? terrain.Site : null, Plan);
         }
 
         /// <summary>
