@@ -78,3 +78,6 @@ Assets/Resources/DevAgentSettings.asset.meta
 
 # Left behind by a failed player build (CLAUDE.md): never commit them
 /Assets/Resources/PerformanceTestRun*
+
+# Defense laptop only: the AI-made astronaut illustration shown on the Spanish closing slide (never committed)
+pitch/presentacion/img/local/

@@ -1,7 +1,7 @@
 // Written with Claude Code (AI), directed and tested by team MARSXR
 // Checks content.js before the defense. Run from pitch/presentacion:   node tools/check-content.js
 // It fails (exit code 1) when: a {key} does not exist; the seconds do not add up to 180; the demo is not at
-// 1:00-1:45; a slide asks for more than 2.6 words per second; Spanish and English do not have the same fields;
+// 1:05-1:50 (moved from 1:00-1:45 on 15 Nov, 03:13, with the shorter text); a slide asks for more than 2.6 words per second; Spanish and English do not have the same fields;
 // a figure of the plan is typed by hand on a slide instead of {key}; a figure said in the notes is not the model's;
 // a phrase the team's rules forbid is on a slide; or the title slide lacks the team or the challenge.
 // It only warns (it does not fail) while the title slide's "members" is empty: the names come from Daniel.
@@ -32,7 +32,7 @@ check('every {key} used in English exists', missing.en.length === 0, missing.en.
 var total = 0, at = 0, demoStart = -1, demoSeconds = 0;
 C.slides.forEach(function (s) { if (s.id === 'demo') { demoStart = at; demoSeconds = s.segundos; } at += s.segundos; total += s.segundos; });
 check('the seconds add up to 180', total === 180, total + ' s');
-check('the live demo is at 1:00-1:45', demoStart === 60 && demoSeconds === 45, 'starts at ' + demoStart + ' s, lasts ' + demoSeconds + ' s');
+check('the live demo is at 1:05-1:50', demoStart === 65 && demoSeconds === 45, 'starts at ' + demoStart + ' s, lasts ' + demoSeconds + ' s');
 check('seven slides counting the title (NASA: 7 at most)', C.slides.length === 7 && C.slides[0].id === 'title' && C.slides[0].segundos === 0, C.slides.length + ' slides');
 
 // 3. pace of what Daniel says (text in round brackets is a stage note, not spoken)
@@ -48,11 +48,14 @@ C.slides.forEach(function (s) {
 });
 check('no slide asks for more than ' + MAX_WORDS_PER_SECOND + ' words per second', slow.length === 0, slow.join('; '));
 
-// 4. Spanish and English have the same fields
+// 4. Spanish and English have the same fields (creditLocal is Spanish only on purpose: the defense laptop's
+//    local AI illustration on the closing slide, never in the English version for NASA)
+var ES_ONLY = { creditLocal: true };
 var uneven = [];
 C.slides.forEach(function (s) {
-  var a = Object.keys(s.es).sort().join(','), b = Object.keys(s.en).sort().join(',');
-  var onlyEs = Object.keys(s.es).filter(function (k) { return !(k in s.en); }), onlyEn = Object.keys(s.en).filter(function (k) { return !(k in s.es); });
+  var esKeys = Object.keys(s.es).filter(function (k) { return !ES_ONLY[k]; });
+  var a = esKeys.sort().join(','), b = Object.keys(s.en).sort().join(',');
+  var onlyEs = esKeys.filter(function (k) { return !(k in s.en); }), onlyEn = Object.keys(s.en).filter(function (k) { return !(k in s.es); });
   if (a !== b) uneven.push(s.id + (onlyEs.length ? ' only es: ' + onlyEs.join('/') : '') + (onlyEn.length ? ' only en: ' + onlyEn.join('/') : ''));
 });
 check('Spanish and English slides have the same fields', uneven.length === 0, uneven.join('; '));

@@ -78,6 +78,7 @@ html, body { height: 100%; background: var(--back); color: var(--text); font-fam
 /* title */
 .s-title .col { top: 250px; width: 900px; gap: 26px; }
 .s-title .tag { font-size: 24px; letter-spacing: 3px; white-space: nowrap; }
+.s-title .scrim-left { background: linear-gradient(90deg, rgba(11,13,15,.92) 0%, rgba(11,13,15,.6) 30%, rgba(11,13,15,0) 48%); }
 .s-title .brand { font-size: 200px; font-weight: 900; letter-spacing: -7px; line-height: 1; }
 .s-title .motto { font-size: 56px; font-weight: 700; color: var(--amber); }
 .s-title .challenge { font-size: 32px; font-weight: 600; color: var(--text); margin-top: 8px; }
@@ -131,10 +132,10 @@ html, body { height: 100%; background: var(--back); color: var(--text); font-fam
 .s-demo video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; background: #000; display: none; }
 .s-demo.video video { display: block; }
 
-/* evidence: map seen from the east, the three lines on its left */
+/* evidence: map seen from the east, the lines on its left */
 .s-evidence .lines { position: absolute; left: 120px; top: 236px; width: 470px; display: flex; flex-direction: column; gap: 26px; font-size: 30px; line-height: 1.35; }
-.s-evidence .lines p:nth-child(2) { color: var(--amber); }
-.s-evidence .lines p:nth-child(3) { color: var(--soft); }
+.s-evidence .lines p:nth-child(1) { color: var(--amber); }
+.s-evidence .lines p:nth-child(2) { color: var(--soft); }
 
 /* closing: Gale from Campo Marte in the lower half; title, name and QR in the upper half */
 .s-closing .top { right: 480px; top: 46px; gap: 14px; }
@@ -142,6 +143,7 @@ html, body { height: 100%; background: var(--back); color: var(--text); font-fam
 .s-closing .brandline { display: flex; align-items: baseline; gap: 28px; margin-top: 6px; }
 .s-closing .brand { font-size: 84px; font-weight: 900; letter-spacing: -3px; line-height: 1; }
 .s-closing .motto { font-size: 40px; color: var(--amber); font-weight: 700; }
+.s-closing .motto:empty { display: none; }
 .s-closing .next { font-size: 26px; color: var(--soft); line-height: 1.4; max-width: 1240px; }
 .s-closing .repo { position: absolute; right: 120px; top: 56px; display: flex; flex-direction: column; align-items: flex-end; gap: 14px; text-align: right; }
 .s-closing .repo img { width: 200px; height: 200px; background: #fff; padding: 12px; border-radius: 10px; }
@@ -176,3 +178,27 @@ html.print-mode #print { display: block; }
   #stage, #hud, #notes, #progress { display: none !important; }
   #print { display: block !important; }
 }
+.s-title .tag { white-space: nowrap; }
+
+/* closing, Spanish version: realistic astronaut seen from behind + the app's HUD (texts and plan numbers from the app) */
+/* Only on the defense laptop (the image lives in img/local/, outside the repository): the astronaut stands on the
+   right of the Gale scene, away from the route; the visor cards sit under the QR; the image carries its own AI mark. */
+.s-closing .astro-wrap { position: absolute; left: 1600px; top: 738px; height: 270px; }
+.s-closing .astro-real { display: block; height: 270px; filter: drop-shadow(0 18px 30px rgba(0,0,0,.45)); }
+.s-closing .ai-mark { position: absolute; left: 50%; bottom: 10px; transform: translateX(-50%); white-space: nowrap; font-size: 16px; font-weight: 700;
+  color: #fff; background: rgba(11,13,15,.78); border: 1px solid rgba(255,255,255,.35); padding: 3px 10px; border-radius: 4px; letter-spacing: .5px; }
+.s-closing .astro-shadow { position: absolute; left: 1600px; top: 990px; width: 180px; height: 26px; border-radius: 50%; background: radial-gradient(rgba(0,0,0,.55), rgba(0,0,0,0) 70%); }
+.s-closing .hud { position: absolute; left: 1420px; top: 372px; width: 460px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+  transform: perspective(1400px) rotateY(-9deg); transform-origin: right center; }
+.s-closing .hud-card { background: rgba(11,13,15,.72); border: 1.5px solid rgba(89,209,255,.35); border-radius: 12px; padding: 14px 18px; display: flex; flex-direction: column; gap: 6px;
+  box-shadow: 0 0 24px rgba(89,209,255,.12) inset; backdrop-filter: blur(2px); }
+.s-closing .hud-card .k { font-size: 18px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--sky); }
+.s-closing .hud-card b { font-size: 36px; font-weight: 900; line-height: 1; }
+.s-closing .hud-card span { font-size: 17px; color: var(--soft); }
+.s-closing .hud-card b.ok, .s-closing .hud-verdict b { color: var(--green); }
+.s-closing .hud-card .dot { display: inline-block; width: 18px; height: 18px; border-radius: 50%; background: var(--green); margin-right: 12px; vertical-align: 4px; box-shadow: 0 0 12px var(--green); }
+.s-closing .hud .bar { position: relative; height: 20px; border-radius: 4px; background: rgba(64,217,102,.85); overflow: hidden; margin: 6px 0 2px; }
+.s-closing .hud .bar i { position: absolute; left: 0; top: 0; bottom: 0; background: #5b616b; }
+.s-closing .hud .bar em { position: absolute; top: 0; bottom: 0; width: 4px; margin-left: -2px; background: var(--amber); right: auto; }
+.s-closing .hud-foot { grid-column: 1 / -1; text-align: right; font-size: 16px; letter-spacing: 1px; color: var(--amber); }
+.s-closing .credit-local { right: 470px; }

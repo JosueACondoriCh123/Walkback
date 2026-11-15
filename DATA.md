@@ -28,7 +28,8 @@ Local coordinates: meters from the south-west corner, x east, y north. The squar
 | Base photo | MSL Gale Merged Orthophoto Mosaic 25cm v3 | `https://planetarymaps.usgs.gov/mosaic/Mars/MSL/MSL_Gale_Orthophoto_Mosaic_25cm_v3.tif` (24.4 GB) | Calef and Parker (2016), USGS Astrogeology; HiRISE NASA/JPL/University of Arizona |
 | Curiosity positions | MSL waypoints (one point per drive) | `https://mars.nasa.gov/mmgis-maps/MSL/Layers/json/MSL_waypoints.json` | NASA/JPL-Caltech |
 | Stop science | Curiosity blog: sols 4568-4569 (Altadena, 11 Jun 2025), 4695-4701 (13 Nov 2025), 4716-4722 (18 Nov 2025), 4893-4899 and 4900-4907 (Campo Marte, May 2026). Read on 14 Nov 2026 15:30 before use | `science.nasa.gov/blog/` | NASA/JPL-Caltech |
-| Stop task times | Proposed from NASA/TP-2017-219457, table 30 | | NASA |
+| Stop task times | Proposed by the team. Miller et al. (2017), *Operational Assessment of Apollo Lunar Surface Extravehicular Activity*, NASA/TP-2017-219457, table 30 gives the Apollo statistics for station tasks (median 9 to 11 min, quartiles 4 to 25 min), not times for these tasks | `https://ntrs.nasa.gov/citations/20170007261` | NASA |
+| Plan B constants (pace, oxygen, tank, reserve, slope limit) | See NOTICE, section 3: which numbers have a published figure to compare with, which are derived, and which come only from the team's notes | | see NOTICE |
 | Weather | Curiosity REMS weather feed (the data CAB publishes) | `https://mars.nasa.gov/rss/api/?feed=weather&category=msl&feedtype=json` | NASA/JPL-Caltech/CAB (CSIC-INTA) |
 | Space weather | NASA DONKI: SEP, GST, CME for the week | `https://api.nasa.gov/DONKI/SEP?startDate=2026-11-07&endDate=2026-11-14&api_key=DEMO_KEY` (same for GST, CME). Since 15 Nov (audit R18, patch 0052) the app also asks the SEP endpoint once at start for the last 7 days (`DEMO_KEY`, 4 s limit); the card then says "(live)" with the time, otherwise "(stored in the app)" | NASA CCMC |
 | Surface radiation | 0.64 mSv/day (dose equivalent), Curiosity RAD | Hassler et al. (2014), *Science* 343 | NASA/JPL-Caltech/SwRI |
@@ -58,7 +59,9 @@ GDAL 3.13.3 from QGIS (`C:\Program Files\QGIS 3.44.15\bin`, not on PATH). In Git
 8. **Panorama**: `python -I data-pipeline/process_panorama.py data-pipeline/cache/panorama/PIA26696.jpg Assets/StreamingAssets/Site/panorama_PIA26696.jpg 0.255` (the horizon sits at 25.5 % of the mosaic height, from the top), then step 5 again with `--panorama nevado-sajama=PIA26696="NASA/JPL-Caltech/MSSS, Mastcam mosaic PIA26696" --extra-sources globe_mdim,panorama_sajama`.
 9. **Checks**: `python -I data-pipeline/check_alignment.py <dem 1 m local> <usgs strip 1 m local>` and `python -I data-pipeline/preview_package.py Assets/StreamingAssets/Site <out prefix>` (photo, hillshade and slope side by side).
 
-## 3D models (`Assets/Walkback/Models3D/`, NASA 3D Resources, public domain)
+## 3D models (`Assets/Walkback/Models3D/`, NASA 3D Resources)
+
+NASA 3D Resources offers its models as free to download and use and points to the NASA Images and Media Usage Guidelines (`nasa.gov/nasa-brand-center/images-and-media`) for the terms. The astronaut's page names DigitalSpace Corporation as its source and states no licence of its own (read on 15 Nov 2026). The astronaut's texture carries the NASA insignia and a United States flag: do not show the model with that texture (the team uses no NASA logo).
 
 | File | Triangles | Bytes | Page | Note |
 |---|---|---|---|---|

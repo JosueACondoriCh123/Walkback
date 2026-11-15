@@ -21,6 +21,19 @@
   var map = PH.values(M, comp, C.FACTS, lang);
   window.deck = { model: comp };
 
+  // Defense laptop only: an AI illustration kept OUTSIDE the repository (img/local/ is in .gitignore). When the file
+  // is there, the Spanish closing shows it (marked and credited, see templates.closing); when it is not, nothing
+  // changes. The repository, the English deck and the PDF for NASA never carry it.
+  var ASTRO_LOCAL = 'img/local/astronaut-realistic.png', astroLocal = { ok: false };
+  if (!printMode) {
+    var astroProbe = new Image();
+    astroProbe.onload = function () {
+      astroLocal.ok = true;
+      if (lang === 'es' && slideEls.length) { build(); printBuilt = false; show(cur, { snap: true }); }
+    };
+    astroProbe.src = ASTRO_LOCAL;
+  }
+
   function setLang(l) { lang = l; map = PH.values(M, comp, C.FACTS, lang); window.deck.values = map; }
   function fill(s) { return s == null ? '' : PH.fill(s, map); }
   function esc(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
@@ -96,7 +109,7 @@
     },
     problem: function (t) {
       return '<div class="scrim-bottom"></div><div class="q"><div class="title">' + T(t.title) + '<span class="accent">' + T(t.titleAccent) +
-        '</span></div><div class="body">' + (t.lines || []).map(T).join('<br>') + '</div></div>' + credit(t);
+        '</span></div>' + ((t.lines || []).length ? '<div class="body">' + t.lines.map(T).join('<br>') + '</div>' : '') + '</div>' + credit(t);
     },
     // table pose: the map runs across the middle (y 211..847): title above it, figures in a row under it
     solution: function (t) {
@@ -133,10 +146,27 @@
     },
     // closing pose: low over Campo Marte looking home along the route; the terrain fills the lower half, text on top
     closing: function (t) {
-      return '<div class="scrim-top"></div><div class="scrim-foot"></div><div class="top"><div class="tag">' + T(t.tag) + '</div>' + titleHtml(t) +
+      // Defense laptop only, Spanish only: the AI illustration kept outside the repository (img/local/, in .gitignore),
+      // marked on the image itself, with the app's visor texts and the plan's numbers drawn over it. Without the file,
+      // or in English (the version for NASA), the closing is the Gale scene alone.
+      var local = lang === 'es' && astroLocal.ok, v = map, hud = '';
+      if (local) {
+        hud = '<div class="astro-wrap"><img class="astro-real" src="' + ASTRO_LOCAL + '" alt=""><span class="ai-mark">Ilustración hecha con IA</span></div>' +
+          '<div class="astro-shadow"></div>' +
+          '<div class="hud">' +
+            '<div class="hud-card hud-verdict"><b>&#10003; VIABLE</b><span>' + esc(v.total) + ' · ' + esc(v.km) + '</span></div>' +
+            '<div class="hud-card"><span class="k">O2</span><div class="bar"><i style="width:' + esc(v.usedPct) + '%"></i><em style="left:' + (100 - 100 * M.RESERVE_LITERS / M.TANK_LITERS).toFixed(1) + '%"></em></div>' +
+              '<span>' + esc(v.usedPct) + ' % del tanque · spare O2 ' + esc(v.spareL) + ' L</span></div>' +
+            '<div class="hud-card"><span class="k">back to habitat (estimate)</span><b class="ok">' + esc(v.farStopMin) + ' min</b><span>desde la parada más lejana</span></div>' +
+            '<div class="hud-card"><span class="k">NEXT</span><b><i class="dot"></i>Habitat</b><span>la luz verde</span></div>' +
+            '<div class="hud-foot">ESTIMATE · not the walking model yet</div>' +
+          '</div>';
+      }
+      return '<div class="scrim-top"></div><div class="scrim-foot"></div>' + hud + '<div class="top"><div class="tag">' + T(t.tag) + '</div>' + titleHtml(t) +
         '<div class="brandline"><span class="brand">' + T(t.brand) + '</span><span class="motto">' + T(t.sub) + '</span></div>' +
         (t.next ? '<div class="next">' + T(t.next) + '</div>' : '') + '</div>' +
-        '<div class="repo"><img src="img/qr.png" alt="QR"><span>' + esc(ui('project')) + '<br><b>' + T(t.qr) + '</b></span></div>' + credit(t);
+        '<div class="repo"><img src="img/qr.png" alt="QR"><span>' + esc(ui('project')) + '<br><b>' + T(t.qr) + '</b></span></div>' +
+        '<div class="credit' + (local ? ' credit-local' : '') + '">' + T(local && t.creditLocal ? t.creditLocal : t.credit) + '</div>';
     },
     annex: function () {
       var b = C.backup[lang] || C.backup.es;

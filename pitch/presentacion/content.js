@@ -56,34 +56,32 @@ window.WALKBACK_CONTENT = {
       es: { tag: 'NASA Space Apps 2026 · Santa Cruz, Bolivia · MARSXR', title: 'Walkback', sub: 'The safest way to go far.',
             challenge: 'Reto: Interplanetary Survival Guide: Martian Map',
             members: '',
-            credit: 'Mosaico Viking MDIM 2.1 · NASA/JPL/USGS',
+            credit: 'Mosaico Viking MDIM 2.1 · NASA/JPL/USGS · color realzado',
             dice: '(Antes de empezar. El reloj arranca solo al pasar a la lámina siguiente.)' },
       en: { tag: 'NASA Space Apps 2026 · Santa Cruz, Bolivia · MARSXR', title: 'Walkback', sub: 'The safest way to go far.',
             challenge: 'Challenge: Interplanetary Survival Guide: Martian Map',
             members: '',
-            credit: 'Viking MDIM 2.1 mosaic · NASA/JPL/USGS', dice: '' }
+            credit: 'Viking MDIM 2.1 mosaic · NASA/JPL/USGS · colour enhanced', dice: '' }
     },
     {
       id: 'problem', scene: 'panorama', segundos: 20,
-      es: { title: '¿Todavía puedo', titleAccent: 'volver?', lines: ['Cada paso gasta oxígeno.', 'Cada pendiente cambia la vuelta.'],
+      es: { title: 'Ir es fácil.', titleAccent: 'Lo difícil es volver.', lines: [],
             credit: 'Foto real: Curiosity Mastcam · PIA26696 · NASA/JPL-Caltech/MSSS',
-            dice: 'Imaginen que salen del hábitat en Marte. Cada paso gasta oxígeno, y cada pendiente cambia cuánto cuesta volver. Antes de seguir hacia la próxima muestra hay una sola pregunta que importa: ¿todavía puedo volver? Para responderla hicimos Walkback.' },
-      en: { title: 'Can I still', titleAccent: 'walk back?', lines: ['Every step spends oxygen.', 'Every slope changes the way back.'],
+            dice: 'Ir es fácil. Lo difícil es volver. (pausa) En Marte, si una caminata sale mal, nadie va a venir a buscarte. Cada paso gasta oxígeno y cada pendiente encarece la vuelta. Hicimos Walkback para saber, en cada parada, si la vuelta sigue asegurada.' },
+      en: { title: 'Going is easy.', titleAccent: 'Coming back is the hard part.', lines: [],
             credit: 'Real photo: Curiosity Mastcam · PIA26696 · NASA/JPL-Caltech/MSSS', dice: '' }
     },
     {
-      id: 'solution', scene: 'gale', pose: 'table', segundos: 30,
-      es: { tag: 'Meta Quest 3 · realidad mixta', title: 'Un km² real de Gale.', titleAccent: 'Una caminata para decidir.',
+      id: 'solution', scene: 'gale', pose: 'table', segundos: 35,
+      es: { tag: 'Un km² real de Gale · Meta Quest 3', title: 'Explorar no es ir lejos.', titleAccent: 'Es saber hasta dónde.',
             big: [['{km}', 'ida y vuelta'], ['{total}', 'caminata y trabajo'], ['{usedPct} %', 'del oxígeno']],
-            estimate: 'ESTIMADO · plan B sobre el relieve · {limit}° de pendiente como límite',
-            list: 'Cuatro sitios donde perforó Curiosity',
+            estimate: 'ESTIMADO',
             legend: ['Ámbar: la ruta del plan', 'Rayado: pendiente de más de {limit}°', 'Verde: el hábitat'],
             credit: 'Relieve HiRISE 1 m: NASA Mars Trek · foto HiRISE: USGS / NASA/JPL/University of Arizona',
-            dice: 'Walkback no es un juego: es una herramienta para decidir una caminata. Este es un kilómetro cuadrado real del cráter Gale, con el relieve y la foto de HiRISE. Las cuatro paradas son sitios donde perforó Curiosity. Sobre ese relieve la app arma la ida y la vuelta y estima: un kilómetro ochocientos, dos horas cincuenta y cinco, treinta y seis por ciento del oxígeno. Son estimaciones, y la app lo dice en pantalla.' },
-      en: { tag: 'Meta Quest 3 · mixed reality', title: 'One real km² of Gale.', titleAccent: 'One walk to decide.',
+            dice: 'Explorar no es ir lejos: es saber hasta dónde. Walkback es una herramienta para el astronauta y para quien planifica la salida. Esto es un kilómetro cuadrado real del cráter Gale, con relieve y foto de HiRISE, y cuatro sitios donde perforó Curiosity. Lo rayado es pendiente de más de veinte grados: no se pisa. La app arma la ida y la vuelta: un kilómetro ochocientos, dos horas cincuenta y cinco, treinta y seis por ciento del oxígeno. Estimado, y la app lo dice.' },
+      en: { tag: 'One real km² of Gale · Meta Quest 3', title: 'Exploring is not going far.', titleAccent: 'It is knowing how far.',
             big: [['{kmEn}', 'out and back'], ['{total}', 'walking and work'], ['{usedPct} %', 'of the oxygen']],
-            estimate: 'ESTIMATE · plan B over the relief · {limit}° slope limit',
-            list: 'Four sites where Curiosity drilled',
+            estimate: 'ESTIMATE',
             legend: ['Amber: the plan\'s route', 'Hatched: slope over {limit}°', 'Green: the habitat'],
             credit: 'HiRISE 1 m relief: NASA Mars Trek · HiRISE photo: USGS / NASA/JPL/University of Arizona', dice: '' }
     },
@@ -108,30 +106,34 @@ window.WALKBACK_CONTENT = {
             credit: 'The app\'s own rule, ported to JavaScript and running in this slide · ESTIMATE', dice: '' }
     },
     {
-      id: 'evidence', scene: 'gale', pose: 'evidence', segundos: 35,
-      es: { tag: 'Evidencia y límites', title: 'Datos que se pueden comprobar.', titleAccent: 'Estimaciones que se dicen.',
+      id: 'evidence', scene: 'gale', pose: 'evidence', segundos: 30,
+      es: { tag: 'Por qué creernos', title: 'Terreno comprobado', titleAccent: 'contra el propio Curiosity.',
             big: [['{demMeters} m', 'relieve HiRISE'], ['{positions}', 'posiciones de Curiosity'], ['{slopeMeanDiff}', 'diferencia media de pendiente']],
-            lines: ['El contraste con el sensor de inclinación de Curiosity respalda el terreno.', 'El oxígeno y el tiempo son estimaciones: falta validarlos.', 'El mapa no ve rocas de menos de unos 4 m ni la arena.'],
+            lines: ['Oxígeno y tiempo: estimados, y la app lo dice.'],
             legend: ['Celeste: las {positions} posiciones de Curiosity', 'Rayado: pendiente de más de {limit}°'],
             credit: 'DATA.md · r = {slopeR}, diferencia máxima {slopeMax} · prueba automática de la app: {tests}',
-            dice: 'Todo esto se puede comprobar. El relieve es de HiRISE, a un metro, y lo contrastamos con el sensor de inclinación del propio Curiosity en ochenta y cinco posiciones: la diferencia media es de dos grados. Eso respalda el terreno; no valida el oxígeno. El oxígeno y el tiempo son estimaciones, y la app lo dice en pantalla. El mapa tampoco ve las rocas chicas ni la arena. Preferimos decir qué es dato y qué es estimación.' },
-      en: { tag: 'Evidence and limits', title: 'Data you can check.', titleAccent: 'Estimates that say so.',
+            dice: '¿Por qué creernos? El terreno no lo inventamos: el relieve es de HiRISE, a un metro, y lo comparamos con el sensor de inclinación del propio Curiosity en ochenta y cinco posiciones. La diferencia media es de dos grados. El oxígeno y el tiempo son estimaciones, y la app lo dice en pantalla. No escondemos nada. (Rocas chicas y arena: solo si preguntan.)' },
+      en: { tag: 'Why trust it', title: 'Terrain checked', titleAccent: 'against Curiosity itself.',
             big: [['{demMeters} m', 'HiRISE relief'], ['{positions}', 'Curiosity positions'], ['{slopeMeanDiffEn}', 'mean slope difference']],
-            lines: ['The check against Curiosity\'s own tilt sensor supports the terrain.', 'Oxygen and time are estimates: not validated yet.', 'The map does not see rocks under about 4 m, or sand.'],
+            lines: ['Oxygen and time: estimates, and the app says so.', 'The map does not see rocks under about 4 m, or sand.'],
             legend: ['Light blue: Curiosity\'s {positions} positions', 'Hatched: slope over {limit}°'],
             credit: 'DATA.md · r = {slopeREn}, largest difference {slopeMax} · the app\'s automatic test: {testsEn}', dice: '' }
     },
     {
-      // El cierre es el mismo Gale, desde Campo Marte mirando al hábitat por la ruta (AUDIT-R20-F4).
+      // El cierre es el mismo Gale, desde Campo Marte mirando al hábitat por la ruta (AUDIT-R20-F4), en los dos idiomas.
       // El astronauta 3D de la NASA salió de la presentación: su textura lleva la insignia de la NASA (regla: sin logos).
+      // SOLO en la laptop de la defensa y SOLO en español: si existe img/local/astronaut-realistic.png (fuera del
+      // repositorio, en .gitignore), la lámina suma esa ilustración hecha con IA, marcada "Ilustración hecha con IA",
+      // con el visor de la app dibujado encima y el crédito creditLocal. Sin ese archivo queda Gale con el crédito normal.
       id: 'closing', scene: 'gale', pose: 'closing', overlay: 'qr', segundos: 40,
-      es: { tag: 'MARSXR · NASA Space Apps 2026', title: 'Explorar más,', titleAccent: 'con el camino de vuelta a la vista.',
-            brand: 'Walkback', sub: 'The safest way to go far.', qr: 'github.com/kendal-dev/Walkback',
+      es: { tag: 'MARSXR · NASA Space Apps 2026', title: 'Porque volver también', titleAccent: 'es parte de la misión.',
+            brand: 'Walkback', sub: '', qr: 'github.com/kendal-dev/Walkback',
             next: 'Lo que sigue (no está hecho): el modelo definitivo de caminata y oxígeno; leer la telemetría de un traje en lugar de estimarla. Hoy Walkback no lee telemetría de ningún traje.',
             credit: 'Gale, de Campo Marte al hábitat · relieve HiRISE 1 m: NASA Mars Trek · foto HiRISE: USGS / NASA/JPL/University of Arizona · ruta del plan: ESTIMADO · proyecto hecho con ayuda de IA, declarado en AI_USAGE.md',
-            dice: 'Walkback sirve para comparar salidas y saber, en cada parada, si seguir compromete la vuelta. Hoy el Quest 3 hace de visor del casco. Lo que sigue es el modelo definitivo de caminata y oxígeno, y leer la telemetría de un traje, como plantea el desafío NASA SUITS, en lugar de estimarla. Somos MARSXR, de Santa Cruz. Queremos que cada decisión de explorar mantenga a la vista el camino de vuelta. The safest way to go far. Gracias. (Últimos 5 s: el QR en pantalla, sin hablar.)' },
-      en: { tag: 'MARSXR · NASA Space Apps 2026', title: 'Go farther,', titleAccent: 'with the way back in sight.',
-            brand: 'Walkback', sub: 'The safest way to go far.', qr: 'github.com/kendal-dev/Walkback',
+            creditLocal: 'Astronauta: ilustración hecha con IA, solo para esta defensa (no está en el repositorio) · visor: textos y números de la app (ESTIMADO) · Gale: relieve HiRISE 1 m, NASA Mars Trek; foto HiRISE, USGS / NASA/JPL/University of Arizona · IA declarada en AI_USAGE.md',
+            dice: 'Walkback convierte una pregunta de vida o muerte en un color: verde, seguís; rojo, volvés. Hoy el Quest 3 hace de visor del casco. Lo que sigue: el modelo definitivo de oxígeno y leer la telemetría del traje en lugar de estimarla. Somos MARSXR, de Santa Cruz. Porque volver también es parte de la misión. Gracias. (Últimos 5 s: el QR en pantalla, sin hablar.)' },
+      en: { tag: 'MARSXR · NASA Space Apps 2026', title: 'Because coming back', titleAccent: 'is part of the mission.',
+            brand: 'Walkback', sub: '', qr: 'github.com/kendal-dev/Walkback',
             credit: 'Gale, from Campo Marte to the habitat · HiRISE 1 m relief: NASA Mars Trek · HiRISE photo: USGS / NASA/JPL/University of Arizona · the plan\'s route: ESTIMATE · project built with AI help, declared in AI_USAGE.md',
             next: 'Next (not done): the final walking and oxygen model; reading suit telemetry instead of estimating it. Walkback reads no suit telemetry today.', dice: '' }
     }
