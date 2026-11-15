@@ -21,7 +21,7 @@ namespace Walkback
         public Image labelBox;
         public Color baseColor = Color.white;
         public float radiusMeters = 5f;
-        public float heightMeters = 110f;
+        public float heightMeters = StopPillars.PillarHeightMeters;
         /// <summary>How many labels of nearby stops sit under this one: it goes up one label height per step, so they never cover each other.</summary>
         public int labelStack;
         /// <summary>

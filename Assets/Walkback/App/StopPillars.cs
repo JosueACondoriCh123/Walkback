@@ -17,7 +17,12 @@ namespace Walkback
         public Material labelMaterial;
 
         // Map meters (1 m of map = 1 mm on the table).
-        public const float PillarHeightMeters = 110f;
+        /// <summary>
+        /// 85 mm on the table (it was 110). From the user's start place the labels on top stand in front of the
+        /// foot of the main board, and one that goes up three steps to get clear of the others (Altadena's, behind
+        /// the habitat's) reached the stops' names under the height chart for eyes at 1.55 m or lower.
+        /// </summary>
+        public const float PillarHeightMeters = 85f;
         public const float StopRadiusMeters = 5f;
         public const float HabitatRadiusMeters = 8f;
         /// <summary>Stops closer than this (map meters) get their labels stacked one label height apart.</summary>
