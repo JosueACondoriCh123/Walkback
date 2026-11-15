@@ -454,6 +454,20 @@ namespace Walkback.EditorTools
             }
             Check("Panel: every text fits its box", overflow.Length == 0, overflow);
 
+            // The main board's last card ends as far from the bottom edge as the cards are from each other (30 mm).
+            Transform boardCanvas = panel.transform.Find("Canvas");
+            float cardsEnd = 0f;
+            if (boardCanvas != null)
+                foreach (var image in boardCanvas.GetComponentsInChildren<Image>(true))
+                {
+                    if (!image.name.EndsWith("Card")) continue;
+                    var cardRect = (RectTransform)image.transform;
+                    cardsEnd = Mathf.Max(cardsEnd, -cardRect.anchoredPosition.y + cardRect.sizeDelta.y);
+                }
+            float strip = MissionPanel.PixelsHigh - cardsEnd;
+            Check("Panel: the main board's cards end about 30 mm from its bottom edge, like the air between them (90 mm were left empty)",
+                cardsEnd > 0f && strip >= 25f && strip <= 40f, strip.ToString("F0") + " mm under the last card");
+
             string wrapped = "";
             foreach (var button in panel.GetComponentsInChildren<PanelButton>(true))
             {
