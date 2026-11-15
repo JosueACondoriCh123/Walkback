@@ -139,7 +139,7 @@ namespace Walkback.EditorTools
                 Vector3 toPillar = mission.pillar.position - cam.transform.position;
                 toPillar.y = 0f;
                 float pillarMeters = toPillar.magnitude;
-                Check("Mission jump: the stop's pillar stands 5 m straight ahead (a real walk to it, not one step)",
+                Check("Mission jump: the stop's pillar stands " + MissionProgress.ApproachMeters.ToString("0.0") + " m straight ahead (a real walk to it, not one step)",
                     pillarMeters > MissionProgress.ApproachMeters - 0.1f && pillarMeters <= MissionProgress.ApproachMeters + 0.05f && Vector3.Angle(toPillar, Vector3.forward) < 1f &&
                     (mission.MetersOf(cam.transform.position) - mission.Progress.PointAt(mission.Progress.RouteMeters)).magnitude < 0.01f,
                     pillarMeters.ToString("F2") + " m ahead, " + Vector3.Angle(toPillar, Vector3.forward).ToString("F1") + "° off");
@@ -458,7 +458,7 @@ namespace Walkback.EditorTools
                 app.hud.SnapTo(cam.transform);
                 Canvas.ForceUpdateCanvases();
                 Vector3 eye = cam.transform.position;
-                Shot(cam, "mission_01_mars_5m_before_the_stop.png", eye, eye + Vector3.forward);
+                Shot(cam, "mission_01_mars_before_the_stop.png", eye, eye + Vector3.forward);
                 Shot(cam, "mission_02_mars_route_on_the_ground.png", eye, eye + new Vector3(0f, -0.6f, 1f));
 
                 Vector3 toPillar = mission.pillar.position - eye;
@@ -551,29 +551,31 @@ namespace Walkback.EditorTools
                 s.returnState == HudEstimate.ReturnState.Covered && Mathf.Abs(s.marginMinutes - (HudEstimate.TankLiters - HudEstimate.ReserveLiters) / walkRate) < 0.05f,
                 HudCompass.BearingText(s.nextBearingDegrees) + ", margin " + s.marginMinutes.ToString("F0") + " min");
 
-            // The jump lands 5 m before the stop and counts as walked: 995 m of the 1000 m leg.
+            // The jump lands ApproachMeters before the stop and counts as walked (997.5 m of the 1000 m leg at 2.5 m).
+            float approach = MissionProgress.ApproachMeters, land = 1000f - approach;
             bool jumped = progress.JumpNext();
             Vector2 landing = progress.PointAt(progress.RouteMeters);
             s = progress.Read(landing);
-            float walked995 = 19.3f * 0.995f;
-            Check("Mission jump: lands 5 m before the stop, looking at it", jumped && Mathf.Abs(landing.x - 995f) < 0.05f && Mathf.Abs(landing.y) < 0.05f &&
+            float walked995 = 19.3f * land / 1000f;
+            Check("Mission jump: lands " + approach.ToString("0.0") + " m before the stop, looking at it", jumped && Mathf.Abs(landing.x - land) < 0.05f && Mathf.Abs(landing.y) < 0.05f &&
                 Vector2.Dot(progress.DirectionToTarget(), Vector2.right) > 0.999f, landing.x.ToString("F2") + ", " + landing.y.ToString("F2"));
             Check("Mission jump: the stretch jumped over counts as walked (its minutes and oxygen, from the plan)",
-                Mathf.Abs(s.walkMinutes - walked995) < 0.03f && Mathf.Abs(s.usedLiters - walked995 * walkRate) < 0.05f && Mathf.Abs(s.nextMeters - 5f) < 0.05f,
+                Mathf.Abs(s.walkMinutes - walked995) < 0.03f && Mathf.Abs(s.usedLiters - walked995 * walkRate) < 0.05f && Mathf.Abs(s.nextMeters - approach) < 0.05f,
                 s.walkMinutes.ToString("F2") + " min, " + s.usedLiters.ToString("F2") + " L");
             Check("Mission progress: the way back is read from the map's return layer at the node you stand on",
                 !s.noWayBack && Mathf.Abs(s.returnMinutes - home[ReturnFallback.NodeOf(site, landing)]) < 0.001f && Mathf.Abs(s.returnMinutes - walked995) < 0.1f,
                 s.returnMinutes.ToString("F2") + " min");
 
-            // Walking for real: 2 m forward moves the numbers by 2 m; a step back gives nothing back.
-            progress.Walk(new Vector2(997f, 0.3f));
-            var forward = progress.Read(new Vector2(997f, 0.3f));
-            progress.Walk(new Vector2(996f, 0f));
-            var back = progress.Read(new Vector2(996f, 0f));
-            Check("Mission walk: the headset's position moves the numbers (2 m walked = 2 m less to the stop)",
-                Mathf.Abs(forward.routeMeters - 997f) < 0.05f && Mathf.Abs(forward.nextMeters - 3f) < 0.05f && forward.usedLiters > s.usedLiters && !forward.arrived,
+            // Walking for real: 0.5 m forward moves the numbers by 0.5 m (still short of the arrival); a step back gives nothing back.
+            float stepTo = land + 0.5f;
+            progress.Walk(new Vector2(stepTo, 0.3f));
+            var forward = progress.Read(new Vector2(stepTo, 0.3f));
+            progress.Walk(new Vector2(stepTo - 1f, 0f));
+            var back = progress.Read(new Vector2(stepTo - 1f, 0f));
+            Check("Mission walk: the headset's position moves the numbers (0.5 m walked = 0.5 m less to the stop)",
+                Mathf.Abs(forward.routeMeters - stepTo) < 0.05f && Mathf.Abs(forward.nextMeters - (approach - 0.5f)) < 0.05f && forward.usedLiters > s.usedLiters && !forward.arrived,
                 forward.nextMeters.ToString("F2") + " m to the stop");
-            Check("Mission walk: stepping back gives no oxygen back", Mathf.Abs(back.routeMeters - 997f) < 0.05f && Mathf.Abs(back.usedLiters - forward.usedLiters) < 0.0001f);
+            Check("Mission walk: stepping back gives no oxygen back", Mathf.Abs(back.routeMeters - stepTo) < 0.05f && Mathf.Abs(back.usedLiters - forward.usedLiters) < 0.0001f);
 
             progress.Walk(new Vector2(998.7f, 0f));
             var arrived = progress.Read(new Vector2(998.7f, 0f));
@@ -581,13 +583,13 @@ namespace Walkback.EditorTools
                 arrived.nextMeters.ToString("F2") + " m left on the route");
             Check("Mission arrival: the work at the stop is not charged before leaving it", arrived.workMinutes < 0.001f);
 
-            // Leaving the stop charges its work; the jump lands 5 m before the habitat.
+            // Leaving the stop charges its work; the jump lands ApproachMeters before the habitat.
             jumped = progress.JumpNext();
             landing = progress.PointAt(progress.RouteMeters);
             s = progress.Read(landing);
             float walkedHome = 19.3f + walked995;
-            Check("Mission jump: leaving a stop charges its work, and the next point is 5 m before the habitat",
-                jumped && progress.Leg == 1 && Mathf.Approximately(s.workMinutes, 10f) && Mathf.Abs(landing.x - 5f) < 0.05f && s.nextName == "Habitat" && s.nextStop == -1 && !s.arrived,
+            Check("Mission jump: leaving a stop charges its work, and the next point is " + approach.ToString("0.0") + " m before the habitat",
+                jumped && progress.Leg == 1 && Mathf.Approximately(s.workMinutes, 10f) && Mathf.Abs(landing.x - approach) < 0.05f && s.nextName == "Habitat" && s.nextStop == -1 && !s.arrived,
                 "leg " + progress.Leg + ", work " + s.workMinutes.ToString("F0") + " min, at x " + landing.x.ToString("F2"));
             Check("Mission jump: time and oxygen add up to the plan's own numbers",
                 Mathf.Abs(s.elapsedMinutes - (walkedHome + 10f)) < 0.06f && Mathf.Abs(s.usedLiters - (walkedHome * walkRate + 10f * workRate)) < 0.1f,

@@ -21,8 +21,11 @@ namespace Walkback
     /// </summary>
     public class MissionProgress
     {
-        /// <summary>A jump lands this far before the stop, along the route: the last stretch is walked for real.</summary>
-        public const float ApproachMeters = 5f;
+        /// <summary>
+        /// A jump lands this far before the stop: the last stretch is walked for real. 2.5 m (it was 5 m) so the
+        /// walk to the arrival card (1 m) fits inside the 3 m free space marked on the floor.
+        /// </summary>
+        public const float ApproachMeters = 2.5f;
         /// <summary>Closer than this to the stop counts as arrived: its card shows.</summary>
         public const float ArriveMeters = 1.5f;
         /// <summary>How far ahead of the progress the route is searched for the astronaut (a real room is smaller).</summary>
