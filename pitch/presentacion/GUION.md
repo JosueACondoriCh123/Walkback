@@ -1,54 +1,15 @@
 # Walkback · guion de 3 minutos
 
+El texto manda en `content.js` (campo `dice` de cada lámina; tecla N lo muestra). Este archivo es una copia para leer en papel: si cambiás algo, cambialo primero en `content.js`.
 
-## 0:00–0:20 · Problema
+| Lámina | Tiempo | Qué se ve | Qué dice Daniel |
+|---|---|---|---|
+| Título | antes del reloj | Globo de Marte que gira hasta Gale | (presentación del equipo; T arranca el reloj al pasar) |
+| 1 · Problema | 0:00–0:20 | Foto real de Nevado Sajama (Curiosity) | Imaginen que salen del hábitat en Marte. Cada paso gasta oxígeno, y cada pendiente cambia cuánto cuesta volver. Antes de seguir hacia la próxima muestra hay una sola pregunta que importa: ¿todavía puedo volver? Para responderla hicimos Walkback. |
+| 2 · Solución | 0:20–0:50 | Gale 3D: rayado sobre 20°, cuatro paradas, la ruta del plan que se dibuja | Walkback no es un juego: es una herramienta para decidir una caminata. Este es un kilómetro cuadrado real del cráter Gale, con el relieve y la foto de HiRISE. Las cuatro paradas son sitios donde perforó Curiosity. Sobre ese relieve la app arma la ida y la vuelta y estima: un kilómetro ochocientos, dos horas cincuenta y cinco, treinta y seis por ciento del oxígeno. Son estimaciones, y la app lo dice en pantalla. |
+| 3 · Veredicto | 0:50–1:00 | El tablero de la app redibujado: VIABLE y sus tres gráficos | Con el tanque lleno, el plan es viable. ¿Y si el traje falla y queda el ocho por ciento del oxígeno? Veámoslo en el visor. |
+| 4 · Demo | 1:00–1:45 | Demo en vivo (scrcpy). **Si falla: tecla R** (plan → WHAT IF al 8 %: el rojo sale de la cuenta de la app; Campo Marte queda en el rojo) | El guion de la demo: plan VIABLE; al 8 % NOT VIABLE y el rojo; START MISSION y NEXT STOP una vez. |
+| 5 · Evidencia | 1:45–2:20 | Gale 3D con las 85 posiciones de Curiosity | Todo esto se puede comprobar. El relieve es de HiRISE, a un metro, y lo contrastamos con el sensor de inclinación del propio Curiosity en ochenta y cinco posiciones: la diferencia media es de dos grados. Eso respalda el terreno; no valida el oxígeno. El oxígeno y el tiempo son estimaciones, y la app lo dice en pantalla. El mapa tampoco ve las rocas chicas ni la arena. Preferimos decir qué es dato y qué es estimación. |
+| 6 · Cierre | 2:20–3:00 | Astronauta 3D de la NASA frente a la foto real; a lo lejos, el pilar verde del hábitat. QR | Walkback sirve para comparar salidas y saber, en cada parada, si seguir compromete la vuelta. Hoy el Quest 3 hace de visor del casco. Lo que sigue es el modelo definitivo de caminata y oxígeno, y leer la telemetría de un traje, como plantea el desafío NASA SUITS, en lugar de estimarla. Somos MARSXR, de Santa Cruz. Queremos que cada decisión de explorar mantenga a la vista el camino de vuelta. The safest way to go far. Gracias. (Últimos 5 s: el QR, sin hablar.) |
 
-Imaginen que salen del hábitat en Marte. Cada paso consume oxígeno, y una pendiente cambia el esfuerzo de regreso. Antes de seguir hacia una muestra, necesitan responder una pregunta: ¿todavía puedo volver? Para ayudar a tomar esa decisión construimos Walkback.
-
-
-## 0:20–0:50 · Solución
-
-Walkback es un prototipo de planificación de caminatas en realidad mixta para Meta Quest 3. Ponemos un kilómetro cuadrado real de Gale sobre la mesa, con relieve e imágenes de HiRISE. El plan conecta cuatro sitios donde perforó Curiosity y estima tiempo y oxígeno considerando el terreno y el trabajo en cada parada.
-## Nota del presentador
-
-La animación ámbar es ilustrativa: conserva la ruta por distancia del pitch original. No atribuirle tiempos de la app, cuyo cálculo provisional optimiza tiempo.
-
-
-## 0:50–1:00 · Presentar la decisión
-
-El recorrido tiene un veredicto estimado. Ahora vamos a reducir el oxígeno disponible y observar qué cambia para el regreso. Veámoslo en la demo.
-## Material de revisión
-
-Esta lámina conserva las referencias del editor. La demo de 45 segundos se muestra en la lámina siguiente. D cambia la captura; P reproduce la secuencia de referencias. Los valores de las capturas son de prueba, no resultados validados de consumo humano.
-
-
-## 1:00–1:45 · Mostrar la demo, 45 segundos
-
-**0–15 s:** Primero vemos el recorrido y su veredicto estimado.
-**15–30 s:** Reducimos el oxígeno disponible y revisamos si todavía alcanza para el regreso conservando la reserva.
-**30–45 s:** Mostramos el paso al modo misión y el regreso estimado en el visor, únicamente si esa versión fue comprobada en Quest.
-## Operación
-
-Espacio de presentación para transmitir el Quest, compartir la ventana de la app o reproducir una grabación. La tecla V permite cargar un video local y reproducirlo dentro de esta lámina. Ningún video viene cargado de antemano. El video cargado permanece solo en este navegador; no se sube ni se agrega al repositorio.
-## Si se interrumpe
-
-Volver a la lámina anterior y explicar la decisión con sus capturas de referencia.
-
-
-## 1:45–2:20 · Evidencia y límites
-
-Trabajamos con relieve de HiRISE de un metro y fotografías de aproximadamente veinticinco centímetros por píxel. Las paradas proceden de posiciones reales de Curiosity y contrastamos las pendientes en ochenta y cinco posiciones. Esa comparación respalda el terreno; no valida el consumo humano de oxígeno. El cálculo sigue siendo provisional. Además, el relieve no resuelve todos los obstáculos ni los huecos con arena. Walkback ayuda a evaluar decisiones y todavía necesita validación para un uso operativo.
-## Fuentes
-
-DATA.md; ReturnFallback.cs; MissionFallback.cs; HudEstimate.cs. El umbral de 20° es la configuración del prototipo, no una garantía de seguridad.
-
-
-## 2:20–2:55 · Impacto y cierre
-
-El objetivo es que un equipo pueda comparar salidas científicas y reconocer cuándo una parada compromete el regreso. El siguiente paso es integrar el modelo definitivo de caminata y oxígeno, comprobar el recorrido completo en el visor y evaluar si las personas interpretan bien las alertas. Somos MARSXR. Con Walkback queremos que cada decisión de explorar mantenga visible el camino de vuelta. The safest way to go far. Gracias.
-## 2:55–3:00
-
-Dejar el QR en pantalla. No añadir otra explicación.
-## Visual del cierre
-
-Vista ilustrativa en tercera persona del uso de Walkback. El astronauta y las ventanas permanecen quietos entre sí; solo se desplaza horizontalmente el plano completo. Las dos ventanas usan recortes de capturas originales del editor, con sus valores de prueba, y no representan una misión ni un HUD operativo validado.
+**Nunca decir:** que el oxígeno usa el clima; "tiempo real" salvo DONKI con "(live)" visto esa mañana; "compatible con NASA SUITS"; "57,5 % del mapa" (es del terreno desde donde hay vuelta a pie).
