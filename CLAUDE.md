@@ -8,6 +8,41 @@ Paths in this file are written with placeholders: `<home>` (the user folder on D
 
 Deadlines: code freeze Sun 15/11 10:00 · submit 11:00 · the venue closes submissions at 12:00 · defense 14:00 (**3 minutes**, Daniel 15/11 00:40: the presentation in `pitch/presentacion/` rules, with 45 s of live demo at 1:00–1:45: tank at 8 % with the WHAT IF, then START MISSION and one NEXT STOP; the 5-minute script of R15 is not used).
 
+## HANDOFF 15/11 02:30 — a new session (maybe on another Claude account) picks up session A here. READ THIS BLOCK FIRST.
+
+**Who you are:** session A (the app, the repo, the build, the headset). Daniel directs; he asked that the next session receive **audit R20** from Fable 5.2 and **execute it to the full**, using subagents where tasks are independent. Talk to Daniel in simple Rioplatense Spanish, conclusion first, numbered steps; run `Get-Date` before writing any time; at night remind him to sleep.
+
+**Where things are (`<home>` = the user folder; real paths in `.claude/local-paths.md`):**
+- Repo: `<project>` on `main` = `3066e46` (pushed). GitHub `kendal-dev/Walkback`, public. Branches on GitHub: `main`, `pitch-r19` (merged), old `pitch` (old token at its tip, 11 AI co-author commits: delete only with Daniel's yes). Local backups `backup/docs|model|web`. Worktrees: `<home>\walkback-pitch-r19` (branch `pitch-r19`, merged), `<home>\walkback-pitch` (old `pitch`).
+- Audits and packages: `<home>\Downloads\AUDIT-R12.md` … `AUDIT-R19 (1).md`, zips `walkback-r14.zip` … `walkback-r19 (1).zip`; unpacked copies in `<home>\walkback-r15`, `-r16`, `-r17`, `-r18`, `-r19`.
+- **Audit R20 is coming** (Fable 5.2, 7 fronts, prompt `<home>\Downloads\PROMPT-R20-FABLE-MEGA.md`, input `walkback-r20-entrada.zip`). Expect `AUDIT-R20.md` + `AUDIT-R20-F1..F7.md` + patches + ready-to-paste texts, with ONE numbered list of orders by time (06:45 → 14:00). Execute that list in order.
+- Drafts outside the repo: `<home>\walkback-borradores\` — `HOJA-DANIEL.md` (morning sheet: Player Settings is already done, token already rotated), `nasa-demo.md` (7 slides + NASA form texts in English), `GUION-DEMO-3MIN.md` (45 s demo), `PRESENTACION-CAMBIOS.md`, `ESTADO-AREAS.md` (percentages by area), `PARA-R16-FABLE.md`, `para-main\` (the README/AI_USAGE/NOTICE now on main), prompts R17–R20.
+
+**What is DONE tonight (all pushed):**
+1. Audits R15–R18 applied (see CURRENT STATE below). Automatic test **424 of 424** (01:33). R18: the CURRENT CONDITIONS card asks NASA DONKI live at start ("(live)" / "(stored in the app)"); at 01:31 `DEMO_KEY` gave HTTP 429 from the laptop's network → at the venue expect "(stored in the app)"; say "live" only if seen.
+2. **DevAgent token rotated** (23:52) with the SDK's `RemoteAgentSettings.RegenerateToken()`; new fingerprint `143594aa64` (old public one `3c8d886694`). Every build injects the current token + laptop IP (agent off): accepted by Daniel.
+3. **Player Settings:** product name `Walkback`, Android package pinned to `com.DefaultCompany.walkbackNASASpaceApps` (same id: one app, same log path).
+4. **README.md, AI_USAGE.md, NOTICE** at the root (no TO CONFIRM left; package licenses read from the package cache).
+5. Old branches `docs`, `model`, `web` deleted on GitHub (Daniel's yes).
+6. **Presentation rebuilt in 3D (audit R19), PR #2 merged:** `pitch/presentacion/` — no screenshots, numbers from `walkback-model.js` (the app's plan B in JS, `node tools/check-model.js` → 18/18), text in `content.js` (L = ES/EN), R = demo backup, NASA 3D astronaut, AI art removed. To preview: `python -m http.server 8770` in that folder and open `http://localhost:8770/index.html` (the built-in browser shows `file://` outside the project as a static snapshot).
+7. Defense is **3 minutes** (decided 00:40).
+
+**What is NOT done (the R20 orders should cover it):**
+- **Nothing of R12–R18 has been seen in the headset; mission mode was never entered in the headset.** The candidate APK is `Builds/walkback.apk` built 01:37 from `7addfa2` (R18; SHA-256 `1AF85CBF…`; label Walkback; INTERNET; new token only) — **not installed** (the Quest never connected after 00:42). It does NOT include later commits, which are docs/presentation only (no app code changed after 01:37), so it is still the app candidate.
+- Tag `v1.0-submission` + GitHub release with the APK (ask Daniel before tagging).
+- NASA submission (PDF/video of 7 slides in English, form texts, **Submit for Judging before 11:00**).
+- Five-person tests (Miranda, 08:30). Rehearsal 13:00 / 13:30 with the defense laptop and projector.
+- Josué may have unpushed changes to the OLD slides: he must not overwrite the new deck.
+
+**How to work (recipes that worked tonight):**
+- Test (Unity closed): `"C:\Program Files\Unity\Hub\Editor\6000.4.6f1\Editor\Unity.exe" -batchmode -force-d3d11 -projectPath . -executeMethod Walkback.EditorTools.AutoTest.RunBatch -logFile TestOutput/unity.log` → `TestOutput/report.txt` line 2. The test rebuilds `Walkback.unity` and only reorders it: `git restore Assets/Walkback/Scenes/Walkback.unity` unless a patch changed the scene.
+- Build: same Unity with `-buildTarget Android -executeMethod Walkback.EditorTools.BuildApk.Run -logFile TestOutput/build.log -quit` (~3 min) → `Builds/walkback.apk`; check `Walkback APK: Succeeded` in the log.
+- adb: `<home>\AppData\Local\Microsoft\WinGet\Packages\Genymobile.scrcpy_Microsoft.Winget.Source_8wekyb3d8bbwe\scrcpy-win64-v4.1\adb.exe`. If `unauthorized`, Daniel accepts USB debugging in the headset. Install `adb install -r Builds\walkback.apk`; log `adb pull /sdcard/Android/data/com.DefaultCompany.walkbackNASASpaceApps/files/walkback.log`.
+- Token fingerprint without printing it: match `^\s*accessToken:\s*(\S*)` **case-sensitively** in `Assets/Resources/DevAgentSettings.asset`, SHA-256, first 10 hex. Never print a token. (PowerShell alias trap: do not name a function `H`.)
+- Applying an audit: unzip to a NEW folder, `git apply --check` each patch, then one commit per patch with the message from the patch header (PowerShell mangles quotes and `°` in `-m`: use `git commit -F <file>` written from Git Bash), never `git checkout .` / `reset --hard`, no AI co-author line. Commit and push `main` after the test passes (delegated). Ask Daniel before: tags, deleting branches, force-push.
+- Never commit the nine `Assets/Walkback/Materials/*.mat` rounding changes or `Briefing/`.
+- Remote branch deletion and other destructive git actions are refused to the session without Daniel's explicit yes in chat.
+
 ## If you are a new session picking up session A (the app) — start here
 
 **Which model (Daniel, 14/11 10:50): save Fable's limit for the very important things.**
