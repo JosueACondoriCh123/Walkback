@@ -12,6 +12,9 @@ namespace Walkback.EditorTools
             var jump = app.siteJump;
             Check("Globe: opening and site jump are in the scene", globe != null && jump != null);
             Check("Globe: hidden in the built scene (it opens at runtime)", !globe.visual.activeSelf && !jump.sphere.activeSelf);
+            Check("Start: an untracked head pose (0, 0, 0) is told from a tracked one, and the start waits a few seconds for it before placing the table",
+                !WalkbackApp.IsTrackedPose(Vector3.zero) && !WalkbackApp.IsTrackedPose(new Vector3(0.05f, 0f, 0.05f)) && WalkbackApp.IsTrackedPose(new Vector3(0f, 1.2f, 0f)) &&
+                WalkbackApp.IsTrackedPose(new Vector3(0.4f, 1.6f, -0.3f)) && WalkbackApp.HeadWaitSeconds >= 1f && WalkbackApp.HeadWaitSeconds <= 5f);
             globe.EnsureBuilt();
             jump.EnsureBuilt();
 

@@ -28,6 +28,44 @@ namespace Walkback
                 siteJump.EnsureBuilt();
                 JumpRequested += siteJump.Jump;
             }
+            // In the headset the head pose often is not there yet in the first frame (it reads 0, 0, 0): the table
+            // then stayed at the scene's origin layout, behind the user or to one side, and with the controls locked
+            // by the opening B and Y could not bring it. Wait for the pose (a few frames; HeadWaitSeconds at most).
+            if (!DesktopMode && !HeadPoseTracked()) StartCoroutine(OpenWhenHeadIsTracked());
+            else OpenStage();
+        }
+
+        /// <summary>How long the start waits for the head pose before it opens where the scene was laid out.</summary>
+        public const float HeadWaitSeconds = 3f;
+
+        /// <summary>An untracked head reads 0, 0, 0; a tracked one is at eye height over the floor.</summary>
+        public static bool IsTrackedPose(Vector3 headPosition)
+        {
+            return headPosition.sqrMagnitude >= 0.01f;
+        }
+
+        bool HeadPoseTracked()
+        {
+            Transform head = HeadTransform();
+            return head != null && IsTrackedPose(head.position);
+        }
+
+        System.Collections.IEnumerator OpenWhenHeadIsTracked()
+        {
+            float until = Time.unscaledTime + HeadWaitSeconds;
+            int frames = 0;
+            while (!HeadPoseTracked() && Time.unscaledTime < until)
+            {
+                frames++;
+                yield return null;
+            }
+            WalkbackLog.Info("Start: waited " + frames + " frames for the head pose" + (HeadPoseTracked() ? "" : ", it did not come"));
+            OpenStage();
+        }
+
+        /// <summary>The table in front of the user, then the opening globe over it (the opening locks the controls).</summary>
+        void OpenStage()
+        {
             PlaceStageInFrontOfUser();
             if (globe != null && !skipGlobeOpening) globe.Begin();
         }
@@ -42,7 +80,7 @@ namespace Walkback
         {
             if (DesktopMode || tableControls == null || table == null || mapRoot == null) return;
             Transform head = HeadTransform();
-            if (head == null || head.position.sqrMagnitude < 0.01f)
+            if (head == null || !IsTrackedPose(head.position))
             {
                 WalkbackLog.Warn("Start: head pose not tracked yet, the table stays at the scene's origin layout");
                 return;
