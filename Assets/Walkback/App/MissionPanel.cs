@@ -416,8 +416,9 @@ namespace Walkback
             stopButtonRow = (RectTransform)row.transform;
             Place(rect, stopButtonRow, 140, 24, 600, 2f * ButtonHeight + 12f);
 
-            // Stop card
-            AddBox(rect, "StopCard", uiMaterial, WalkbackTheme.CardBack, 30, 254, 700, 516);
+            // Stop card. Its last text (risk, photo credit) takes four lines for a stop with a photo credit
+            // (Nevado Sajama): at three lines' height it ran 23 mm over the card's edge, down to the conditions.
+            AddBox(rect, "StopCard", uiMaterial, WalkbackTheme.CardBack, 30, 254, 700, 550);
             stopName = AddText(rect, "StopName", "NO STOP SELECTED", font, uiMaterial, 46, FontStyle.Bold, WalkbackTheme.Text, 54, 262, 400, 66);
             // Real stop names vary in length: shrink to fit one line, never under 32 px.
             stopName.resizeTextForBestFit = true;
@@ -429,13 +430,13 @@ namespace Walkback
             stopScience.alignment = TextAnchor.UpperLeft;
             stopTasks = AddText(rect, "StopTasks", "No stops on this map yet.", font, uiMaterial, 30, FontStyle.Normal, WalkbackTheme.Text, 54, 544, 660, 110);
             stopTasks.alignment = TextAnchor.UpperLeft;
-            stopFooter = AddText(rect, "StopFooter", "Task minutes count in time and oxygen.", font, uiMaterial, 28, FontStyle.Normal, WalkbackTheme.TextSoft, 54, 664, 660, 100);
+            stopFooter = AddText(rect, "StopFooter", "Task minutes count in time and oxygen.", font, uiMaterial, 28, FontStyle.Normal, WalkbackTheme.TextSoft, 54, 664, 660, 134);
             stopFooter.alignment = TextAnchor.UpperLeft;
             jumpButton.SetInteractable(false);
 
             // Current conditions (ficha C)
-            conditionsTitle = AddText(rect, "ConditionsTitle", "CURRENT CONDITIONS", font, uiMaterial, 30, FontStyle.Bold, WalkbackTheme.TextSoft, 30, 800, 700, 40);
-            conditionsText = AddText(rect, "ConditionsText", Conditions.WaitingText, font, uiMaterial, 28, FontStyle.Normal, WalkbackTheme.TextSoft, 30, 846, 700, 390);
+            conditionsTitle = AddText(rect, "ConditionsTitle", "CURRENT CONDITIONS", font, uiMaterial, 30, FontStyle.Bold, WalkbackTheme.TextSoft, 30, 834, 700, 40);
+            conditionsText = AddText(rect, "ConditionsText", Conditions.WaitingText, font, uiMaterial, 28, FontStyle.Normal, WalkbackTheme.TextSoft, 30, 880, 700, 356);
             conditionsText.alignment = TextAnchor.UpperLeft;
 
             BuildSourceBoard();

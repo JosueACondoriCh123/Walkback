@@ -339,6 +339,28 @@ namespace Walkback.EditorTools
             Check("Panel: tasks line adds up the minutes",
                 MissionPanel.TasksLine(new[] { new StopTask { name = "Describe", minutes = 5f }, new StopTask { name = "Collect", minutes = 11f }, new StopTask { name = "Photo", minutes = 2f } })
                     .EndsWith("18 min of work"));
+
+            // Every stop of the site, one after the other: the distance, the science, the tasks and the risk with its
+            // photo credit stay inside their boxes, and the last box inside the card. The check "every text fits its
+            // box" runs with no stop chosen, so it never saw a real stop's text (Nevado Sajama's ran over the card).
+            RectTransform cardRect = null;
+            foreach (var image in side.GetComponentsInChildren<Image>(true))
+                if (image.name == "StopCard") cardRect = (RectTransform)image.transform;
+            var footerRect = (RectTransform)panel.stopFooter.transform;
+            bool footerInCard = cardRect != null && -footerRect.anchoredPosition.y + footerRect.sizeDelta.y <= -cardRect.anchoredPosition.y + cardRect.sizeDelta.y;
+            string spills = "";
+            for (int i = 0; i < panel.stopButtons.Count; i++)
+            {
+                app.SelectStop(i);
+                Canvas.ForceUpdateCanvases();
+                foreach (Text t in new[] { panel.stopBadge, panel.stopScience, panel.stopTasks, panel.stopFooter })
+                {
+                    float box = ((RectTransform)t.transform).rect.height;
+                    if (t.preferredHeight > box + 6f) spills += stops[i].name + " " + t.name + " " + t.preferredHeight.ToString("F0") + "/" + box.ToString("F0") + " px; ";
+                }
+            }
+            Check("Panel: every stop's card fits (distance, science, tasks, risk and photo credit inside their boxes, the last one inside the card)",
+                footerInCard && spills.Length == 0, spills.Length > 0 ? spills : panel.stopButtons.Count + " stops");
             app.SelectStop(-1);
         }
 
