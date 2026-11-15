@@ -24,7 +24,7 @@ namespace Walkback
     /// </summary>
     public static class ReturnFallback
     {
-        public const string Label = "PLACEHOLDER: fastest way over the relief, not the walking model yet";
+        public const string Label = "ESTIMATE: fastest way over the relief, not the walking model yet";
 
         const float ToblerK = 3.5f;
         const float ToblerOffset = 0.05f;

@@ -12,7 +12,7 @@ namespace Walkback
     public static class ReturnStandIn
     {
         public const float FlatMinutesPerKilometer = 19.3f;
-        public const string Label = "PLACEHOLDER: straight line at flat-ground pace, not the walking model yet";
+        public const string Label = "ESTIMATE: straight line at flat-ground pace, not the walking model yet";
 
         /// <summary>Minutes back to the habitat from every node, row 0 = north.</summary>
         public static float[] Minutes(SiteData site)

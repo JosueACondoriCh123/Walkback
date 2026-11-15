@@ -405,7 +405,8 @@ namespace Walkback.EditorTools
             Check("Return paint has the 5-minute rings", ring > 1000, ring + " ring px");
             terrain.ShowLayer(MapLayer.Return);
             app.RefreshPanel();
-            Check("Return layer is labelled as a placeholder until session C's model lands", !terrain.ReturnIsPlaceholder || app.panel.legendLine.text.Contains("PLACEHOLDER"));
+            Check("Return layer's legend says ESTIMATE (the word on every other number that is not the walking model yet), not PLACEHOLDER",
+                !terrain.ReturnIsPlaceholder || (app.panel.legendLine.text.Contains("ESTIMATE: ") && !app.panel.legendLine.text.Contains("PLACEHOLDER")));
             // On the real site every stop must have a way back on foot: a stop on ground the return map
             // marks as cut off (infinity) would show no minutes at all.
             if (terrain.Site.IsMarsData && terrain.Site.StopsAreReal)
