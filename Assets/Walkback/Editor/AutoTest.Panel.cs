@@ -19,6 +19,7 @@ namespace Walkback.EditorTools
             CheckPlanCharts();
             CheckPanelCharts(app, panel);
             CheckPanelSideBoard(app, panel);
+            CheckSourceBoard(app, panel);
             CheckPanelConditions(panel);
             CheckPanelTextFits(panel);
         }
@@ -378,6 +379,61 @@ namespace Walkback.EditorTools
             Check("Panel: every stop's card fits (distance, science, tasks, risk and photo credit inside their boxes, the last one inside the card)",
                 footerInCard && spills.Length == 0, spills.Length > 0 ? spills : panel.stopButtons.Count + " stops");
             app.SelectStop(-1);
+        }
+
+        /// <summary>
+        /// The MAP AND SOURCES board: over the controls card, clear of it and of the main board, facing the user;
+        /// and the site line, the legend of each of the four layers (and of a WHAT IF) and the footer inside their boxes.
+        /// </summary>
+        static void CheckSourceBoard(WalkbackApp app, MissionPanel panel)
+        {
+            Transform board = panel.sourceBoard;
+            GlobeLabel controls = panel.controlsCard;
+            Check("Source board: present, with the site line, the layer legend and the footer on it",
+                board != null && panel.dataLine != null && panel.legendLine != null && panel.footer != null &&
+                panel.dataLine.transform.IsChildOf(board) && panel.legendLine.transform.IsChildOf(board) && panel.footer.transform.IsChildOf(board));
+            if (board == null || controls == null || panel.dataLine == null || panel.legendLine == null || panel.footer == null) return;
+
+            float halfWide = MissionPanel.SourcePixelsWide * MissionPanel.MetersPerPixel / 2f, halfHigh = MissionPanel.SourcePixelsHigh * MissionPanel.MetersPerPixel / 2f;
+            float gap = (board.position.y - halfHigh) - (controls.transform.position.y + controls.backPlate.lossyScale.y / 2f);
+            Vector3 toBoard = board.position - MissionPanel.UserEye;
+            float meters = toBoard.magnitude;
+            toBoard.y = 0f;
+            Vector3 innerEdge = board.position + board.right * halfWide;
+            float letters = panel.legendLine.fontSize * Mathf.Abs(panel.legendLine.transform.lossyScale.y);
+            Check("Source board: right over the controls card without touching it, clear of the main board, facing the user, letters big enough for its distance",
+                gap >= 0.02f && gap <= 0.08f && Mathf.Abs(board.position.x - controls.transform.position.x) < 0.001f && Mathf.Abs(board.position.z - controls.transform.position.z) < 0.001f &&
+                Vector3.Dot(board.forward, toBoard.normalized) > 0.99f && innerEdge.x < -(WalkbackTheme.PanelWidthMeters / 2f + 0.02f) && letters >= 0.017f * meters / 1.2f,
+                (gap * 1000f).ToString("F0") + " mm over the controls card, inner edge at x " + innerEdge.x.ToString("F2") + " m, " + (letters * 1000f).ToString("F0") + " mm letters at " + meters.ToString("F2") + " m");
+
+            // Every layer's legend, then the return layer's legend in a WHAT IF (its longest).
+            MapLayer layerBefore = app.terrain.Layer;
+            string spills = "";
+            System.Action<string> measure = which =>
+            {
+                app.RefreshPanel();
+                Canvas.ForceUpdateCanvases();
+                foreach (Text t in new[] { panel.dataLine, panel.legendLine, panel.footer })
+                {
+                    float box = ((RectTransform)t.transform).rect.height;
+                    if (t.preferredHeight > box + 6f) spills += which + " " + t.name + " " + t.preferredHeight.ToString("F0") + "/" + box.ToString("F0") + " px; ";
+                }
+            };
+            foreach (MapLayer layer in new[] { MapLayer.Photo, MapLayer.Height, MapLayer.Slope, MapLayer.Return })
+            {
+                app.terrain.ShowLayer(layer);
+                measure(layer.ToString());
+            }
+            app.SetWhatIfTank(15f);
+            bool whatIfLegend = app.terrain.Layer == MapLayer.Return;
+            measure("WHAT IF");
+            whatIfLegend = whatIfLegend && panel.legendLine.text.Contains("red:");
+            app.SetWhatIfTank(100f);
+            app.ClearPlannedRoute();
+            panel.ShowNoRoute();
+            app.terrain.ShowLayer(layerBefore);
+            app.RefreshPanel();
+            Check("Source board: the site line, the legend of each of the four layers and of a WHAT IF, and the footer fit their boxes", spills.Length == 0 && whatIfLegend, spills);
         }
 
         static void CheckPanelConditions(MissionPanel panel)
