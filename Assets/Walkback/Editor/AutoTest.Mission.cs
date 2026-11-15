@@ -444,6 +444,50 @@ namespace Walkback.EditorTools
                         lost.Length == 0 && inFront && rule, lost.Length > 0 ? "not in front after " + lost : "in front at " + atEnd.magnitude.ToString("F2") + " m, rule " + rule);
                 }
 
+                // ---- Back at the table after walking on Mars: the table comes in front of the user
+                // (it stayed where the mission began: after the walk to a stop, around the user or behind them)
+                {
+                    TableControls controls = app.tableControls;
+                    if (controls != null && controls.app == null) controls.app = app;
+                    var saved = new System.Collections.Generic.Dictionary<Transform, Pose>();
+                    if (controls != null)
+                        foreach (Transform t in controls.StageObjects()) saved[t] = new Pose(t.position, t.rotation);
+                    Vector3 mapScale = app.mapRoot.localScale, tableAt = app.table.position;
+                    float yawWas = controls != null ? controls.StageYaw : 0f;
+                    Vector3 stood = cam.transform.position;
+                    Quaternion looked = cam.transform.rotation;
+
+                    // Not moved: the table stays as the user left it.
+                    mission.NextMode(cam.transform);
+                    mission.Switch(MissionMode.Mode.Table, cam.transform);
+                    bool stays = !mission.BringTableToUser(cam.transform) && (app.table.position - tableAt).magnitude < 0.0001f;
+
+                    // 1.2 m away and looking another way: the table is 1 m in front of where the user looks now.
+                    mission.NextMode(cam.transform);
+                    cam.transform.SetPositionAndRotation(stood + new Vector3(0.4f, 0f, 1.1f), Quaternion.Euler(0f, 70f, 0f) * looked);
+                    mission.Switch(MissionMode.Mode.Table, cam.transform);
+                    bool came = mission.BringTableToUser(cam.transform);
+                    Vector3 forward = Vector3.ProjectOnPlane(cam.transform.forward, Vector3.up).normalized;
+                    Vector3 toTable = app.table.position - cam.transform.position;
+                    toTable.y = 0f;
+                    bool inFront = came && (toTable - forward * TableControls.TableDistance).magnitude < 0.01f && app.table.gameObject.activeSelf == tableWas && !app.MapControlsLocked;
+                    bool rule = !MissionMode.MovedAway(new Vector3(0f, 1.6f, 0f), new Vector3(0.3f, 1.2f, 0.3f), MissionMode.TableComesMeters) &&
+                        MissionMode.MovedAway(Vector3.zero, new Vector3(0.4f, 0f, 0.4f), MissionMode.TableComesMeters);
+
+                    // Everything back exactly where the other checks expect it.
+                    cam.transform.SetPositionAndRotation(stood, looked);
+                    if (controls != null)
+                    {
+                        Vector3 facing = Quaternion.Euler(0f, yawWas, 0f) * Vector3.forward;
+                        controls.Recenter(tableAt - facing * TableControls.TableDistance + Vector3.up * 1.6f, facing);
+                        foreach (var pair in saved) pair.Key.SetPositionAndRotation(pair.Value.position, pair.Value.rotation);
+                    }
+                    app.mapRoot.localScale = mapScale;
+                    Check("Mission: back at the table after walking away, the table comes 1 m in front of the user; if they did not move it stays",
+                        controls != null && stays && came && inFront && rule && (app.table.position - tableAt).magnitude < 0.0001f,
+                        "stays " + stays + ", came " + came + ", in front " + inFront + " (" + toTable.magnitude.ToString("F2") + " m)");
+                }
+
                 // ---- An error in a change behind the curtain must not leave the curtain closed
                 {
                     int failedBefore = mission.FailedChanges;

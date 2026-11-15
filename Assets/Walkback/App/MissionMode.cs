@@ -78,6 +78,13 @@ namespace Walkback
         public bool showFreeSpaceBorder = true;
         /// <summary>Keep Mars' ground under the feet while walking (the real floor is flat).</summary>
         public bool followGround = true;
+        /// <summary>
+        /// Back at the table after walking on Mars, the table comes in front of the user (as RECENTER does) if
+        /// they ended more than TableComesMeters from where the mission began. Without it the table stays where
+        /// it was: after the walk to a stop that is around the user, or behind them.
+        /// </summary>
+        public bool tableComesToUser = true;
+        public const float TableComesMeters = 0.5f;
 
         public Mode Current { get; private set; }
         public MissionProgress Progress { get; private set; }
@@ -100,6 +107,8 @@ namespace Walkback
         Quaternion desktopRotation;
         bool desktopSaved;
         float refreshIn;
+        /// <summary>Where the head was when the mission began (the table was set in front of that place).</summary>
+        Vector3 enteredAt;
 
         /// <summary>Called by the app once the mode (headset or desktop) is known.</summary>
         public void Begin(WalkbackApp owner)
@@ -160,7 +169,7 @@ namespace Walkback
             if (next == Current) return;
             if (next == Mode.Table)
             {
-                ExitToTable();
+                ExitToTable(head);
                 return;
             }
             bool entering = Current == Mode.Table;
@@ -186,6 +195,7 @@ namespace Walkback
             mapWas = app.mapRoot.gameObject.activeSelf;
             panelWas = app.panel != null && app.panel.gameObject.activeSelf;
             lockWas = app.MapControlsLocked;
+            enteredAt = head != null ? head.position : Vector3.zero;
             if (app.table != null) app.table.gameObject.SetActive(false);
             app.mapRoot.gameObject.SetActive(false);
             if (app.panel != null) app.panel.gameObject.SetActive(false);
@@ -217,7 +227,7 @@ namespace Walkback
             mars.gameObject.SetActive(true);
         }
 
-        void ExitToTable()
+        void ExitToTable(Transform head)
         {
             HideAll();
             SetCameras(false);
@@ -233,6 +243,29 @@ namespace Walkback
             Current = Mode.Table;
             Progress = null;
             WalkbackLog.Info("Mission mode: back to the table");
+            // Headset only: the desktop camera goes back to its own place, and the automatic test calls
+            // BringTableToUser itself (its other checks need the table where the scene builder put it).
+            if (tableComesToUser && Application.isPlaying && !app.DesktopMode) BringTableToUser(head);
+        }
+
+        /// <summary>True when two head positions are more than this many meters apart on the floor.</summary>
+        public static bool MovedAway(Vector3 from, Vector3 to, float meters)
+        {
+            return new Vector2(to.x - from.x, to.z - from.z).magnitude > meters;
+        }
+
+        /// <summary>
+        /// Brings the table setup in front of the user, facing them, if they are no longer where the mission
+        /// began. The same move as RECENTER at the table (TableControls.Recenter). False if nothing moved.
+        /// </summary>
+        public bool BringTableToUser(Transform head)
+        {
+            if (head == null || app == null || app.tableControls == null || Current != Mode.Table) return false;
+            if (!MovedAway(enteredAt, head.position, TableComesMeters)) return false;
+            bool moved = app.tableControls.Recenter(head.position, head.forward);
+            if (moved) WalkbackLog.Info("Mission mode: the table came to the user (they ended " +
+                new Vector2(head.position.x - enteredAt.x, head.position.z - enteredAt.z).magnitude.ToString("F1") + " m from where the mission began)");
+            return moved;
         }
 
         void HideAll()
