@@ -411,6 +411,39 @@ namespace Walkback.EditorTools
                         "shown " + shown + ", in reach " + inReach + ", follows " + follows + ", jump " + signJumped + ", room " + inRoom + ", table " + atTable);
                 }
 
+                // ---- The walk from where a jump lands to the stop: the signs stay in front all the way and at the arrival
+                // (they stood 0.7 m ahead and the walk is 1 m: they ended 0.3 m behind the user, where nothing moved them)
+                {
+                    mission.NextMode(cam.transform);
+                    mission.Jump(cam.transform);
+                    Vector3 stood = cam.transform.position;
+                    Vector3 ahead = mission.pillar.position - stood;
+                    ahead.y = 0f;
+                    ahead.Normalize();
+                    int steps = Mathf.RoundToInt((MissionProgress.ApproachMeters - MissionProgress.ArriveMeters) * 10f) + 1;
+                    string lost = "";
+                    for (int i = 1; i <= steps && mission.controls != null; i++)
+                    {
+                        cam.transform.position = stood + ahead * (i * 0.1f);
+                        mission.Tick(cam.transform, 0.3f);
+                        Vector3 to = mission.controls.position - cam.transform.position;
+                        to.y = 0f;
+                        if (to.magnitude < MissionMode.ControlsTooCloseMeters - 0.001f || to.magnitude > MissionMode.ControlsFollowMeters + 0.001f || Vector3.Dot(to.normalized, ahead) < 0.5f)
+                            lost += (i * 0.1f).ToString("0.0") + " m ";
+                        if (mission.CardShown) break;
+                    }
+                    Vector3 atEnd = mission.controls != null ? mission.controls.position - cam.transform.position : Vector3.zero;
+                    atEnd.y = 0f;
+                    bool inFront = mission.Last.arrived && mission.CardShown && Mathf.Abs(atEnd.magnitude - MissionMode.ControlsAheadMeters) < 0.01f && Vector3.Dot(atEnd.normalized, ahead) > 0.99f;
+                    bool rule = !MissionMode.ControlsLeftBehind(new Vector3(0f, -0.5f, 0.7f), Vector3.forward) && !MissionMode.ControlsLeftBehind(new Vector3(0.7f, 0f, 0f), Vector3.forward) &&
+                        MissionMode.ControlsLeftBehind(new Vector3(0f, -0.5f, 0.3f), Vector3.forward) && MissionMode.ControlsLeftBehind(new Vector3(0f, 0f, 1.2f), Vector3.forward) &&
+                        MissionMode.ControlsLeftBehind(new Vector3(0f, 0f, -0.7f), Vector3.forward);
+                    cam.transform.position = stood;
+                    mission.Switch(MissionMode.Mode.Table, cam.transform);
+                    Check("Mission signs: walking from where a jump lands to the stop they stay in front, and at the arrival they stand in front, under the card",
+                        lost.Length == 0 && inFront && rule, lost.Length > 0 ? "not in front after " + lost : "in front at " + atEnd.magnitude.ToString("F2") + " m, rule " + rule);
+                }
+
                 // ---- An error in a change behind the curtain must not leave the curtain closed
                 {
                     int failedBefore = mission.FailedChanges;

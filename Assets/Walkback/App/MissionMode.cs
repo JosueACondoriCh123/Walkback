@@ -385,6 +385,12 @@ namespace Walkback
         public const float ControlsBelowEyeMeters = 0.55f;
         /// <summary>The signs come back in front once the user is this far from them (or has turned away).</summary>
         public const float ControlsFollowMeters = 1f;
+        /// <summary>
+        /// ...and also once the user has walked up to them: closer than this they are under the chin or just
+        /// behind. A jump lands 2.5 m from the stop and the card opens at 1.5 m: that 1 m walk ended with the
+        /// signs (0.7 m ahead at the start) 0.3 m behind the user, where the old rule left them.
+        /// </summary>
+        public const float ControlsTooCloseMeters = 0.35f;
         public const string NextStopText = "NEXT STOP";
         public const string RoomViewText = "ROOM VIEW";
         public const string BackToTableText = "BACK TO TABLE";
@@ -417,11 +423,19 @@ namespace Walkback
         void FollowControls(Transform head)
         {
             if (controls == null || !controls.gameObject.activeSelf) return;
-            Vector3 to = controls.position - head.position;
-            to.y = 0f;
-            bool far = to.magnitude > ControlsFollowMeters;
-            bool behind = to.magnitude > 0.3f && Vector3.Dot(to.normalized, FlatForward(head)) < -0.2f;
-            if (far || behind) PlaceControls(head);
+            if (ControlsLeftBehind(controls.position - head.position, FlatForward(head))) PlaceControls(head);
+        }
+
+        /// <summary>
+        /// True when the signs must come back in front: too far, walked up to (or past), or behind the user.
+        /// <paramref name="toSigns"/> goes from the head to the signs; only its horizontal part counts.
+        /// </summary>
+        public static bool ControlsLeftBehind(Vector3 toSigns, Vector3 flatForward)
+        {
+            toSigns.y = 0f;
+            float meters = toSigns.magnitude;
+            if (meters > ControlsFollowMeters || meters < ControlsTooCloseMeters) return true;
+            return Vector3.Dot(toSigns / meters, flatForward) < -0.2f;
         }
 
         void PlaceBorder(Transform head)
@@ -750,6 +764,8 @@ namespace Walkback
             stopCard.transform.position = foot + toward * 0.2f + Vector3.up * 1.3f;
             stopCard.gameObject.SetActive(true);
             stopCard.Face(eye);
+            // The user has just stopped here: the signs (NEXT STOP is the way on) in front, under the card.
+            PlaceControls(head);
             WalkbackLog.Info("Mission arrival: " + (info != null ? info.name : "habitat"));
         }
 
