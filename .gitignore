@@ -81,3 +81,7 @@ Assets/Resources/DevAgentSettings.asset.meta
 
 # Defense laptop only: the AI-made astronaut illustration shown on the Spanish closing slide (never committed)
 pitch/presentacion/img/local/
+
+# The slides for the local defense live only on the defense laptop (Daniel, 15 Nov 2026): not in the repository
+pitch/presentacion/
+demo/
