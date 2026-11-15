@@ -21,11 +21,11 @@ namespace Walkback
     {
         // Layout on the main board, in pixels from its top-left corner.
         public const float IconSize = 150f;
-        public const float BarWidth = 735f;
+        public const float BarWidth = 645f;
         public const float BarHeight = 40f;
-        public const float PlotWidth = 1540f;
+        public const float PlotWidth = 1360f;
         public const float PlotHeight = 150f;
-        public const float PlotLeft = 80f;
+        public const float PlotLeft = 70f;
         public const float PlotTop = 680f;
         public const float StopLabelWidth = 230f;
         public const int MaxStops = 4;
@@ -321,32 +321,32 @@ namespace Walkback
         public void Build(RectTransform board, Font font, Material ui)
         {
             Color soft = WalkbackTheme.TextSoft, text = WalkbackTheme.Text;
-            icon = AddChart(board, "VerdictIcon", ui, 96f, MissionPanel.VerdictTop + 35f, IconSize, IconSize);
+            icon = AddChart(board, "VerdictIcon", ui, 84f, MissionPanel.VerdictTop + 35f, IconSize, IconSize);
 
             // Three cards with air between them: oxygen and time side by side, the height along the route under them.
-            const float cardsTop = 446f, smallHigh = 154f, gap = 30f;
+            const float cardsTop = 434f, smallHigh = 156f, gap = 30f;
             float cardWide = (MissionPanel.PixelsWide - 2f * MissionPanel.Margin - gap) / 2f;
             float rightCard = MissionPanel.Margin + cardWide + gap;
             float profileTop = cardsTop + smallHigh + gap;
             MissionPanel.AddBox(board, "TankCard", ui, WalkbackTheme.CardBack, MissionPanel.Margin, cardsTop, cardWide, smallHigh);
             MissionPanel.AddBox(board, "TimeCard", ui, WalkbackTheme.CardBack, rightCard, cardsTop, cardWide, smallHigh);
-            MissionPanel.AddBox(board, "ProfileCard", ui, WalkbackTheme.CardBack, MissionPanel.Margin, profileTop, MissionPanel.PixelsWide - 2f * MissionPanel.Margin, 280f);
+            MissionPanel.AddBox(board, "ProfileCard", ui, WalkbackTheme.CardBack, MissionPanel.Margin, profileTop, MissionPanel.PixelsWide - 2f * MissionPanel.Margin, 290f);
 
             // Oxygen, left card.
             float lx = MissionPanel.Margin + 20f, rx = rightCard + 20f;
             tankCaption = MissionPanel.AddText(board, "TankCaption", "OXYGEN", font, ui, 26, FontStyle.Bold, soft, lx, cardsTop + 12f, BarWidth, 34f);
             tankBar = AddChart(board, "TankBar", ui, lx, cardsTop + 52f, BarWidth, BarHeight);
-            tankUsed = MissionPanel.AddText(board, "TankUsed", " ", font, ui, 26, FontStyle.Bold, Used, lx, cardsTop + 104f, 220f, 34f);
-            tankSpare = MissionPanel.AddText(board, "TankSpare", " ", font, ui, 26, FontStyle.Bold, Spare, lx + 230f, cardsTop + 104f, 240f, 34f);
-            tankReserve = MissionPanel.AddText(board, "TankReserve", " ", font, ui, 26, FontStyle.Bold, Reserve, lx + BarWidth - 260f, cardsTop + 104f, 260f, 34f);
+            tankUsed = MissionPanel.AddText(board, "TankUsed", " ", font, ui, 26, FontStyle.Bold, Used, lx, cardsTop + 104f, 200f, 34f);
+            tankSpare = MissionPanel.AddText(board, "TankSpare", " ", font, ui, 26, FontStyle.Bold, Spare, lx + 200f, cardsTop + 104f, 210f, 34f);
+            tankReserve = MissionPanel.AddText(board, "TankReserve", " ", font, ui, 26, FontStyle.Bold, Reserve, lx + BarWidth - 235f, cardsTop + 104f, 235f, 34f);
             tankReserve.alignment = TextAnchor.MiddleRight;
 
             // Time, right card.
             timeCaption = MissionPanel.AddText(board, "TimeCaption", "TIME", font, ui, 26, FontStyle.Bold, soft, rx, cardsTop + 12f, BarWidth, 34f);
             timeBar = AddChart(board, "TimeBar", ui, rx, cardsTop + 52f, BarWidth, BarHeight);
-            timeWalk = MissionPanel.AddText(board, "TimeWalk", " ", font, ui, 26, FontStyle.Bold, Walk, rx, cardsTop + 104f, 210f, 34f);
-            timeWork = MissionPanel.AddText(board, "TimeWork", " ", font, ui, 26, FontStyle.Bold, Work, rx + 220f, cardsTop + 104f, 250f, 34f);
-            timeTotal = MissionPanel.AddText(board, "TimeTotal", " ", font, ui, 26, FontStyle.Bold, text, rx + BarWidth - 265f, cardsTop + 104f, 265f, 34f);
+            timeWalk = MissionPanel.AddText(board, "TimeWalk", " ", font, ui, 26, FontStyle.Bold, Walk, rx, cardsTop + 104f, 190f, 34f);
+            timeWork = MissionPanel.AddText(board, "TimeWork", " ", font, ui, 26, FontStyle.Bold, Work, rx + 190f, cardsTop + 104f, 220f, 34f);
+            timeTotal = MissionPanel.AddText(board, "TimeTotal", " ", font, ui, 26, FontStyle.Bold, text, rx + BarWidth - 235f, cardsTop + 104f, 235f, 34f);
             timeTotal.alignment = TextAnchor.MiddleRight;
 
             // Height along the route, full width.

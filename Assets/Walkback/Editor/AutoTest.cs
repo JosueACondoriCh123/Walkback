@@ -193,7 +193,7 @@ namespace Walkback.EditorTools
             Check("Panel present", app.panel != null);
             var canvasRect = (RectTransform)app.panel.GetComponentInChildren<Canvas>().transform;
             float width = canvasRect.sizeDelta.x * canvasRect.lossyScale.x, height = canvasRect.sizeDelta.y * canvasRect.lossyScale.y;
-            Check("Panel is 1.70 m x 1.15 m", Mathf.Abs(width - WalkbackTheme.PanelWidthMeters) < 0.001f && Mathf.Abs(height - WalkbackTheme.PanelHeightMeters) < 0.001f, width.ToString("F2") + " x " + height.ToString("F2") + " m");
+            Check("Panel is 1.50 m x 1.00 m", Mathf.Abs(width - WalkbackTheme.PanelWidthMeters) < 0.001f && Mathf.Abs(height - WalkbackTheme.PanelHeightMeters) < 0.001f, width.ToString("F2") + " x " + height.ToString("F2") + " m");
             float titleMeters = app.panel.title.fontSize * canvasRect.lossyScale.y;
             Check("Title is at least 0.05 m tall", titleMeters >= WalkbackTheme.MinTitleHeightMeters, titleMeters.ToString("F3") + " m");
             float verdictMeters = app.panel.verdictTitle.fontSize * canvasRect.lossyScale.y;
