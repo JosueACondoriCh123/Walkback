@@ -1,5 +1,6 @@
 // Written with Claude Code (AI), directed and tested by team MARSXR
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -274,10 +275,132 @@ namespace Walkback.EditorTools
             Check("Panel: no text on the main board is under the floor for its distance (17 mm at 1.2 m)", texts > 20 && tooSmall.Length == 0,
                 tooSmall.Length > 0 ? tooSmall : texts + " texts, " + (neededMeters * 1000f).ToString("F1") + " mm needed at " + boardMeters.ToString("F2") + " m");
 
+            // With the plan still on the board: the stops' names under the height chart are its lowest texts.
+            CheckPillarLabelsAgainstBoard(app, panel);
+
             app.ClearPlannedRoute();
             panel.ShowNoRoute();
             app.terrain.ShowLayer(layerBefore);
             app.RefreshPanel();
+        }
+
+        /// <summary>
+        /// The table's pillar labels stand between the user and the foot of the main board. From the user's start
+        /// place none may cover a text of the board: looking at the map (the labels go up to get clear of each
+        /// other), then looking at the board (a lifted label stays up until it is well clear). Patch 0039 put the
+        /// stops' names 60 mm lower and Altadena's label covered one in the test's screenshot.
+        /// </summary>
+        static void CheckPillarLabelsAgainstBoard(WalkbackApp app, MissionPanel panel)
+        {
+            StopPillars pillars = app.stopPillars;
+            Transform canvas = panel.transform.Find("Canvas");
+            Camera cam = app.desktopCamera;
+            if (pillars == null || pillars.Habitat == null || canvas == null || cam == null || app.mapRoot == null)
+            {
+                Note("Pillar labels against the main board: no pillars or no board on this scene, not checked");
+                return;
+            }
+            Vector3 wasAt = cam.transform.position;
+            Quaternion wasLooking = cam.transform.rotation;
+            pillars.SetGrowth(1f);
+            Canvas.ForceUpdateCanvases();
+
+            // Every text the board shows now, as its box on the board's canvas (pixels = millimeters).
+            var boxes = new List<Rect>();
+            var boxNames = new List<string>();
+            var corners = new Vector3[4];
+            float lowestText = float.MaxValue;
+            foreach (Text t in canvas.GetComponentsInChildren<Text>(false))
+            {
+                if (t.text == null || t.text.Trim().Length == 0) continue;
+                t.rectTransform.GetWorldCorners(corners);
+                float x0 = float.MaxValue, y0 = float.MaxValue, x1 = float.MinValue, y1 = float.MinValue;
+                foreach (Vector3 corner in corners)
+                {
+                    Vector3 local = canvas.InverseTransformPoint(corner);
+                    x0 = Mathf.Min(x0, local.x); x1 = Mathf.Max(x1, local.x);
+                    y0 = Mathf.Min(y0, local.y); y1 = Mathf.Max(y1, local.y);
+                    lowestText = Mathf.Min(lowestText, corner.y);
+                }
+                boxes.Add(Rect.MinMaxRect(x0, y0, x1, y1));
+                boxNames.Add(t.name);
+            }
+
+            Vector3[] lookAts = { app.mapRoot.position, panel.transform.position };
+            float reach;
+            int measured;
+            string covered = LabelsOverBoardTexts(pillars, cam, MissionPanel.UserEye, lookAts, canvas, boxes, boxNames, out reach, out measured);
+            Check("Pillar labels: from the user's start place none covers a text of the main board (looking at the map, then at the board)",
+                boxes.Count > 10 && measured > 0 && covered.Length == 0,
+                covered.Length > 0 ? "covered: " + covered : "the labels reach " + reach.ToString("F3") + " m above the floor on the board, its lowest text ends at " +
+                    lowestText.ToString("F3") + " m: " + ((lowestText - reach) * 1000f).ToString("F0") + " mm clear (" + boxes.Count + " texts, " + measured + " label views)");
+
+            // Not a pass or fail: the same from 0.10 m lower, for a shorter person (the labels sit higher against the board).
+            Vector3 shortEye = MissionPanel.UserEye + new Vector3(0f, -0.10f, 0f);
+            float shortReach;
+            int shortMeasured;
+            string shortCovered = LabelsOverBoardTexts(pillars, cam, shortEye, lookAts, canvas, boxes, boxNames, out shortReach, out shortMeasured);
+            Note("Pillar labels against the main board, eyes at " + shortEye.y.ToString("F2") + " m: they reach " + shortReach.ToString("F3") + " m on the board, lowest text at " +
+                lowestText.ToString("F3") + " m" + (shortCovered.Length > 0 ? "; covered: " + shortCovered : "; none covered"));
+
+            // Back to where the labels were left for the screenshots (turned to the desktop camera).
+            cam.transform.SetPositionAndRotation(wasAt, wasLooking);
+            pillars.FaceCamera(cam);
+            Canvas.ForceUpdateCanvases();
+        }
+
+        /// <summary>
+        /// Turns the pillar labels to a camera at <paramref name="eye"/> looking at each point in turn (the lift
+        /// rule remembers the look before) and lists the board's texts that a label covers from there: the label's
+        /// four corners are projected from the eye onto the board's canvas. <paramref name="reach"/> is the highest
+        /// point of the board's plane (meters above the floor) that a label covers, inside the board's width.
+        /// </summary>
+        static string LabelsOverBoardTexts(StopPillars pillars, Camera cam, Vector3 eye, Vector3[] lookAts, Transform canvas, List<Rect> boxes, List<string> boxNames,
+            out float reach, out int measured)
+        {
+            reach = float.MinValue;
+            measured = 0;
+            string covered = "";
+            var views = new List<PillarView> { pillars.Habitat };
+            views.AddRange(pillars.Stops);
+            var plane = new Plane(canvas.forward, canvas.position);
+            Rect canvasRect = ((RectTransform)canvas).rect;
+            var labelCorners = new Vector3[4];
+            foreach (Vector3 lookAt in lookAts)
+            {
+                cam.transform.SetPositionAndRotation(eye, Quaternion.LookRotation(lookAt - eye, Vector3.up));
+                pillars.FaceCamera(cam);
+                foreach (PillarView view in views)
+                {
+                    if (view == null || view.labelRoot == null || !view.labelRoot.gameObject.activeInHierarchy) continue;
+                    view.labelRoot.GetWorldCorners(labelCorners);
+                    float x0 = float.MaxValue, y0 = float.MaxValue, x1 = float.MinValue, y1 = float.MinValue, top = float.MinValue;
+                    bool inFront = true;
+                    foreach (Vector3 corner in labelCorners)
+                    {
+                        // The ray from the eye through the corner, on to the board behind it.
+                        var ray = new Ray(eye, corner - eye);
+                        float enter;
+                        if (!plane.Raycast(ray, out enter) || enter < (corner - eye).magnitude) { inFront = false; break; }
+                        Vector3 onBoard = ray.GetPoint(enter);
+                        Vector3 local = canvas.InverseTransformPoint(onBoard);
+                        x0 = Mathf.Min(x0, local.x); x1 = Mathf.Max(x1, local.x);
+                        y0 = Mathf.Min(y0, local.y); y1 = Mathf.Max(y1, local.y);
+                        top = Mathf.Max(top, onBoard.y);
+                    }
+                    if (!inFront) continue;
+                    measured++;
+                    Rect shadow = Rect.MinMaxRect(x0, y0, x1, y1);
+                    if (shadow.xMax > canvasRect.xMin && shadow.xMin < canvasRect.xMax) reach = Mathf.Max(reach, top);
+                    for (int i = 0; i < boxes.Count; i++)
+                    {
+                        if (!shadow.Overlaps(boxes[i])) continue;
+                        string entry = view.label.text + " over " + boxNames[i];
+                        if (!covered.Contains(entry)) covered += (covered.Length > 0 ? ", " : "") + entry;
+                    }
+                }
+            }
+            return covered;
         }
 
         /// <summary>Relative luminance of a color (WCAG 2), for the contrast between text and its box.</summary>
