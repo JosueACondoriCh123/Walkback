@@ -439,10 +439,33 @@ namespace Walkback.EditorTools
                     bool rule = !MissionMode.ControlsLeftBehind(new Vector3(0f, -0.5f, 0.7f), Vector3.forward) && !MissionMode.ControlsLeftBehind(new Vector3(0.7f, 0f, 0f), Vector3.forward) &&
                         MissionMode.ControlsLeftBehind(new Vector3(0f, -0.5f, 0.3f), Vector3.forward) && MissionMode.ControlsLeftBehind(new Vector3(0f, 0f, 1.2f), Vector3.forward) &&
                         MissionMode.ControlsLeftBehind(new Vector3(0f, 0f, -0.7f), Vector3.forward);
+
+                    // The card has just opened, seen from where the user arrived: looking level it is under the whole
+                    // visor; looking at it, its text is clear of every box of the visor. (At 1.3 m above the floor it
+                    // crossed the NEXT card, the arrow, the mini map and the ESTIMATE line, and each covered the other.)
+                    Quaternion level = cam.transform.rotation;
+                    Vector3 cardAt = mission.stopCard.transform.position;
+                    float squareTo = Vector3.Angle(mission.stopCard.transform.forward, cardAt - cam.transform.position);
+                    float below = Mathf.Atan2(cam.transform.position.y - cardAt.y, FlatDistance(cardAt, cam.transform.position)) * Mathf.Rad2Deg;
+                    app.hud.SnapTo(cam.transform);
+                    Canvas.ForceUpdateCanvases();
+                    string wideLines = "";
+                    foreach (var cardLine in mission.stopCard.lines)
+                        if (cardLine.preferredWidth > ((RectTransform)cardLine.transform).rect.width) wideLines += cardLine.text + "; ";
+                    string overLevel = CardOverVisor(cam, app.hud, mission.stopCard, false);
+                    cam.transform.rotation = Quaternion.LookRotation(cardAt - cam.transform.position, Vector3.up);
+                    app.hud.SnapTo(cam.transform);
+                    string overText = CardOverVisor(cam, app.hud, mission.stopCard, true);
+                    cam.transform.rotation = level;
+                    app.hud.SnapTo(cam.transform);
+
                     cam.transform.position = stood;
                     mission.Switch(MissionMode.Mode.Table, cam.transform);
                     Check("Mission signs: walking from where a jump lands to the stop they stay in front, and at the arrival they stand in front, under the card",
                         lost.Length == 0 && inFront && rule, lost.Length > 0 ? "not in front after " + lost : "in front at " + atEnd.magnitude.ToString("F2") + " m, rule " + rule);
+                    Check("Mission arrival: the stop's card opens under the visor, facing the eyes (looking level it touches no box of the visor; looking at it, none covers its text), every line on one line",
+                        mission.stopCard != null && squareTo < 1f && below > 20f && below < 40f && overLevel.Length == 0 && overText.Length == 0 && wideLines.Length == 0,
+                        below.ToString("F0") + "° below the horizon" + (overLevel.Length > 0 ? ", level: over " + overLevel : "") + (overText.Length > 0 ? ", looking at it: text under " + overText : "") + wideLines);
                 }
 
                 // ---- Back at the table after walking on Mars: the table comes in front of the user
@@ -613,6 +636,36 @@ namespace Walkback.EditorTools
                 y0 = Mathf.Min(y0, v.y); y1 = Mathf.Max(y1, v.y);
             }
             return Rect.MinMaxRect(x0, y0, x1, y1);
+        }
+
+        /// <summary>
+        /// The visor's boxes that the arrival card's plate (or only its block of text) shares the view with,
+        /// from this camera: both are at about the same distance, so whichever is nearer covers the other.
+        /// </summary>
+        static string CardOverVisor(Camera cam, HelmetHud hud, GlobeLabel card, bool textOnly)
+        {
+            Rect cardBox = ViewRect(cam, card);
+            if (textOnly)
+            {
+                float wide = 0f, tall = 0f;
+                foreach (var line in card.lines)
+                {
+                    wide = Mathf.Max(wide, line.preferredWidth * Mathf.Abs(line.transform.lossyScale.x));
+                    tall += ((RectTransform)line.transform).rect.height * Mathf.Abs(line.transform.lossyScale.y);
+                }
+                cardBox = ViewRectOf(cam, card.transform, wide, tall);
+            }
+            string over = "";
+            System.Action<string, Transform, float, float> test = (name, t, w, h) =>
+            {
+                if (t != null && t.gameObject.activeInHierarchy && ViewRectOf(cam, t, w, h).Overlaps(cardBox)) over += name + " ";
+            };
+            foreach (var box in new[] { hud.oxygenCard, hud.returnCard, hud.nextCard, hud.estimateTag, hud.warningCard, hud.headingCard, hud.miniMap.caption })
+                test(box.name, box.transform, box.backPlate.localScale.x, box.backPlate.localScale.y);
+            test("Compass", hud.compass.transform, HudCompass.WidthMeters, HudCompass.HeightMeters);
+            test("NextArrow", hud.arrowPlate, 0.10f, 0.10f);
+            test("MiniMap", hud.miniMap.transform, MiniMap.SizeMeters + 0.012f, MiniMap.SizeMeters + 0.012f);
+            return over;
         }
 
         /// <summary>The box a flat rectangle (width x height, centered on a transform, in its plane) takes on screen.</summary>

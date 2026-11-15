@@ -775,9 +775,16 @@ namespace Walkback
         }
 
         /// <summary>
-        /// On arrival: the stop's card at reading height just in front of the pillar, fixed in the world
-        /// (not on the head). Arrival is at 1.5 m, so it is first read from about 1.3 m.
+        /// On arrival: the stop's card just in front of the pillar, fixed in the world (not on the head), low and
+        /// tilted back to face the eyes, like a plaque on a stand. Arrival is at 1.5 m, so it is first read from
+        /// about 1.5 m, 24° to 33° below the horizon: under the visor's lower row (its lowest box ends 16° down).
+        /// At 1.3 m above the floor it stood 8° to 18° down, across the NEXT card, the arrow, the mini map and the
+        /// ESTIMATE line; the visor is 1.2 m away and the card about as far, so each covered part of the other.
         /// </summary>
+        public const float CardBelowEyeMeters = 0.70f;
+        /// <summary>The card's center never goes lower than this above the real floor (a short user, or a child).</summary>
+        public const float CardMinHeightMeters = 0.60f;
+
         void ShowCard(Transform head)
         {
             CardShown = true;
@@ -803,9 +810,11 @@ namespace Walkback
             Vector3 foot = new Vector3(pillar.position.x, FloorY, pillar.position.z);
             Vector3 toUser = new Vector3(eye.x - foot.x, 0f, eye.z - foot.z);
             Vector3 toward = toUser.sqrMagnitude > 1e-4f ? toUser.normalized : -FlatForward(head);
-            stopCard.transform.position = foot + toward * 0.2f + Vector3.up * 1.3f;
+            Vector3 at = foot + toward * 0.2f;
+            at.y = Mathf.Max(FloorY + CardMinHeightMeters, eye.y - CardBelowEyeMeters);
             stopCard.gameObject.SetActive(true);
-            stopCard.Face(eye);
+            // Square to the line of sight (GlobeLabel.Face turns only about the vertical): its +z points away from the eyes.
+            stopCard.transform.SetPositionAndRotation(at, Quaternion.LookRotation(at - eye, Vector3.up));
             // The user has just stopped here: the signs (NEXT STOP is the way on) in front, under the card.
             PlaceControls(head);
             WalkbackLog.Info("Mission arrival: " + (info != null ? info.name : "habitat"));

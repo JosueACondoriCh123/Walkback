@@ -55,8 +55,9 @@ namespace Walkback.EditorTools
                 foreach (var line in mission.pillarLabel.lines) line.alignment = TextAnchor.MiddleCenter;
                 mission.pillarLabel.SetLines("Stop", " ");
 
-                // The stop's card on arrival, read from 1.5 m or less: 24 mm letters and up.
-                mission.stopCard = Card(root.transform, "StopCard", 1100f, 250f, new[] { 46, 24, 28, 28, 24 },
+                // The stop's card on arrival, read from 1.5 m or less: 24 mm letters and up. 860 mm wide (its longest
+                // real line is 650 mm): from 1.5 m it fits between the visor's NEXT card and its mini map.
+                mission.stopCard = Card(root.transform, "StopCard", 860f, 250f, new[] { 46, 24, 28, 28, 24 },
                     new[] { WalkbackTheme.Watch, soft, text, text, soft }, backPlate, ui, Vector3.zero);
                 foreach (var line in mission.stopCard.lines) line.alignment = TextAnchor.MiddleCenter;
                 mission.stopCard.SetLines("Stop", " ", " ", " ", " ");
