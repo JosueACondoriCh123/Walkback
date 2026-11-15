@@ -35,8 +35,12 @@ namespace Walkback
         /// <summary>Left and right margin of the main board, and the top of the verdict card (pixels = mm).</summary>
         public const float Margin = 50f;
         public const float VerdictTop = 184f;
-        /// <summary>Side board center relative to the panel center (the panel is not rotated).</summary>
-        public static readonly Vector3 SideBoardOffset = new Vector3(1.22f, -0.17f, -0.22f);
+        /// <summary>
+        /// Side board center relative to the panel center (the panel is not rotated). The side pieces stand
+        /// 0.40 m nearer the user than the main board, about 1.95 m from the eyes like it, so their 28-30 mm
+        /// letters stay over the floor for that distance (at 0.22 m nearer they were 2.1-2.2 m away).
+        /// </summary>
+        public static readonly Vector3 SideBoardOffset = new Vector3(1.22f, -0.17f, -0.40f);
         /// <summary>Where the user's eyes are when the scene starts (floor origin, standing).</summary>
         public static readonly Vector3 UserEye = new Vector3(0f, 1.6f, 0f);
 
@@ -46,11 +50,11 @@ namespace Walkback
         /// The controls card to the left of the main board, turned to face the user like the side board
         /// on the right: what each control does, for someone who puts the headset on for the first time.
         /// </summary>
-        public static readonly Vector3 ControlsCardOffset = new Vector3(-1.16f, -0.35f, -0.22f);
+        public static readonly Vector3 ControlsCardOffset = new Vector3(-1.16f, -0.35f, -0.40f);
         /// <summary>The source board: left of the main board, right over the controls card, turned to the user.</summary>
-        public static readonly Vector3 SourceBoardOffset = new Vector3(-1.16f, 0.10f, -0.22f);
+        public static readonly Vector3 SourceBoardOffset = new Vector3(-1.16f, 0.145f, -0.40f);
         public const int SourcePixelsWide = 760;
-        public const int SourcePixelsHigh = 470;
+        public const int SourcePixelsHigh = 560;
         public static readonly string[] ControlsText =
         {
             "CONTROLS",
@@ -463,11 +467,11 @@ namespace Walkback
             var rect = MakeBoard(board.transform, "SourceBackPlate", "SourceCanvas", SourcePixelsWide, SourcePixelsHigh,
                 SourcePixelsWide * MetersPerPixel, SourcePixelsHigh * MetersPerPixel);
             AddText(rect, "SourceTitle", "MAP AND SOURCES", font, uiMaterial, 30, FontStyle.Bold, WalkbackTheme.TextSoft, 30, 20, 700, 40);
-            dataLine = AddText(rect, "DataLine", "TEST TERRAIN · synthetic shape for development · not Mars data", font, uiMaterial, 26, FontStyle.Bold, WalkbackTheme.Watch, 30, 70, 700, 100);
+            dataLine = AddText(rect, "DataLine", "TEST TERRAIN · synthetic shape for development · not Mars data", font, uiMaterial, 30, FontStyle.Bold, WalkbackTheme.Watch, 30, 70, 700, 110);
             dataLine.alignment = TextAnchor.UpperLeft;
-            legendLine = AddText(rect, "LegendLine", "Map layer legend", font, uiMaterial, 26, FontStyle.Normal, WalkbackTheme.Text, 30, 184, 700, 180);
+            legendLine = AddText(rect, "LegendLine", "Map layer legend", font, uiMaterial, 30, FontStyle.Normal, WalkbackTheme.Text, 30, 190, 700, 215);
             legendLine.alignment = TextAnchor.UpperLeft;
-            footer = AddText(rect, "Footer", "Meta Quest 3 stands in for the helmet display  ·  Rocks under about 4 m are not on this map", font, uiMaterial, 24, FontStyle.Normal, WalkbackTheme.TextSoft, 30, 384, 700, 70);
+            footer = AddText(rect, "Footer", "Meta Quest 3 stands in for the helmet display  ·  Rocks under about 4 m are not on this map", font, uiMaterial, 30, FontStyle.Normal, WalkbackTheme.TextSoft, 30, 415, 700, 120);
             footer.alignment = TextAnchor.UpperLeft;
         }
 
