@@ -31,9 +31,10 @@ namespace Walkback.EditorTools
         public const float TableDiameter = 1.5f;
         public const float TableDistance = 1.0f;
         public const float MapSideOnTable = 1.0f;
-        // The board is 1 m tall: its bottom edge stays at 1.15 m (the pillars' labels on the map reach
-        // about that high) and it grew upward, to 2.15 m (16° above the eyes from where the user stands).
-        public static readonly Vector3 PanelCenter = new Vector3(0f, 1.65f, 1.95f);
+        // The board is 1.15 m tall: its bottom edge stays at 1.15 m (the pillars' labels on the map reach
+        // about that high) and it grew upward, to 2.30 m (20° above the eyes from where the user stands),
+        // so its cards have room between them.
+        public static readonly Vector3 PanelCenter = new Vector3(0f, 1.725f, 1.95f);
         public static readonly Vector3 DesktopEye = new Vector3(0f, 1.60f, -0.35f);
 
         [MenuItem("Walkback/Build Scene")]

@@ -9,7 +9,8 @@ namespace Walkback
     public enum VerdictState { NoRoute, Viable, NotViable }
 
     /// <summary>
-    /// The mission board behind the table: 1.50 m x 1.00 m, one canvas pixel = one millimeter.
+    /// The mission board behind the table: 1.70 m x 1.15 m, one canvas pixel = one millimeter.
+    /// Every card has 30 mm of air around it (the board was too packed at 1.50 x 1.00).
     /// Top and biggest: the verdict card, with its icon. Under it the charts (MissionCharts): the
     /// oxygen tank, the mission's time and the height along the route. Last, the lines a chart cannot
     /// replace: the site and its source, the map layer's legend, and what the map does not show.
@@ -19,19 +20,22 @@ namespace Walkback
     /// </summary>
     public class MissionPanel : MonoBehaviour
     {
-        public const int PixelsWide = 1500;
-        public const int PixelsHigh = 1000;
+        public const int PixelsWide = 1700;
+        public const int PixelsHigh = 1150;
         public const float MetersPerPixel = 0.001f;
 
         public const int SidePixelsWide = 760;
-        public const int SidePixelsHigh = 1130;
+        public const int SidePixelsHigh = 1250;
         /// <summary>
         /// Every button on the boards is at least this tall (1 px = 1 mm): 100 mm at about 2 m is 2.9°,
         /// inside the 2.5° to 3° that a hand ray needs to hit a target comfortably.
         /// </summary>
         public const float ButtonHeight = 100f;
+        /// <summary>Left and right margin of the main board, and the top of the verdict card (pixels = mm).</summary>
+        public const float Margin = 60f;
+        public const float VerdictTop = 196f;
         /// <summary>Side board center relative to the panel center (the panel is not rotated).</summary>
-        public static readonly Vector3 SideBoardOffset = new Vector3(1.22f, -0.15f, -0.22f);
+        public static readonly Vector3 SideBoardOffset = new Vector3(1.36f, -0.22f, -0.24f);
         /// <summary>Where the user's eyes are when the scene starts (floor origin, standing).</summary>
         public static readonly Vector3 UserEye = new Vector3(0f, 1.6f, 0f);
 
@@ -41,14 +45,14 @@ namespace Walkback
         /// The controls card to the left of the main board, turned to face the user like the side board
         /// on the right: what each control does, for someone who puts the headset on for the first time.
         /// </summary>
-        public static readonly Vector3 ControlsCardOffset = new Vector3(-1.16f, -0.35f, -0.22f);
+        public static readonly Vector3 ControlsCardOffset = new Vector3(-1.30f, -0.425f, -0.24f);
         public static readonly string[] ControlsText =
         {
             "CONTROLS",
             "LAYERS · point at a button and press",
             "WHAT IF · click the left stick",
             "MISSION · START MISSION, or left menu",
-            "JUMP · left grip, in the mission",
+            "JUMP · NEXT STOP sign, or left grip",
             "MAP · X: in the air / on the wrist",
             "RECENTER · B or Y",
         };
@@ -338,31 +342,33 @@ namespace Walkback
 
             var rect = MakeBoard(transform, "BackPlate", "Canvas", PixelsWide, PixelsHigh, WalkbackTheme.PanelWidthMeters, WalkbackTheme.PanelHeightMeters);
 
-            title = AddText(rect, "Title", "WALKBACK", font, uiMaterial, 72, FontStyle.Bold, WalkbackTheme.Text, 50, 28, 640, 90);
-            tagline = AddText(rect, "Tagline", "The safest way to go far.", font, uiMaterial, 36, FontStyle.Normal, WalkbackTheme.TextSoft, 50, 116, 640, 50);
+            title = AddText(rect, "Title", "WALKBACK", font, uiMaterial, 72, FontStyle.Bold, WalkbackTheme.Text, Margin, 30, 640, 90);
+            tagline = AddText(rect, "Tagline", "The safest way to go far.", font, uiMaterial, 36, FontStyle.Normal, WalkbackTheme.TextSoft, Margin, 118, 640, 50);
 
             // Map layer buttons, top right, the photo first: the active one is amber. layerButtons[i] is MapLayer i.
             var order = new[] { MapLayer.Photo, MapLayer.Height, MapLayer.Slope, MapLayer.Return };
-            const float buttonWidth = 165f;
-            float bx = 754f;
+            const float buttonWidth = 180f, buttonGap = 16f;
+            float bx = PixelsWide - Margin - 4f * buttonWidth - 3f * buttonGap;
+            float layersLeft = bx;
             layerButtons = new PanelButton[order.Length];
             foreach (var layer in order)
             {
                 int i = (int)layer;
-                layerButtons[i] = PanelButton.Create(rect, "Layer" + LayerLabels[i], LayerLabels[i], font, uiMaterial, 32, bx, 52f, buttonWidth, ButtonHeight);
-                bx += buttonWidth + 12f;
+                layerButtons[i] = PanelButton.Create(rect, "Layer" + LayerLabels[i], LayerLabels[i], font, uiMaterial, 32, bx, 58f, buttonWidth, ButtonHeight);
+                bx += buttonWidth + buttonGap;
             }
-            AddText(rect, "LayerCaption", "MAP LAYER", font, uiMaterial, 28, FontStyle.Bold, WalkbackTheme.TextSoft, 754, 12, 400, 38);
+            AddText(rect, "LayerCaption", "MAP LAYER", font, uiMaterial, 28, FontStyle.Bold, WalkbackTheme.TextSoft, layersLeft, 16, 400, 38);
             layerButtons[(int)MapLayer.Photo].SetSelected(true);
 
             // The verdict: its icon on the left (drawn by the charts), the word, one line of numbers, one line of what they are.
-            AddBox(rect, "VerdictCard", uiMaterial, WalkbackTheme.CardBack, 50, 184, 1400, 200);
-            verdictAccent = AddBox(rect, "VerdictAccent", uiMaterial, WalkbackTheme.Watch, 50, 184, 16, 200);
-            verdictTitle = AddText(rect, "VerdictTitle", "NO ROUTE YET", font, uiMaterial, 96, FontStyle.Bold, WalkbackTheme.Watch, 262, 188, 900, 116);
-            missionButton = PanelButton.Create(rect, "StartMission", "START MISSION", font, uiMaterial, 30, 1170, 196, 262, ButtonHeight);
+            const float inner = PixelsWide - 2f * Margin;
+            AddBox(rect, "VerdictCard", uiMaterial, WalkbackTheme.CardBack, Margin, VerdictTop, inner, 220);
+            verdictAccent = AddBox(rect, "VerdictAccent", uiMaterial, WalkbackTheme.Watch, Margin, VerdictTop, 16, 220);
+            verdictTitle = AddText(rect, "VerdictTitle", "NO ROUTE YET", font, uiMaterial, 96, FontStyle.Bold, WalkbackTheme.Watch, 290, VerdictTop + 10, 900, 116);
+            missionButton = PanelButton.Create(rect, "StartMission", "START MISSION", font, uiMaterial, 30, PixelsWide - Margin - 30 - 300, VerdictTop + 26, 300, ButtonHeight);
             missionButton.SetInteractable(false);
-            verdictDetail = AddText(rect, "VerdictDetail", "Time  ·  oxygen  ·  margin to return", font, uiMaterial, 34, FontStyle.Normal, WalkbackTheme.Text, 264, 300, 1160, 44);
-            verdictNote = AddText(rect, "VerdictNote", DefaultDetail(VerdictState.NoRoute), font, uiMaterial, 26, FontStyle.Normal, WalkbackTheme.TextSoft, 264, 344, 1160, 34);
+            verdictDetail = AddText(rect, "VerdictDetail", "Time  ·  oxygen  ·  margin to return", font, uiMaterial, 34, FontStyle.Normal, WalkbackTheme.Text, 292, VerdictTop + 128, 1300, 44);
+            verdictNote = AddText(rect, "VerdictNote", DefaultDetail(VerdictState.NoRoute), font, uiMaterial, 26, FontStyle.Normal, WalkbackTheme.TextSoft, 292, VerdictTop + 174, 1300, 34);
 
             // The charts: the verdict's icon, the oxygen tank, the mission's time, the height along the route.
             charts = gameObject.GetComponent<MissionCharts>();
@@ -370,10 +376,10 @@ namespace Walkback
             charts.Build(rect, font, uiMaterial);
 
             // What a chart cannot say: the site and its source, the map layer's legend, what the map does not show.
-            dataLine = AddText(rect, "DataLine", "TEST TERRAIN · synthetic shape for development · not Mars data", font, uiMaterial, 28, FontStyle.Bold, WalkbackTheme.Watch, 50, 806, 1400, 70);
-            legendLine = AddText(rect, "LegendLine", "Map layer legend", font, uiMaterial, 28, FontStyle.Normal, WalkbackTheme.Text, 50, 878, 1400, 72);
+            dataLine = AddText(rect, "DataLine", "TEST TERRAIN · synthetic shape for development · not Mars data", font, uiMaterial, 28, FontStyle.Bold, WalkbackTheme.Watch, Margin, 936, inner, 70);
+            legendLine = AddText(rect, "LegendLine", "Map layer legend", font, uiMaterial, 28, FontStyle.Normal, WalkbackTheme.Text, Margin, 1014, inner, 72);
             legendLine.alignment = TextAnchor.UpperLeft;
-            footer = AddText(rect, "Footer", "Meta Quest 3 stands in for the helmet display  ·  Rocks under about 4 m are not on this map", font, uiMaterial, 26, FontStyle.Normal, WalkbackTheme.TextSoft, 50, 954, 1400, 36);
+            footer = AddText(rect, "Footer", "Meta Quest 3 stands in for the helmet display  ·  Rocks under about 4 m are not on this map", font, uiMaterial, 26, FontStyle.Normal, WalkbackTheme.TextSoft, Margin, 1096, inner, 36);
             ShowNoRoute();
         }
 
@@ -406,25 +412,25 @@ namespace Walkback
             Place(rect, stopButtonRow, 140, 24, 600, 2f * ButtonHeight + 12f);
 
             // Stop card
-            AddBox(rect, "StopCard", uiMaterial, WalkbackTheme.CardBack, 30, 254, 700, 404);
+            AddBox(rect, "StopCard", uiMaterial, WalkbackTheme.CardBack, 30, 254, 700, 516);
             stopName = AddText(rect, "StopName", "NO STOP SELECTED", font, uiMaterial, 46, FontStyle.Bold, WalkbackTheme.Text, 54, 262, 400, 66);
             // Real stop names vary in length: shrink to fit one line, never under 32 px.
             stopName.resizeTextForBestFit = true;
             stopName.resizeTextMinSize = 32;
             stopName.resizeTextMaxSize = 46;
             jumpButton = PanelButton.Create(rect, "JumpToSite", "JUMP TO SITE", font, uiMaterial, 30, 464, 266, 250, ButtonHeight);
-            stopBadge = AddText(rect, "StopBadge", "Point at a pillar to see the stop.", font, uiMaterial, 28, FontStyle.Bold, WalkbackTheme.Live, 54, 370, 660, 40);
-            stopScience = AddText(rect, "StopScience", "Science, tasks and minutes of each stop.", font, uiMaterial, 30, FontStyle.Normal, WalkbackTheme.Text, 54, 414, 660, 76);
+            stopBadge = AddText(rect, "StopBadge", "Point at a pillar to see the stop.", font, uiMaterial, 28, FontStyle.Bold, WalkbackTheme.Live, 54, 374, 660, 40);
+            stopScience = AddText(rect, "StopScience", "Science, tasks and minutes of each stop.", font, uiMaterial, 30, FontStyle.Normal, WalkbackTheme.Text, 54, 424, 660, 110);
             stopScience.alignment = TextAnchor.UpperLeft;
-            stopTasks = AddText(rect, "StopTasks", "No stops on this map yet.", font, uiMaterial, 30, FontStyle.Normal, WalkbackTheme.Text, 54, 496, 660, 76);
+            stopTasks = AddText(rect, "StopTasks", "No stops on this map yet.", font, uiMaterial, 30, FontStyle.Normal, WalkbackTheme.Text, 54, 544, 660, 110);
             stopTasks.alignment = TextAnchor.UpperLeft;
-            stopFooter = AddText(rect, "StopFooter", "Task minutes count in time and oxygen.", font, uiMaterial, 28, FontStyle.Normal, WalkbackTheme.TextSoft, 54, 578, 660, 72);
+            stopFooter = AddText(rect, "StopFooter", "Task minutes count in time and oxygen.", font, uiMaterial, 28, FontStyle.Normal, WalkbackTheme.TextSoft, 54, 664, 660, 100);
             stopFooter.alignment = TextAnchor.UpperLeft;
             jumpButton.SetInteractable(false);
 
             // Current conditions (ficha C)
-            conditionsTitle = AddText(rect, "ConditionsTitle", "CURRENT CONDITIONS", font, uiMaterial, 30, FontStyle.Bold, WalkbackTheme.TextSoft, 30, 672, 700, 40);
-            conditionsText = AddText(rect, "ConditionsText", Conditions.WaitingText, font, uiMaterial, 28, FontStyle.Normal, WalkbackTheme.TextSoft, 30, 716, 700, 400);
+            conditionsTitle = AddText(rect, "ConditionsTitle", "CURRENT CONDITIONS", font, uiMaterial, 30, FontStyle.Bold, WalkbackTheme.TextSoft, 30, 800, 700, 40);
+            conditionsText = AddText(rect, "ConditionsText", Conditions.WaitingText, font, uiMaterial, 28, FontStyle.Normal, WalkbackTheme.TextSoft, 30, 846, 700, 390);
             conditionsText.alignment = TextAnchor.UpperLeft;
         }
 
