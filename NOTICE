@@ -191,14 +191,13 @@ NASA images in the slides: Curiosity Mastcam PIA26696
 (NASA/JPL-Caltech/MSSS); HiRISE (NASA/JPL/University of Arizona, NASA
 Mars Trek, USGS); Viking MDIM 2.1 (NASA/JPL/USGS).
 
-Closing-slide astronaut: AI-generated illustration (ART_CREDITS.md,
-img/astronaut-realistic.png, data/astronaut-realistic.js); a discarded
-AI-generated walk atlas, its video and two GIFs are kept in the folder
-(WALK_ANIMATION.md, img/astronaut-walk-atlas.png, data/astronaut-walk.js,
-media/astronaut-walking.mp4, Cierre-animado.gif, Cierre-caminando.gif).
-Not NASA imagery.
+Closing-slide astronaut: Astronaut.glb, NASA 3D Resources (public
+domain), data/astronaut.js; its place and size on the slide are
+illustrative. No AI-generated imagery is used in the presentation.
 
-Screenshots of the app: Team MARSXR.
+The slides carry no screenshots: their 3D scenes are drawn from the
+data above, and their numbers come from the app's rule ported to
+JavaScript (walkback-model.js).
 
 Inter font                  Copyright 2016 The Inter Project Authors.
                             SIL Open Font License 1.1 (fonts/LICENSE.txt).
