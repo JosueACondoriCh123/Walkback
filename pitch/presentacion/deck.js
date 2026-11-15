@@ -99,6 +99,13 @@
     return items.length ? '<div class="legend ' + (cls || 'line') + '">' + items.join('') + '</div>' : '';
   }
   function credit(t) { return '<div class="credit">' + T(t.credit) + '</div>'; }
+  /** Solution slide: Walkback's two phases, planning at the table (this slide, lit) and exploration on the terrain. */
+  function phasesHtml(t) {
+    if (!t.phases || !t.phases.length) return '';
+    return '<div class="phases">' + t.phases.map(function (p, i) {
+      return '<div class="phase' + (i === 0 ? ' now' : '') + '"><b>' + T(p[0]) + '</b><div><strong>' + T(p[1]) + '</strong><span>' + T(p[2]) + '</span></div></div>';
+    }).join('<div class="phase-link"></div>') + '</div>';
+  }
   /** Evidence slide: where each piece of data comes from, tagged stored or asked at start (content.js, sources). */
   function sourcesHtml(t) {
     if (!t.sources || !t.sources.length) return '';
@@ -131,7 +138,7 @@
     // table pose: the map runs across the middle (y 211..847): title above it, figures in a row under it
     solution: function (t) {
       return '<div class="top"><div class="tag">' + T(t.tag) + '</div>' + titleHtml(t, true) + '</div>' + legendHtml(t.legend, t.list) +
-        '<div class="figs">' + bigsHtml(t.big) + estimateHtml(t.estimate) + '</div>' + credit(t);
+        '<div class="figs">' + bigsHtml(t.big) + estimateHtml(t.estimate) + '</div>' + phasesHtml(t) + credit(t);
     },
     // board pose: the map on the left half (x 81..947); the board takes the right half (x > 980)
     verdict: function (t) {

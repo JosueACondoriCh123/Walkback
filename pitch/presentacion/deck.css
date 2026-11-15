@@ -222,3 +222,28 @@ html.print-mode #print { display: block; }
 .s-closing .hud .bar em { position: absolute; top: 0; bottom: 0; width: 4px; margin-left: -2px; background: var(--amber); right: auto; }
 .s-closing .hud-foot { grid-column: 1 / -1; text-align: right; font-size: 16px; letter-spacing: 1px; color: var(--amber); }
 .s-closing .credit-local { right: 470px; }
+
+/* Two phases (solution slide): 1 planning at the table, lit; 2 exploration on the terrain */
+.phases { position: absolute; right: 100px; top: 866px; width: 400px; display: flex; flex-direction: column; }
+.phase { display: flex; align-items: center; gap: 14px; border: 2px solid rgba(89,209,255,.45); border-radius: 12px; padding: 7px 14px; background: rgba(11,13,15,.78); }
+.phase b { flex: 0 0 auto; width: 38px; height: 38px; border-radius: 50%; display: grid; place-items: center; font-size: 21px; font-weight: 900; color: var(--back); background: var(--sky); }
+.phase strong { display: block; font-size: 21px; font-weight: 900; letter-spacing: 3px; color: var(--sky); }
+.phase span { display: block; font-size: 18px; color: var(--soft); line-height: 1.25; }
+.phase.now { border-color: var(--sky); box-shadow: 0 0 22px rgba(89,209,255,.35); }
+.phase:not(.now) b { background: transparent; color: var(--sky); border: 2px solid var(--sky); }
+.phase:not(.now) { opacity: .85; }
+.phase-link { width: 2px; height: 10px; margin-left: 32px; background: rgba(89,209,255,.6); }
+
+/* Visor look on the content slides: thin corners like a helmet display, and a faint scan line on screen only */
+.slide:not(.s-title)::before { content: ''; position: absolute; inset: 16px; pointer-events: none; z-index: 30; opacity: .55;
+  background:
+    linear-gradient(var(--sky), var(--sky)) top left / 56px 2px no-repeat, linear-gradient(var(--sky), var(--sky)) top left / 2px 56px no-repeat,
+    linear-gradient(var(--sky), var(--sky)) top right / 56px 2px no-repeat, linear-gradient(var(--sky), var(--sky)) top right / 2px 56px no-repeat,
+    linear-gradient(var(--sky), var(--sky)) bottom left / 56px 2px no-repeat, linear-gradient(var(--sky), var(--sky)) bottom left / 2px 56px no-repeat,
+    linear-gradient(var(--sky), var(--sky)) bottom right / 56px 2px no-repeat, linear-gradient(var(--sky), var(--sky)) bottom right / 2px 56px no-repeat; }
+.slide.on:not(.s-title)::after { content: ''; position: absolute; left: 16px; right: 16px; top: 16px; height: 2px; pointer-events: none; z-index: 30;
+  background: linear-gradient(90deg, rgba(89,209,255,0), rgba(89,209,255,.16), rgba(89,209,255,0)); animation: visor-scan 10s linear infinite; }
+@keyframes visor-scan { from { transform: translateY(0); } to { transform: translateY(1044px); } }
+@media (prefers-reduced-motion: reduce) { .slide::after { display: none; } }
+#print .slide::after { display: none; }
+@media print { .slide::after { display: none !important; } }
