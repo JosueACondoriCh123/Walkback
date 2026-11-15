@@ -1,0 +1,157 @@
+<!-- Written with Claude Code (AI), directed and tested by team MARSXR -->
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Walkback · The safest way to go far.</title>
+  <meta name="description" content="Walkback tells an astronaut on Mars, at every step, whether they can still make it back to the habitat. Explore 1 km² of Gale Crater in 3D.">
+  <meta name="theme-color" content="#06060b">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ccircle cx='8' cy='8' r='7' fill='%23e8673c'/%3E%3C/svg%3E">
+  <link rel="preload" href="vendor/fonts/inter-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="style.css">
+  <script type="importmap">
+    { "imports": { "three": "./vendor/three/three.module.min.js", "three/addons/": "./vendor/three/addons/" } }
+  </script>
+  <script src="sky.js" defer></script>
+  <script type="module" src="hero.js"></script>
+  <script type="module" src="app.js"></script>
+</head>
+<body>
+  <header class="nav">
+    <a class="brand" href="#top"><span class="brand-mark" aria-hidden="true"></span>Walkback</a>
+    <nav class="nav-links" aria-label="Sections">
+      <a href="#map">Map</a>
+      <a href="#how">How it works</a>
+      <a href="#get">Video</a>
+    </nav>
+  </header>
+
+  <main>
+    <!-- 1. Hero: title + slot for the team's 3D model -->
+    <section class="hero" id="top">
+      <div class="hero-copy">
+        <p class="eyebrow">NASA Space Apps 2026 · Team MARSXR</p>
+        <h1>The safest way<br>to go far.</h1>
+        <p class="lead">Walkback tells an astronaut on Mars, at every step, whether they can still make it back to the habitat.</p>
+        <div class="cta">
+          <a class="btn" href="#map">Explore Gale Crater</a>
+          <a class="btn btn-ghost" href="#gale-zoom">Watch the Gale zoom</a>
+        </div>
+      </div>
+      <!-- hero.js mounts the Mars globe (data/mars.glb) here; the CSS planet is the fallback. -->
+      <div class="hero-stage" id="hero-stage" aria-hidden="true">
+        <div class="orbit"></div>
+        <div class="planet"></div>
+      </div>
+    </section>
+
+    <!-- Gale Crater visualization added by Codex (AI), directed and tested by team MARSXR. -->
+    <section class="section gale-zoom" id="gale-zoom" aria-labelledby="gale-zoom-title">
+      <div>
+        <h2 id="gale-zoom-title">From Mars to Gale Crater</h2>
+        <p class="sub" id="gale-zoom-description">Mars fills the frame as the view descends from orbit to the rocky floor of Gale Crater.</p>
+        <p class="gale-zoom-credit">NASA/Goddard Space Flight Center Scientific Visualization Studio</p>
+      </div>
+      <video controls playsinline preload="none" width="640" height="480"
+             poster="data/gale-crater-zoom.jpg" src="data/gale-crater-zoom.mp4"
+             aria-labelledby="gale-zoom-title" aria-describedby="gale-zoom-description">
+        <a href="data/gale-crater-zoom.mp4">Download the Gale Crater video</a>
+      </video>
+    </section>
+
+    <!-- 2. Interactive map -->
+    <section class="section" id="map">
+      <div class="section-head">
+        <p class="eyebrow">Live map</p>
+        <h2>Can you still walk back?</h2>
+        <p class="sub">1 km² of Gale Crater, Mars. Tap anywhere on the ground.</p>
+      </div>
+
+      <div class="map-grid">
+        <div class="map-col">
+          <div id="viewer" class="viewer">
+            <div id="loading" class="loading">Loading terrain…</div>
+            <span id="test-badge" class="test-badge" hidden>Test data</span>
+            <div id="hint" class="hint">Drag to turn · Ctrl + scroll to zoom · <b>Click the ground</b></div>
+            <div id="tap-card" class="tap-card" role="status" aria-live="polite" hidden>
+              <button id="tap-close" class="tap-close" aria-label="Close">×</button>
+              <p class="tap-title">Back to the habitat</p>
+              <div id="tap-body"></div>
+            </div>
+          </div>
+          <ul class="legend">
+            <li><span class="sw sw-habitat"></span>Habitat</li>
+            <li><span class="sw sw-stop"></span>Stop</li>
+            <li><span class="sw sw-route"></span>Safe route</li>
+            <li><span class="sw sw-steep"></span>Over 20°</li>
+            <li id="legend-pnr" hidden><span class="sw sw-pnr"></span>No return</li>
+            <li class="legend-note" id="legend-vex">Heights ×2</li>
+          </ul>
+        </div>
+
+        <aside class="panel" aria-label="Route verdict">
+          <div id="verdict" class="verdict verdict-pending">
+            <p class="panel-label">Verdict</p>
+            <p class="verdict-word">Waiting for route</p>
+            <p class="verdict-text">From the same model the headset uses.</p>
+            <div class="kpis" id="kpis" hidden>
+              <div><span class="kpi" id="st-min">–</span><span class="kpi-label">walk</span></div>
+              <div><span class="kpi" id="st-o2">–</span><span class="kpi-label" id="st-o2-label">O₂ left at home</span></div>
+            </div>
+          </div>
+          <p class="panel-label">Route</p>
+          <ol id="steps" class="steps"></ol>
+        </aside>
+      </div>
+    </section>
+
+    <!-- 3. How it works -->
+    <section class="section" id="how">
+      <div class="section-head">
+        <p class="eyebrow">How it works</p>
+        <h2>A way-back check on every step</h2>
+      </div>
+      <div class="how-grid">
+        <article class="how">
+          <span class="how-n">01</span>
+          <h3>Reads the ground</h3>
+          <p>Orbital maps of Gale Crater become a 3D surface. Slopes over 20° are marked as no-go.</p>
+        </article>
+        <article class="how">
+          <span class="how-n">02</span>
+          <h3>Counts the way home</h3>
+          <p>For every spot, it knows the minutes and oxygen needed to walk back to the habitat.</p>
+        </article>
+        <article class="how">
+          <span class="how-n">03</span>
+          <h3>Warns before it's late</h3>
+          <p>It flags the point of no return before you reach it, so you can go far without going too far.</p>
+        </article>
+      </div>
+      <p class="quest">Meta Quest 3 stands in for the helmet display.</p>
+    </section>
+
+    <!-- 4. Video and APK -->
+    <section class="section get" id="get">
+      <div class="section-head">
+        <p class="eyebrow">In the headset</p>
+        <h2>See Walkback in mixed reality</h2>
+      </div>
+      <div class="links">
+        <!-- TODO (Sunday 10:00): real 30 s video link; then remove "is-todo" and aria-disabled. -->
+        <a class="btn btn-big is-todo" id="link-video" aria-disabled="true">▶ 30 s video<small>Coming Sunday</small></a>
+        <!-- TODO (Sunday 10:00): real APK link; then remove "is-todo" and aria-disabled. -->
+        <a class="btn btn-big btn-ghost is-todo" id="link-apk" aria-disabled="true">⬇ Quest 3 APK<small>Coming Sunday</small></a>
+      </div>
+    </section>
+  </main>
+
+  <footer class="foot" id="credits">
+    <h2 class="foot-title">Credits</h2>
+    <ul id="credits-list" class="credit-list"><li class="muted">Loading…</li></ul>
+    <p class="foot-line">three.js (MIT) · Inter typeface (SIL OFL)</p>
+    <p class="foot-line">Team MARSXR · NASA Space Apps Challenge 2026 · Santa Cruz</p>
+  </footer>
+</body>
+</html>

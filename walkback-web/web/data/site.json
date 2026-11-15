@@ -1,0 +1,33 @@
+{
+  "name": "TODO test terrain (not Gale)",
+  "centerLat": -4.59,
+  "centerLon": 137.44,
+  "sideMeters": 1000,
+  "heightmapSize": 513,
+  "gridSize": 257,
+  "minElevation": -4495,
+  "maxElevation": -4431,
+  "habitat": {
+    "x": 250,
+    "y": 250
+  },
+  "crs": "TODO",
+  "sources": [
+    {
+      "layer": "Elevation",
+      "mission": "TODO",
+      "instrument": "TODO",
+      "resolution": "TODO",
+      "id": "TODO",
+      "credit": "Invented test terrain. Real credits arrive with session B data."
+    },
+    {
+      "layer": "Orthoimage",
+      "mission": "TODO",
+      "instrument": "TODO",
+      "resolution": "TODO",
+      "id": "TODO",
+      "credit": "TODO"
+    }
+  ]
+}

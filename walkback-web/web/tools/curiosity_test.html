@@ -1,0 +1,85 @@
+<!-- Written with Codex (AI), directed and tested by team MARSXR -->
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Walkback · Curiosity test</title>
+  <link rel="icon" href="data:,">
+  <script type="importmap">
+    { "imports": { "three": "../vendor/three/three.module.min.js", "three/addons/": "../vendor/three/addons/" } }
+  </script>
+  <style>
+    body { margin: 0; padding: 1rem; background: #17100d; color: #fff; font: 1rem system-ui, sans-serif; }
+    main { max-width: 64rem; margin: auto; }
+    h1 { font-size: 1.5rem; }
+    #viewer { height: min(65vh, 42rem); min-height: 16rem; background: #31201a; }
+    canvas { display: block; width: 100%; height: 100%; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Curiosity rover</h1>
+    <p id="status" role="status">Loading Curiosity…</p>
+    <div id="viewer"></div>
+    <p>3D model credit · NASA/JPL-Caltech</p>
+  </main>
+  <script type="module">
+    // Written with Codex (AI), directed and tested by team MARSXR
+    import * as THREE from "three";
+    import { OrbitControls } from "three/addons/OrbitControls.js";
+    import { addCuriosity } from "../curiosity.js";
+
+    const status = document.querySelector("#status");
+
+    async function main() {
+      const viewer = document.querySelector("#viewer");
+      const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+      renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+      viewer.append(renderer.domElement);
+      const scene = new THREE.Scene();
+      const camera = new THREE.PerspectiveCamera(44, 1, 0.1, 80);
+      const controls = new OrbitControls(camera, renderer.domElement);
+      controls.target.set(0, 0.9, 0);
+      controls.minDistance = 2.5;
+      controls.maxPolarAngle = Math.PI / 2;
+
+      const plane = new THREE.Mesh(
+        new THREE.PlaneGeometry(30, 30),
+        new THREE.MeshLambertMaterial({ color: 0x9b5535 }),
+      );
+      plane.rotation.x = -Math.PI / 2;
+      scene.add(plane, new THREE.HemisphereLight(0xfff2df, 0x78402d, 2));
+      const grid = new THREE.GridHelper(16, 16, 0xc99373, 0xc99373);
+      grid.position.y = 0.003;
+      scene.add(grid);
+      const sun = new THREE.DirectionalLight(0xfff2de, 2.4);
+      sun.position.set(4, 6, -3);
+      scene.add(sun);
+
+      function resize() {
+        renderer.setSize(viewer.clientWidth, viewer.clientHeight, false);
+        camera.aspect = viewer.clientWidth / viewer.clientHeight;
+        camera.updateProjectionMatrix();
+      }
+      new ResizeObserver(resize).observe(viewer);
+      resize();
+      // Same framing on desktop and narrow portrait screens.
+      camera.position.copy(controls.target).addScaledVector(
+        new THREE.Vector3(0.6, 0.42, -0.73).normalize(),
+        Math.max(6.7, 6.7 / camera.aspect),
+      );
+      controls.update();
+      renderer.setAnimationLoop(() => renderer.render(scene, camera));
+
+      const rover = await addCuriosity(scene, (x, y) => new THREE.Vector3(x, 0, -y), { x: 0, y: 0, vex: 1 });
+      status.textContent = rover ? "Full scale · 1 m grid squares" : "Curiosity model unavailable.";
+    }
+
+    main().catch((error) => {
+      console.error(error);
+      status.textContent = error.message;
+    });
+  </script>
+</body>
+</html>

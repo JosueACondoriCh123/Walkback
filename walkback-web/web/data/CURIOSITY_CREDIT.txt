@@ -1,0 +1,5 @@
+Curiosity Rover, 3D Model
+Credit: NASA/JPL-Caltech
+Source: https://science.nasa.gov/resource/curiosity-rover-3d-model/
+Original GLB: https://assets.science.nasa.gov/content/dam/science/psd/mars/resources/gltf_files/24584_Curiosity_static.glb
+Adapted for Walkback: simplified and quantized geometry, resized WebP textures.

@@ -1,0 +1,146 @@
+<!-- Written with Codex (AI), directed and tested by team MARSXR -->
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Walkback · WebXR test</title>
+  <link rel="icon" href="data:,">
+  <script type="importmap">
+    { "imports": { "three": "../vendor/three/three.module.min.js", "three/addons/": "../vendor/three/addons/" } }
+  </script>
+  <style>
+    body { margin: 0; padding: 1rem; background: #17100d; color: #fff; font: 1rem system-ui, sans-serif; }
+    main { max-width: 64rem; margin: auto; }
+    h1 { font-size: 1.5rem; }
+    #viewer { height: min(65vh, 42rem); min-height: 16rem; background: #31201a; }
+    canvas { display: block; width: 100%; height: 100%; }
+    #xr-controls { margin: 1rem 0; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Gale Crater · WebXR test</h1>
+    <p id="status" role="status">Loading terrain…</p>
+    <div id="viewer"></div>
+    <div id="xr-controls"></div>
+  </main>
+  <script type="module">
+    // Written with Codex (AI), directed and tested by team MARSXR
+    import * as THREE from "three";
+    import { OrbitControls } from "three/addons/OrbitControls.js";
+    import { setupXR } from "../xr.js";
+
+    const status = document.querySelector("#status");
+    const vex = 2;
+
+    async function loadFile(name) {
+      const response = await fetch(`../data/${name}`);
+      if (!response.ok) throw new Error(`Could not load ${name} (${response.status}).`);
+      return response;
+    }
+
+    async function main() {
+      const [site, heightmap, stops] = await Promise.all([
+        loadFile("site.json").then((r) => r.json()),
+        loadFile("heightmap.bin").then((r) => r.arrayBuffer()),
+        loadFile("stops.json").then((r) => r.json()),
+      ]);
+      const { heightmapSize: n, sideMeters, minElevation, maxElevation, habitat } = site;
+      if (heightmap.byteLength !== n * n * 2) throw new Error("Heightmap size does not match site.json.");
+
+      const geometry = new THREE.PlaneGeometry(sideMeters, sideMeters, n - 1, n - 1);
+      geometry.rotateX(-Math.PI / 2);
+      const positions = geometry.attributes.position;
+      const samples = new DataView(heightmap);
+      const verticalRange = (maxElevation - minElevation) * vex;
+      for (let i = 0; i < positions.count; i++) {
+        positions.setY(i, samples.getUint16(i * 2, true) / 65535 * verticalRange);
+      }
+      geometry.computeVertexNormals();
+
+      const toWorld = (x, y) => {
+        const col = THREE.MathUtils.clamp(x / sideMeters * (n - 1), 0, n - 1);
+        const row = THREE.MathUtils.clamp((sideMeters - y) / sideMeters * (n - 1), 0, n - 1);
+        const c = Math.min(Math.floor(col), n - 2);
+        const r = Math.min(Math.floor(row), n - 2);
+        const u = col - c;
+        const v = row - r;
+        const nw = positions.getY(r * n + c);
+        const ne = positions.getY(r * n + c + 1);
+        const sw = positions.getY((r + 1) * n + c);
+        const se = positions.getY((r + 1) * n + c + 1);
+        // PlaneGeometry splits each cell along its southwest-to-northeast edge.
+        const height = u + v <= 1
+          ? nw + u * (ne - nw) + v * (sw - nw)
+          : se + (1 - u) * (sw - se) + (1 - v) * (ne - se);
+        return new THREE.Vector3(x - sideMeters / 2, height, sideMeters / 2 - y);
+      };
+
+      const scene = new THREE.Scene();
+      const world = new THREE.Group();
+      scene.add(world);
+      world.add(new THREE.Mesh(geometry, new THREE.MeshLambertMaterial({ color: 0xa35535 })));
+      scene.add(new THREE.HemisphereLight(0xffdfc8, 0x4f2a20, 1.8));
+      const sun = new THREE.DirectionalLight(0xffead2, 2);
+      sun.position.set(-200, 350, 100);
+      scene.add(sun);
+
+      const ring = new THREE.Mesh(
+        new THREE.RingGeometry(6, 8, 48).rotateX(-Math.PI / 2),
+        new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.DoubleSide }),
+      );
+      const ringPoints = ring.geometry.attributes.position;
+      const habitatFloor = toWorld(habitat.x, habitat.y);
+      for (let i = 0; i < ringPoints.count; i++) {
+        const point = toWorld(habitat.x + ringPoints.getX(i), habitat.y - ringPoints.getZ(i));
+        ringPoints.setY(i, point.y - habitatFloor.y + 0.12);
+      }
+      ring.position.copy(habitatFloor);
+      world.add(ring);
+      for (const stop of stops) {
+        const marker = new THREE.Mesh(
+          new THREE.CylinderGeometry(1.5, 1.5, 12 * vex, 12),
+          new THREE.MeshBasicMaterial({ color: 0xffc050 }),
+        );
+        marker.position.copy(toWorld(stop.x, stop.y)).y += 6 * vex;
+        world.add(marker);
+      }
+
+      const viewer = document.querySelector("#viewer");
+      const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+      renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+      viewer.append(renderer.domElement);
+      const camera = new THREE.PerspectiveCamera(42, 1, 1, 3000);
+      const controls = new OrbitControls(camera, renderer.domElement);
+      controls.target.copy(toWorld(habitat.x, habitat.y));
+      camera.position.copy(controls.target).add(new THREE.Vector3(-400, 550, 650));
+      controls.update();
+
+      setupXR({
+        renderer, scene, camera, world, habitat, stops, toWorld, vex,
+        container: document.querySelector("#xr-controls"),
+      });
+      function resize() {
+        if (renderer.xr.isPresenting) return;
+        renderer.setSize(viewer.clientWidth, viewer.clientHeight, false);
+        camera.aspect = viewer.clientWidth / viewer.clientHeight;
+        camera.updateProjectionMatrix();
+      }
+      new ResizeObserver(resize).observe(viewer);
+      renderer.xr.addEventListener("sessionend", resize);
+      resize();
+      renderer.setAnimationLoop(() => {
+        if (!renderer.xr.isPresenting) controls.update();
+        renderer.render(scene, camera);
+      });
+      status.textContent = "The white ring marks the habitat. Terrain heights are doubled in the desktop view.";
+    }
+
+    main().catch((error) => {
+      console.error(error);
+      status.textContent = error.message;
+    });
+  </script>
+</body>
+</html>
