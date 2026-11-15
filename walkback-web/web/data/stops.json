@@ -1,0 +1,23 @@
+[
+  {
+    "id": "A",
+    "name": "Layered outcrop",
+    "x": 430,
+    "y": 420,
+    "science": "TODO: fake stop"
+  },
+  {
+    "id": "B",
+    "name": "Dark sand ripples",
+    "x": 690,
+    "y": 560,
+    "science": "TODO: fake stop"
+  },
+  {
+    "id": "C",
+    "name": "Vein-filled bedrock",
+    "x": 520,
+    "y": 800,
+    "science": "TODO: fake stop"
+  }
+]

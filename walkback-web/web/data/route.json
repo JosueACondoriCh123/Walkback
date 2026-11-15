@@ -1,0 +1,372 @@
+{
+ "note": "TODO: fake route. Replace with session C model-tests/out/route.json",
+ "verdict": "VIABLE",
+ "o2CapacityLiters": 140,
+ "totalMinutes": 31.7,
+ "pointOfNoReturn": null,
+ "points": [
+  {
+   "x": 250,
+   "y": 250,
+   "minutes": 0,
+   "o2Percent": 100
+  },
+  {
+   "x": 268,
+   "y": 267,
+   "minutes": 0.6,
+   "o2Percent": 99.3
+  },
+  {
+   "x": 286,
+   "y": 284,
+   "minutes": 1.3,
+   "o2Percent": 98.6
+  },
+  {
+   "x": 304,
+   "y": 301,
+   "minutes": 2,
+   "o2Percent": 97.9
+  },
+  {
+   "x": 322,
+   "y": 318,
+   "minutes": 2.6,
+   "o2Percent": 97.2
+  },
+  {
+   "x": 340,
+   "y": 335,
+   "minutes": 3.1,
+   "o2Percent": 96.7
+  },
+  {
+   "x": 358,
+   "y": 352,
+   "minutes": 3.6,
+   "o2Percent": 96.1
+  },
+  {
+   "x": 376,
+   "y": 369,
+   "minutes": 4.1,
+   "o2Percent": 95.6
+  },
+  {
+   "x": 394,
+   "y": 386,
+   "minutes": 4.7,
+   "o2Percent": 94.9
+  },
+  {
+   "x": 412,
+   "y": 403,
+   "minutes": 5.4,
+   "o2Percent": 94.2
+  },
+  {
+   "x": 430,
+   "y": 420,
+   "minutes": 6,
+   "o2Percent": 93.6,
+   "stopId": "A"
+  },
+  {
+   "x": 451.7,
+   "y": 431.7,
+   "minutes": 6.6,
+   "o2Percent": 93
+  },
+  {
+   "x": 473.3,
+   "y": 443.3,
+   "minutes": 7.1,
+   "o2Percent": 92.4
+  },
+  {
+   "x": 495,
+   "y": 455,
+   "minutes": 7.5,
+   "o2Percent": 91.9
+  },
+  {
+   "x": 516.7,
+   "y": 466.7,
+   "minutes": 8,
+   "o2Percent": 91.4
+  },
+  {
+   "x": 538.3,
+   "y": 478.3,
+   "minutes": 8.5,
+   "o2Percent": 90.9
+  },
+  {
+   "x": 560,
+   "y": 490,
+   "minutes": 9,
+   "o2Percent": 90.4
+  },
+  {
+   "x": 581.7,
+   "y": 501.7,
+   "minutes": 9.6,
+   "o2Percent": 89.7
+  },
+  {
+   "x": 603.3,
+   "y": 513.3,
+   "minutes": 10.2,
+   "o2Percent": 89.1
+  },
+  {
+   "x": 625,
+   "y": 525,
+   "minutes": 10.8,
+   "o2Percent": 88.5
+  },
+  {
+   "x": 646.7,
+   "y": 536.7,
+   "minutes": 11.3,
+   "o2Percent": 87.9
+  },
+  {
+   "x": 668.3,
+   "y": 548.3,
+   "minutes": 11.8,
+   "o2Percent": 87.4
+  },
+  {
+   "x": 690,
+   "y": 560,
+   "minutes": 12.2,
+   "o2Percent": 86.9,
+   "stopId": "B"
+  },
+  {
+   "x": 675.8,
+   "y": 580,
+   "minutes": 12.8,
+   "o2Percent": 86.2
+  },
+  {
+   "x": 661.7,
+   "y": 600,
+   "minutes": 13.4,
+   "o2Percent": 85.6
+  },
+  {
+   "x": 647.5,
+   "y": 620,
+   "minutes": 14,
+   "o2Percent": 85
+  },
+  {
+   "x": 633.3,
+   "y": 640,
+   "minutes": 14.6,
+   "o2Percent": 84.4
+  },
+  {
+   "x": 619.2,
+   "y": 660,
+   "minutes": 15.1,
+   "o2Percent": 83.8
+  },
+  {
+   "x": 605,
+   "y": 680,
+   "minutes": 15.6,
+   "o2Percent": 83.2
+  },
+  {
+   "x": 590.8,
+   "y": 700,
+   "minutes": 16.2,
+   "o2Percent": 82.7
+  },
+  {
+   "x": 576.7,
+   "y": 720,
+   "minutes": 16.7,
+   "o2Percent": 82.1
+  },
+  {
+   "x": 562.5,
+   "y": 740,
+   "minutes": 17.2,
+   "o2Percent": 81.6
+  },
+  {
+   "x": 548.3,
+   "y": 760,
+   "minutes": 17.7,
+   "o2Percent": 81
+  },
+  {
+   "x": 534.2,
+   "y": 780,
+   "minutes": 18.2,
+   "o2Percent": 80.5
+  },
+  {
+   "x": 520,
+   "y": 800,
+   "minutes": 18.8,
+   "o2Percent": 79.9,
+   "stopId": "C"
+  },
+  {
+   "x": 509.2,
+   "y": 778,
+   "minutes": 19.3,
+   "o2Percent": 79.3
+  },
+  {
+   "x": 498.4,
+   "y": 756,
+   "minutes": 19.9,
+   "o2Percent": 78.7
+  },
+  {
+   "x": 487.6,
+   "y": 734,
+   "minutes": 20.4,
+   "o2Percent": 78.1
+  },
+  {
+   "x": 476.8,
+   "y": 712,
+   "minutes": 20.9,
+   "o2Percent": 77.6
+  },
+  {
+   "x": 466,
+   "y": 690,
+   "minutes": 21.4,
+   "o2Percent": 77.1
+  },
+  {
+   "x": 455.2,
+   "y": 668,
+   "minutes": 21.8,
+   "o2Percent": 76.6
+  },
+  {
+   "x": 444.4,
+   "y": 646,
+   "minutes": 22.3,
+   "o2Percent": 76.1
+  },
+  {
+   "x": 433.6,
+   "y": 624,
+   "minutes": 22.8,
+   "o2Percent": 75.5
+  },
+  {
+   "x": 422.8,
+   "y": 602,
+   "minutes": 23.4,
+   "o2Percent": 74.9
+  },
+  {
+   "x": 412,
+   "y": 580,
+   "minutes": 24,
+   "o2Percent": 74.2
+  },
+  {
+   "x": 401.2,
+   "y": 558,
+   "minutes": 24.7,
+   "o2Percent": 73.6
+  },
+  {
+   "x": 390.4,
+   "y": 536,
+   "minutes": 25.3,
+   "o2Percent": 72.9
+  },
+  {
+   "x": 379.6,
+   "y": 514,
+   "minutes": 25.8,
+   "o2Percent": 72.3
+  },
+  {
+   "x": 368.8,
+   "y": 492,
+   "minutes": 26.3,
+   "o2Percent": 71.8
+  },
+  {
+   "x": 358,
+   "y": 470,
+   "minutes": 26.7,
+   "o2Percent": 71.3
+  },
+  {
+   "x": 347.2,
+   "y": 448,
+   "minutes": 27.2,
+   "o2Percent": 70.9
+  },
+  {
+   "x": 336.4,
+   "y": 426,
+   "minutes": 27.7,
+   "o2Percent": 70.3
+  },
+  {
+   "x": 325.6,
+   "y": 404,
+   "minutes": 28.2,
+   "o2Percent": 69.8
+  },
+  {
+   "x": 314.8,
+   "y": 382,
+   "minutes": 28.8,
+   "o2Percent": 69.2
+  },
+  {
+   "x": 304,
+   "y": 360,
+   "minutes": 29.3,
+   "o2Percent": 68.6
+  },
+  {
+   "x": 293.2,
+   "y": 338,
+   "minutes": 29.9,
+   "o2Percent": 68
+  },
+  {
+   "x": 282.4,
+   "y": 316,
+   "minutes": 30.3,
+   "o2Percent": 67.5
+  },
+  {
+   "x": 271.6,
+   "y": 294,
+   "minutes": 30.8,
+   "o2Percent": 67
+  },
+  {
+   "x": 260.8,
+   "y": 272,
+   "minutes": 31.3,
+   "o2Percent": 66.5
+  },
+  {
+   "x": 250,
+   "y": 250,
+   "minutes": 31.7,
+   "o2Percent": 66
+  }
+ ]
+}
