@@ -6,7 +6,7 @@ Paths in this file are written with placeholders: `<home>` (the user folder on D
 
 **Walkback** — *The safest way to go far.* NASA Space Apps Challenge 2026, Santa Cruz (Bolivia) local event, team MARSXR. A mixed-reality tool for Meta Quest 3 that tells an astronaut on Mars, at every step, whether they can still make it back to the habitat. *Meta Quest 3 stands in for the helmet display.*
 
-Deadlines: code freeze Sun 15/11 10:00 · submit 11:00 · the venue closes submissions at 12:00 · defense 14:00 (5 minutes of pure presentation).
+Deadlines: code freeze Sun 15/11 10:00 · submit 11:00 · the venue closes submissions at 12:00 · defense 14:00 (**3 minutes**, Daniel 15/11 00:40: the presentation in `pitch/presentacion/` rules, with 45 s of live demo at 1:00–1:45: tank at 8 % with the WHAT IF, then START MISSION and one NEXT STOP; the 5-minute script of R15 is not used).
 
 ## If you are a new session picking up session A (the app) — start here
 
