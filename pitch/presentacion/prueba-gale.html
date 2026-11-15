@@ -59,7 +59,7 @@ canvas { position: absolute; inset: 0; width: 1920px; height: 1080px; }
     document.getElementById('tank').textContent = Math.round(percent) + ' %';
     document.getElementById('reach').textContent = 'covers ' + (w.reachMinutes >= 60 ? Math.floor(w.reachMinutes / 60) + ' h ' + Math.round(w.reachMinutes % 60) + ' min' : w.reachMinutes.toFixed(1) + ' min') + ' of walking back';
     var v = document.getElementById('verdict'); v.textContent = d.headline; v.style.color = d.headline === 'VIABLE' ? '#40D966' : '#F23829';
-    document.getElementById('red').textContent = w.beyond ? w.redPercent.toFixed(1) + ' % of the ground with a way back is red' : 'no red on the map';
+    document.getElementById('red').textContent = w.beyond ? w.redPercent.toFixed(1) + ' % of the ground with a way back on foot is red' : 'no red on the map';
     if (W) W.set('reach', percent >= 99.95 ? Infinity : w.reachMinutes);
   }
 

@@ -26,8 +26,8 @@ También: `index.html?lang=en` abre en inglés, `index.html#4` abre en la lámin
 1. Antes: poner los nombres del equipo en `content.js`, lámina `title`, campo `members` (en `es` y en `en`). Vacío no se muestra.
 2. Abrir `index.html?lang=en`, tecla **P**, y en el diálogo: Guardar como PDF, márgenes Ninguno, Gráficos de fondo marcado.
 3. O sin diálogo, en PowerShell (Edge; con Chrome es igual), cambiando `<ruta>` por la carpeta de la presentación con barras `/`:
-   `& "C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe" --headless=new --no-pdf-header-footer --virtual-time-budget=30000 --user-data-dir="$env:TEMP\wb-pdf" --print-to-pdf="$PWD\Walkback-NASA-demo.pdf" "file:///<ruta>/index.html?lang=en&print=1"`
-   (`--user-data-dir` aparte para que no se cuelgue de un Edge ya abierto.)
+   `& "C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe" --headless=new --no-pdf-header-footer --virtual-time-budget=30000 --user-data-dir="$env:TEMP\wb-pdf" --print-to-pdf="$PWD\Walkback-NASA-demo.pdf" "file:///<ruta>/index.html?lang=en&print=1" | Out-Null`
+   (`--user-data-dir` aparte para que no se cuelgue de un Edge ya abierto; `| Out-Null` para que PowerShell espere a que termine, unos 7 s.)
 4. Revisar: 7 páginas; la página 1 con equipo, integrantes y reto; la 5 con el tanque al 8 %, NOT VIABLE y el rojo.
 
 ## Cómo cambiar algo
