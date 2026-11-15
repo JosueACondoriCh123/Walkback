@@ -70,6 +70,15 @@ namespace Walkback
             panel.ShowLegend(terrain.LegendText(terrain.Layer));
         }
 
+        /// <summary>Where the user is, for the fps line of the log: Mars, room, 360 photo, opening or table.</summary>
+        public static string WhereName(MissionMode.Mode mode, bool insidePhoto, bool mapLocked)
+        {
+            if (mode == MissionMode.Mode.Mars) return "Mars";
+            if (mode == MissionMode.Mode.Room) return "room";
+            if (insidePhoto) return "360 photo";
+            return mapLocked ? "opening" : "table";
+        }
+
         void OnLayerChanged(MapLayer layer)
         {
             RefreshPanel();
@@ -145,7 +154,9 @@ namespace Walkback
             float elapsed = Time.realtimeSinceStartup - fpsWindowStart;
             if (elapsed >= 10f)
             {
-                WalkbackLog.Info("fps avg " + (fpsFrames / elapsed).ToString("F1") + " worst " + fpsWorst.ToString("F1"));
+                // With where the user is, so the log says what Mars costs (it was never measured there).
+                WalkbackLog.Info("fps avg " + (fpsFrames / elapsed).ToString("F1") + " worst " + fpsWorst.ToString("F1") + " (" +
+                    WhereName(mission != null ? mission.Current : MissionMode.Mode.Table, siteJump != null && siteJump.Inside, MapControlsLocked) + ")");
                 fpsWindowStart = Time.realtimeSinceStartup;
                 fpsFrames = 0;
                 fpsWorst = float.MaxValue;

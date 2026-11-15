@@ -22,6 +22,10 @@ namespace Walkback.EditorTools
             foreach (bool held in new[] { false, true, true, true, false, false, true, false })
                 if (WalkbackApp.RisingEdge(held, ref before)) presses++;
             Check("Mission button: a held menu button counts once per press (two presses in the test)", presses == 2, presses + " presses");
+            Check("Log: the fps line says where the user is (Mars, room, 360 photo, opening, table)",
+                WalkbackApp.WhereName(MissionMode.Mode.Mars, false, true) == "Mars" && WalkbackApp.WhereName(MissionMode.Mode.Room, false, true) == "room" &&
+                WalkbackApp.WhereName(MissionMode.Mode.Table, true, true) == "360 photo" && WalkbackApp.WhereName(MissionMode.Mode.Table, false, true) == "opening" &&
+                WalkbackApp.WhereName(MissionMode.Mode.Table, false, false) == "table");
 
             // A point 100 m east and 200 m north of the south-west corner, 7 m up in the mesh, must land on the
             // feet; and the route's direction (north-east) must turn to where the user looks (west).
