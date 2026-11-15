@@ -348,6 +348,13 @@ namespace Walkback
             conditionsText.color = view.HasData ? WalkbackTheme.Text : WalkbackTheme.TextSoft;
         }
 
+        /// <summary>The space-weather line just read from NASA DONKI takes the place of the stored one. Without stored conditions the card stays as it is.</summary>
+        public void ShowLiveSpaceWeather(string liveLine)
+        {
+            if (conditionsText == null || !ConditionsHaveData || string.IsNullOrEmpty(liveLine)) return;
+            conditionsText.text = SpaceWeatherLive.Replace(conditionsText.text, liveLine);
+        }
+
         // ---------------------------------------------------------------- build (edit time)
 
         /// <summary>Builds the main board once, at edit time, so it is saved in the scene.</summary>

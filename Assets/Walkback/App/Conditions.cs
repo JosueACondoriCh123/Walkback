@@ -135,7 +135,8 @@ namespace Walkback
             line += "): " + (count ?? "no events listed");
             if (types.Count > 0) line += " (" + string.Join(", ", types.ToArray()) + ")";
             if (checkedOn != null) line += " · checked " + checkedOn;
-            return line;
+            // This line comes from the file inside the app. A live answer replaces it (SpaceWeatherLive).
+            return line + SpaceWeatherLive.StoredTag;
         }
 
         static string Range(double? min, double? max)
@@ -240,6 +241,68 @@ namespace Walkback
                 if (pair.Value is string && double.TryParse(((string)pair.Value).Replace("°C", "").Replace("Pa", "").Trim(), NumberStyles.Float, CultureInfo.InvariantCulture, out parsed)) return parsed;
             }
             return null;
+        }
+    }
+
+    /// <summary>
+    /// The live space-weather line of the CURRENT CONDITIONS card: at start the app asks NASA DONKI for the
+    /// solar particle events (SEP) of the last 7 days. If the answer is a list, the card's stored line is
+    /// replaced and says "(live)" with the time of the check; anything else (no network, a timeout, an error
+    /// page, the key's limit) leaves the stored line, which says "(stored in the app)".
+    /// It only counts the events NASA lists: no effect on oxygen, dose or the verdict is derived from it.
+    /// DEMO_KEY is NASA's public demo key: 30 requests an hour and 50 a day per IP address; one request per start.
+    /// </summary>
+    public static class SpaceWeatherLive
+    {
+        public const string Endpoint = "https://api.nasa.gov/DONKI/SEP";
+        public const string ApiKey = "DEMO_KEY";
+        public const int WindowDays = 7;
+        /// <summary>The start never waits for this request; after these seconds it is dropped.</summary>
+        public const int TimeoutSeconds = 4;
+        public const string LinePrefix = "Space weather (NASA DONKI";
+        public const string LiveTag = " (live)";
+        public const string StoredTag = " (stored in the app)";
+
+        static string Day(DateTime utc)
+        {
+            return utc.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
+        }
+
+        public static string Url(DateTime utcNow)
+        {
+            return Endpoint + "?startDate=" + Day(utcNow.AddDays(-WindowDays)) + "&endDate=" + Day(utcNow) + "&api_key=" + ApiKey;
+        }
+
+        /// <summary>The card line for DONKI's answer, or null when the answer is not a JSON list of events.</summary>
+        public static string Line(string body, DateTime utcNow)
+        {
+            if (string.IsNullOrEmpty(body)) return null;
+            List<object> events;
+            try { events = MiniJson.Parse(body) as List<object>; }
+            catch (Exception) { return null; }
+            if (events == null) return null;
+            foreach (var e in events) if (!(e is Dictionary<string, object>)) return null;
+            string count = events.Count == 0 ? "no solar particle events"
+                : events.Count == 1 ? "1 solar particle event reported"
+                : events.Count.ToString(CultureInfo.InvariantCulture) + " solar particle events reported";
+            return LinePrefix + ", " + Day(utcNow.AddDays(-WindowDays)) + " to " + Day(utcNow) + "): " + count +
+                " · checked " + utcNow.ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture) + " UTC" + LiveTag;
+        }
+
+        /// <summary>The card's text with its space-weather line replaced by the live one (added at the end if it had none).</summary>
+        public static string Replace(string cardText, string liveLine)
+        {
+            if (string.IsNullOrEmpty(liveLine)) return cardText;
+            if (string.IsNullOrEmpty(cardText)) return liveLine;
+            string[] lines = cardText.Split('\n');
+            bool found = false;
+            for (int i = 0; i < lines.Length; i++)
+            {
+                if (!lines[i].StartsWith(LinePrefix, StringComparison.Ordinal)) continue;
+                lines[i] = liveLine;
+                found = true;
+            }
+            return found ? string.Join("\n", lines) : cardText + "\n" + liveLine;
         }
     }
 

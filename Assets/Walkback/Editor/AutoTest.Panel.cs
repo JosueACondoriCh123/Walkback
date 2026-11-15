@@ -593,6 +593,42 @@ namespace Walkback.EditorTools
             var broken = Conditions.Describe("{not json");
             Check("Conditions: a broken file says so and shows no numbers", !broken.HasData && broken.Text.Contains("could not be read") && !HasDigit(broken.Text));
             Check("Conditions: an empty file waits for data", Conditions.Describe("{}").Text == Conditions.WaitingText);
+
+            // Live space weather (R18): the pure parts only. The test never goes to the network.
+            var liveAt = new System.DateTime(2026, 11, 15, 18, 0, 0, System.DateTimeKind.Utc);
+            string liveUrl = SpaceWeatherLive.Url(liveAt);
+            Check("Live space weather: one request to NASA DONKI for the solar particle events of the last 7 days", liveUrl.StartsWith("https://api.nasa.gov/DONKI/SEP?") &&
+                liveUrl.Contains("startDate=2026-11-08") && liveUrl.Contains("endDate=2026-11-15") && SpaceWeatherLive.TimeoutSeconds <= 5, liveUrl);
+            string liveNone = SpaceWeatherLive.Line("[]", liveAt);
+            Check("Live space weather: an empty list reads 'no solar particle events' with the window, the time of the check and (live)", liveNone != null &&
+                liveNone.Contains("2026-11-08 to 2026-11-15") && liveNone.Contains("no solar particle events") && liveNone.Contains("checked 2026-11-15 18:00 UTC") &&
+                liveNone.EndsWith("(live)") && !liveNone.Contains("stored"), liveNone);
+            string liveTwo = SpaceWeatherLive.Line("[{\"a\":1},{\"a\":2}]", liveAt);
+            string liveOne = SpaceWeatherLive.Line(" [ {\"a\":1} ] ", liveAt);
+            Check("Live space weather: it counts the events NASA lists and says nothing else about them", liveTwo != null && liveTwo.Contains("): 2 solar particle events reported · checked") &&
+                liveOne != null && liveOne.Contains("): 1 solar particle event reported · checked"), liveTwo);
+            Check("Live space weather: an error object, a web page, an empty answer or a list of something else gives no line (the stored one stays)",
+                SpaceWeatherLive.Line("{\"error\":{\"code\":\"OVER_RATE_LIMIT\"}}", liveAt) == null && SpaceWeatherLive.Line("<html><body>Sign in</body></html>", liveAt) == null &&
+                SpaceWeatherLive.Line("", liveAt) == null && SpaceWeatherLive.Line(null, liveAt) == null && SpaceWeatherLive.Line("[1,2]", liveAt) == null && SpaceWeatherLive.Line("[{\"a\":1}", liveAt) == null);
+            Check("Conditions: the space-weather line from the file says (stored in the app), never (live)", t.Contains("checked 2026-11-14 (stored in the app)") && !t.Contains("(live)"), t.Replace("\n", " | "));
+            string swapped = SpaceWeatherLive.Replace(t, liveNone);
+            string[] linesBefore = t.Split('\n'), linesAfter = swapped.Split('\n');
+            bool onlyThatLine = linesBefore.Length == linesAfter.Length;
+            int changedLines = 0;
+            for (int li = 0; onlyThatLine && li < linesBefore.Length; li++) if (linesBefore[li] != linesAfter[li]) changedLines++;
+            Check("Live space weather: only the space-weather line of the card changes", onlyThatLine && changedLines == 1 && swapped.Contains("(live)") && !swapped.Contains("(stored in the app)") &&
+                SpaceWeatherLive.Replace(t, null) == t && SpaceWeatherLive.Replace("Radiation: x", liveNone) == "Radiation: x\n" + liveNone, swapped.Replace("\n", " | "));
+            if (panel.ConditionsHaveData && panel.conditionsText != null)
+            {
+                string cardBefore = panel.conditionsText.text;
+                Check("Panel: the card's own space-weather line says (stored in the app)", cardBefore.Contains(SpaceWeatherLive.LinePrefix) && cardBefore.Contains("(stored in the app)") && !cardBefore.Contains("(live)"), cardBefore.Replace("\n", " | "));
+                panel.ShowLiveSpaceWeather(SpaceWeatherLive.Line("[{\"a\":1},{\"a\":2},{\"a\":3},{\"a\":4},{\"a\":5},{\"a\":6},{\"a\":7},{\"a\":8},{\"a\":9},{\"a\":10},{\"a\":11},{\"a\":12}]", liveAt));
+                Canvas.ForceUpdateCanvases();
+                float liveBox = ((RectTransform)panel.conditionsText.transform).rect.height;
+                Check("Panel: the card with a live space-weather line still fits its box", panel.conditionsText.text.Contains("12 solar particle events reported") &&
+                    panel.conditionsText.preferredHeight <= liveBox + 6f, panel.conditionsText.preferredHeight.ToString("F0") + "/" + liveBox.ToString("F0") + " px");
+                panel.conditionsText.text = cardBefore;
+            }
         }
 
         /// <summary>The controls card: there, readable, facing the user, clear of the main board, every control on one line.</summary>
