@@ -469,7 +469,16 @@ namespace Walkback.EditorTools
             app.JumpRequested += listen;
             panel.jumpButton.OnPointerClick(panel.jumpButton.transform.position);
             app.JumpRequested -= listen;
-            Check("Panel: JUMP TO SITE asks the app to jump to the chosen stop", jumped == 0, "jump request for stop " + jumped);
+            Check("Panel: the 360° PHOTO button asks the app for the chosen stop's photo", jumped == 0, "jump request for stop " + jumped);
+            Canvas.ForceUpdateCanvases();
+            Text photoLabel = panel.jumpButton.GetComponentInChildren<Text>(true);
+            Text startLabel = panel.missionButton != null ? panel.missionButton.GetComponentInChildren<Text>(true) : null;
+            Check("Panel: the two buttons say what they are (360° PHOTO on the stop card; START MISSION with \"1:1 terrain, on foot\" under it), each on one line",
+                photoLabel != null && photoLabel.text == MissionPanel.PhotoButtonText && photoLabel.preferredWidth <= ((RectTransform)photoLabel.transform).rect.width &&
+                startLabel != null && startLabel.text == "START MISSION" && panel.missionCaption != null && panel.missionCaption.text == MissionPanel.MissionCaptionText &&
+                panel.missionCaption.preferredWidth <= ((RectTransform)panel.missionCaption.transform).rect.width &&
+                -((RectTransform)panel.missionCaption.transform).anchoredPosition.y >= -((RectTransform)panel.missionButton.transform).anchoredPosition.y + ((RectTransform)panel.missionButton.transform).sizeDelta.y,
+                photoLabel != null ? photoLabel.text + " " + photoLabel.preferredWidth.ToString("F0") + " px" : "no label");
 
             if (panel.stopButtons.Count > 1)
             {

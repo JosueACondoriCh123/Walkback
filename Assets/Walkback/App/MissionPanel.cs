@@ -86,6 +86,14 @@ namespace Walkback
         /// so it works with hands too. In the headset at 18:30 the mission was never entered from the menu button.
         /// </summary>
         public PanelButton missionButton;
+        /// <summary>One line under START MISSION that says what it is.</summary>
+        public Text missionCaption;
+        public const string MissionCaptionText = "1:1 terrain, on foot";
+        /// <summary>
+        /// The stop card's button opens Curiosity's real 360° photo of that stop. It was JUMP TO SITE: the
+        /// mission also has a "jump" (NEXT STOP), and neither name told the photo from the walk.
+        /// </summary>
+        public const string PhotoButtonText = "360° PHOTO";
 
         [Header("Side board")]
         public Transform sideBoard;
@@ -380,6 +388,9 @@ namespace Walkback
             verdictTitle = AddText(rect, "VerdictTitle", "NO ROUTE YET", font, uiMaterial, 96, FontStyle.Bold, WalkbackTheme.Watch, 262, VerdictTop + 10, 860, 116);
             missionButton = PanelButton.Create(rect, "StartMission", "START MISSION", font, uiMaterial, 30, PixelsWide - Margin - 24 - 270, VerdictTop + 22, 270, ButtonHeight);
             missionButton.SetInteractable(false);
+            // What the button does, right under it: the terrain at full size, walked with the headset (not a photo).
+            missionCaption = AddText(rect, "StartMissionCaption", MissionCaptionText, font, uiMaterial, 28, FontStyle.Normal, WalkbackTheme.TextSoft, PixelsWide - Margin - 24 - 270, VerdictTop + 124, 270, 34);
+            missionCaption.alignment = TextAnchor.MiddleCenter;
             verdictDetail = AddText(rect, "VerdictDetail", "Time  ·  oxygen  ·  margin to return", font, uiMaterial, 34, FontStyle.Normal, WalkbackTheme.Text, 264, VerdictTop + 124, 1160, 44);
             verdictNote = AddText(rect, "VerdictNote", DefaultDetail(VerdictState.NoRoute), font, uiMaterial, MissionCharts.TextSize, FontStyle.Normal, WalkbackTheme.TextSoft, 264, VerdictTop + 170, 1160, 38);
 
@@ -428,7 +439,7 @@ namespace Walkback
             stopName.resizeTextForBestFit = true;
             stopName.resizeTextMinSize = 32;
             stopName.resizeTextMaxSize = 46;
-            jumpButton = PanelButton.Create(rect, "JumpToSite", "JUMP TO SITE", font, uiMaterial, 30, 464, 266, 250, ButtonHeight);
+            jumpButton = PanelButton.Create(rect, "JumpToSite", PhotoButtonText, font, uiMaterial, 30, 464, 266, 250, ButtonHeight);
             stopBadge = AddText(rect, "StopBadge", "Press a pillar or a stop button.", font, uiMaterial, 28, FontStyle.Bold, WalkbackTheme.Live, 54, 374, 660, 40);
             stopScience = AddText(rect, "StopScience", "Science, tasks and minutes of each stop.", font, uiMaterial, 30, FontStyle.Normal, WalkbackTheme.Text, 54, 424, 660, 110);
             stopScience.alignment = TextAnchor.UpperLeft;
