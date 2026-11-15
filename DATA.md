@@ -58,7 +58,9 @@ GDAL 3.13.3 from QGIS (`C:\Program Files\QGIS 3.44.15\bin`, not on PATH). In Git
 8. **Panorama**: `python -I data-pipeline/process_panorama.py data-pipeline/cache/panorama/PIA26696.jpg Assets/StreamingAssets/Site/panorama_PIA26696.jpg 0.255` (the horizon sits at 25.5 % of the mosaic height, from the top), then step 5 again with `--panorama nevado-sajama=PIA26696="NASA/JPL-Caltech/MSSS, Mastcam mosaic PIA26696" --extra-sources globe_mdim,panorama_sajama`.
 9. **Checks**: `python -I data-pipeline/check_alignment.py <dem 1 m local> <usgs strip 1 m local>` and `python -I data-pipeline/preview_package.py Assets/StreamingAssets/Site <out prefix>` (photo, hillshade and slope side by side).
 
-## 3D models (`Assets/Walkback/Models3D/`, NASA 3D Resources, public domain)
+## 3D models (`Assets/Walkback/Models3D/`, NASA 3D Resources)
+
+NASA 3D Resources offers its models as free to download and use and points to the NASA Images and Media Usage Guidelines (`nasa.gov/nasa-brand-center/images-and-media`) for the terms. The astronaut's page names DigitalSpace Corporation as its source and states no licence of its own (read on 15 Nov 2026). The astronaut's texture carries the NASA insignia and a United States flag: do not show the model with that texture (the team uses no NASA logo).
 
 | File | Triangles | Bytes | Page | Note |
 |---|---|---|---|---|

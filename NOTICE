@@ -62,7 +62,11 @@ conditions.json (weather)
   Credit: NASA/JPL-Caltech/CAB (CSIC-INTA).
 
 conditions.json (space weather)
-  NASA DONKI: SEP, GST and CME, 7-14 Nov 2026.
+  NASA DONKI: SEP, GST and CME, 7-14 Nov 2026 (stored in the app).
+  At start the app also asks NASA DONKI once for the solar particle
+  events (SEP) of the last 7 days (api.nasa.gov, public DEMO_KEY); if it
+  gets a list, the card shows that instead, marked "(live)" with the
+  time of the check.
   Credit: NASA CCMC.
 
 conditions.json (surface radiation)
@@ -86,11 +90,17 @@ name the same institutions).
 ==========================================================================
 
 Astronaut.glb       NASA 3D Resources, science.nasa.gov/3d-resources/astronaut/
+                    (the page names DigitalSpace Corporation as its source)
 Perseverance.glb    NASA 3D Resources,
                     science.nasa.gov/3d-resources/mars-2020-perseverance-rover/
 
-Listed as public domain in DATA.md. The app does not show them today
-(they need the glTFast package, not installed).
+NASA 3D Resources (science.nasa.gov/3d-resources/) offers its models as
+free to download and use and points to the NASA Images and Media Usage
+Guidelines (nasa.gov/nasa-brand-center/images-and-media) for the terms;
+the astronaut's own page states no licence (read on 15 Nov 2026). The
+astronaut's texture carries the NASA insignia and a United States flag.
+The app does not show the models today (they need the glTFast package,
+not installed), so no NASA insignia appears in the app.
 Credit: NASA 3D Resources (see each model's page).
 
 

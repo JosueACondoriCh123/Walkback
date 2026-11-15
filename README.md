@@ -17,7 +17,7 @@ Built by team MARSXR for the NASA International Space Apps Challenge 2026, Santa
 - **Four map layers:** PHOTO (the HiRISE photo on the relief), HEIGHT, SLOPE (ground over 20° hatched as no-go) and RETURN (minutes back to the habitat from every point of the map, over the relief).
 - **Four stops**, all real Curiosity drill sites at the rover's own positions: Altadena, Valle de la Luna, Nevado Sajama and Campo Marte, each with a stop card (science, tasks with minutes, risk).
 - **Route and verdict.** The app plans habitat → stops in order → habitat over the relief and shows a verdict card (VIABLE / NOT VIABLE / NO SAFE ROUTE) with three charts: oxygen tank (used / spare / reserve), time (walking and work), and height along the route.
-- **WHAT IF.** The left stick click (or key F) re-plans with the tank at 15 %, then at 8 %, then back at 100 %. The verdict changes and the RETURN layer paints red the ground you can no longer walk back from. On this site (ESTIMATE): at 15 % the verdict is NOT VIABLE but nothing is red yet; at 8 %, 57.5 % of the map is red.
+- **WHAT IF.** The left stick click (or key F) re-plans with the tank at 15 %, then at 8 %, then back at 100 %. The verdict changes and the RETURN layer paints red the ground you can no longer walk back from. On this site (ESTIMATE): at 15 % the verdict is NOT VIABLE but nothing is red yet; at 8 %, 57.5 % of the ground that has a way back on foot is red.
 - **Globe and 360° photo.** A Mars globe (Viking colour mosaic) to land on the site, and Curiosity's Mastcam 360° panorama at Nevado Sajama (the 360° PHOTO button on that stop's card; the other three stops have no panorama and their cards say so).
 - **Helmet visor (HUD):** compass tape, heading, an arrow to the next stop, an oxygen bar with the reserve mark, minutes back to the habitat in green / amber / red, a two-beep alert when TURN BACK NOW comes on, a 2D corner map and a 3D wrist map that can be left in the air (X).
 - **Mission mode:** START MISSION on the verdict card takes you onto Mars at 1:1 scale (the same terrain mesh and photo), with the route on the ground, a pillar and an arrival card at each stop, jumps to the next stop (NEXT STOP sign, or left grip) and a room view (the visor and the route over the real floor). *Built and covered by the automatic test; not yet confirmed in the headset (see the status table).*
@@ -69,7 +69,7 @@ All data in the app comes from public sources; each one is named on screen and i
 | Stop science and names | NASA Curiosity blog (sols 4568–4569, 4695–4701, 4716–4722, 4893–4899, 4900–4907) | NASA/JPL-Caltech |
 | Stop task minutes | Proposed from NASA/TP-2017-219457, table 30 | NASA |
 | Weather | Curiosity REMS weather feed, sol 4995 | NASA/JPL-Caltech/CAB (CSIC-INTA) |
-| Space weather | NASA DONKI (SEP, GST, CME), 7–14 Nov 2026 | NASA CCMC |
+| Space weather | NASA DONKI (SEP, GST, CME), stored answer for 7–14 Nov 2026; at start the app can read the last 7 days of SEP live | NASA CCMC |
 | Surface radiation | 0.64 mSv/day, Curiosity RAD | Hassler et al. (2014), *Science* 343; NASA/JPL-Caltech/SwRI |
 | Globe | Viking MDIM 2.1 colour mosaic | NASA/JPL/USGS |
 | 360° panorama | Mastcam mosaic PIA26696, sols 4714–4741 | NASA/JPL-Caltech/MSSS |
@@ -82,7 +82,7 @@ How the terrain was checked: the slopes of the Mars Trek DEM differ from Curiosi
 
 - **No sand map.** At 1 m the elevation model does not show the sandy boxwork hollows, so the app treats the whole square as rock. The app does not say this on screen; `site.json` and DATA.md do.
 - **Small obstacles are not seen.** The route grid is about 3.9 m; rocks and steps smaller than that do not appear (on screen: "Rocks under about 4 m are not on this map").
-- **Weather is old and stored.** The card shows the latest REMS report available when the data was built: sol 4995 (Earth date 2026-08-25), 78 sols old on 14 Nov 2026, and it says so. Nothing is downloaded when the app runs.
+- **Weather is old and stored.** The card shows the latest REMS report available when the data was built: sol 4995 (Earth date 2026-08-25), 78 sols old on 14 Nov 2026, the day the data was built; the card keeps reading "78 sols old" on later days. The weather report is never downloaded when the app runs; only the space-weather line can be read live at start (see the current conditions card above).
 - **The habitat is a proposal.** Its position (on Curiosity's own path, its sol 4580 position) was chosen by the team; there is no habitat there.
 - **The walking pace is from Earth.** Tobler's hiking function was measured on Earth without a suit; plan B has no suit metabolic model, no sand and no gravity term.
 - **Absolute heights** of the Mars Trek DEM read about 17 m higher than the USGS DEM and the rover; slopes, routes and times do not depend on that offset.
