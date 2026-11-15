@@ -173,18 +173,10 @@
       // Defense laptop only, Spanish only: the AI illustration kept outside the repository (img/local/, in .gitignore),
       // marked on the image itself, with the app's visor texts and the plan's numbers drawn over it. Without the file,
       // or in English (the version for NASA), the closing is the Gale scene alone.
-      var local = lang === 'es' && astroLocal.ok, v = map, hud = '';
+      var local = lang === 'es' && astroLocal.ok, hud = '';
       if (local) {
         hud = '<div class="astro-wrap"><img class="astro-real" src="' + ASTRO_LOCAL + '" alt=""><span class="ai-mark">Ilustración hecha con IA</span></div>' +
-          '<div class="astro-shadow"></div>' +
-          '<div class="hud">' +
-            '<div class="hud-card hud-verdict"><b>&#10003; VIABLE</b><span>' + esc(v.total) + ' · ' + esc(v.km) + '</span></div>' +
-            '<div class="hud-card"><span class="k">O2</span><div class="bar"><i style="width:' + esc(v.usedPct) + '%"></i><em style="left:' + (100 - 100 * M.RESERVE_LITERS / M.TANK_LITERS).toFixed(1) + '%"></em></div>' +
-              '<span>' + esc(v.usedPct) + ' % del tanque · spare O2 ' + esc(v.spareL) + ' L</span></div>' +
-            '<div class="hud-card"><span class="k">back to habitat (estimate)</span><b class="ok">' + esc(v.farStopMin) + ' min</b><span>desde la parada más lejana</span></div>' +
-            '<div class="hud-card"><span class="k">NEXT</span><b><i class="dot"></i>Habitat</b><span>la luz verde</span></div>' +
-            '<div class="hud-foot">ESTIMATE · not the walking model yet</div>' +
-          '</div>';
+          '<div class="astro-shadow"></div>';
       }
       return '<div class="scrim-top"></div><div class="scrim-foot"></div>' + hud + '<div class="top"><div class="tag">' + T(t.tag) + '</div>' + titleHtml(t) +
         '<div class="brandline"><span class="brand">' + T(t.brand) + '</span><span class="motto">' + T(t.sub) + '</span></div>' +

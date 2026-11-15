@@ -76,9 +76,10 @@ window.WALKBACK_CONTENT = {
       es: { tag: 'Un km² real de Gale · Meta Quest 3', title: 'Explorar no es ir lejos.', titleAccent: 'Es saber hasta dónde.',
             big: [['{km}', 'ida y vuelta'], ['{total}', 'caminata y trabajo'], ['{usedPct} %', 'del oxígeno']],
             estimate: 'ESTIMADO',
-            legend: ['Ámbar: la ruta del plan', 'Rayado: pendiente de más de {limit}°', 'Verde: el hábitat'],
+            // Defensa: la leyenda se dice en voz alta ("lo rayado no se pisa"); la versión en inglés, que se lee, la muestra.
+            legend: [],
             // Las dos fases de Walkback. La primera se enciende: esta lámina es la de planificar.
-            phases: [['1', 'PLANIFICAR', 'en la mesa: ruta, oxígeno, veredicto'], ['2', 'EXPLORAR', 'en el terreno, a escala real']],
+            phases: [['1', 'PLANIFICAR', 'en la mesa'], ['2', 'EXPLORAR', 'en el terreno, a escala real']],
             credit: 'Relieve HiRISE 1 m: NASA Mars Trek · foto HiRISE: USGS / NASA/JPL/University of Arizona',
             dice: 'Explorar no es ir lejos: es saber hasta dónde. Walkback tiene dos fases: planificar en la mesa y explorar en el terreno. Esto es un kilómetro cuadrado real del cráter Gale, con relieve y foto de HiRISE, y cuatro sitios donde perforó Curiosity. Lo rayado es pendiente de más de veinte grados: no se pisa. La app arma la ida y la vuelta: un kilómetro ochocientos, dos horas cincuenta y cinco, treinta y seis por ciento del oxígeno. Estimado, y la app lo dice.' },
       en: { tag: 'One real km² of Gale · Meta Quest 3', title: 'Exploring is not going far.', titleAccent: 'It is knowing how far.',
@@ -112,14 +113,14 @@ window.WALKBACK_CONTENT = {
       id: 'evidence', scene: 'gale', pose: 'evidence', segundos: 30,
       es: { tag: 'Por qué creernos', title: 'Terreno comprobado', titleAccent: 'contra el propio Curiosity.',
             big: [['{demMeters} m', 'relieve HiRISE'], ['{positions}', 'posiciones de Curiosity'], ['{slopeMeanDiff}', 'diferencia media de pendiente']],
-            lines: ['Oxígeno y tiempo: estimados, y la app lo dice.'],
-            legend: ['Celeste: las {positions} posiciones de Curiosity', 'Rayado: pendiente de más de {limit}°'],
+            // Defensa: menos texto; lo que sale de acá se dice en voz alta. La versión en inglés lo muestra todo.
+            lines: [],
+            legend: [],
             // De dónde sale cada dato. El tercer valor 'live' marca el único que la app consulta al abrir (NASA DONKI);
             // todo lo demás viaja guardado en la app. El clima no entra en la cuenta del oxígeno.
             sourcesTitle: 'De dónde salen los datos',
-            sources: [['Relieve {demMeters} m y foto {photoCm} cm · HiRISE', 'guardado'], ['{positions} posiciones de Curiosity', 'guardado'],
-                      ['Cuatro paradas · blog de Curiosity', 'guardado'], ['Clima: último reporte de Curiosity (REMS)', 'guardado'],
-                      ['Clima espacial · NASA DONKI', 'se consulta al abrir', 'live']],
+            sources: [['Relieve y foto · HiRISE', 'guardado'], ['{positions} posiciones · Curiosity', 'guardado'],
+                      ['Clima · último reporte de Curiosity', 'guardado'], ['Clima espacial · NASA DONKI', 'se consulta al abrir', 'live']],
             sourcesNote: 'El clima no entra en la cuenta del oxígeno.',
             credit: 'DATA.md · r = {slopeR}, diferencia máxima {slopeMax} · prueba automática de la app: {tests}',
             dice: '¿Por qué creernos? El terreno no lo inventamos: el relieve es de HiRISE, a un metro, y lo comparamos con el sensor de inclinación del propio Curiosity en ochenta y cinco posiciones. La diferencia media es de dos grados. Todo sale de datos públicos de la NASA, y el clima espacial se consulta al abrir. El oxígeno y el tiempo son estimaciones, y la app lo dice en pantalla. (Rocas chicas y arena: solo si preguntan.)' },
@@ -146,9 +147,10 @@ window.WALKBACK_CONTENT = {
             // Hoy y el próximo paso. La fila de abajo NO está hecha: se dice así en la lámina y en voz alta.
             flow: [['HOY', 'funciona', 'Datos de la NASA + regla', 'Ruta, veredicto, vuelta', 'Visor: Quest 3'],
                    ['PRÓXIMO PASO', 'no está hecho', 'Telemetría del traje', 'Misma regla, sin estimar', 'Visor del casco']],
-            next: 'Hoy Walkback no lee telemetría de ningún traje: es el tipo de problema que plantea el desafío NASA SUITS. Hoy el Quest 3 hace de visor del casco.',
+            // Defensa: esta frase se dice en voz alta; la fila de abajo del diagrama ya dice "no está hecho". En inglés se muestra.
+            next: '',
             credit: 'Gale, de Campo Marte al hábitat · relieve HiRISE 1 m: NASA Mars Trek · foto HiRISE: USGS / NASA/JPL/University of Arizona · ruta del plan: ESTIMADO · proyecto hecho con ayuda de IA, declarado en AI_USAGE.md',
-            creditLocal: 'Astronauta: ilustración hecha con IA, solo para esta defensa (no está en el repositorio) · visor: textos y números de la app (ESTIMADO) · Gale: relieve HiRISE 1 m, NASA Mars Trek; foto HiRISE, USGS / NASA/JPL/University of Arizona · IA declarada en AI_USAGE.md',
+            creditLocal: 'Astronauta: ilustración hecha con IA, solo para esta defensa (no está en el repositorio) · ruta del plan: ESTIMADO · Gale: relieve HiRISE 1 m, NASA Mars Trek; foto HiRISE, USGS / NASA/JPL/University of Arizona · IA declarada en AI_USAGE.md',
             dice: 'Walkback convierte una pregunta de vida o muerte en un color: verde, seguís; rojo, volvés. El astronauta no va a llevar un Quest: el producto es el software, y el visor puede ser el del casco. El próximo paso es leer la telemetría del traje, el tipo de problema que plantea el desafío NASA SUITS, en lugar de estimarla. Somos MARSXR, de Santa Cruz. Porque volver también es parte de la misión. Gracias. (Últimos 5 s: el QR en pantalla, sin hablar.)' },
       en: { tag: 'MARSXR · NASA Space Apps 2026', title: 'Because coming back', titleAccent: 'is part of the mission.',
             brand: 'Walkback', sub: '', qr: 'github.com/kendal-dev/Walkback',
