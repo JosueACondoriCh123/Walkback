@@ -129,6 +129,10 @@ namespace Walkback.EditorTools
             // The heading point rides on the "you" dot: a triangle in front of it, toward where the astronaut looks
             // (dot + point read as one pointer; it was a thin bar before).
             map.youHeading = HudTriangle("Heading", map.you, live, new Vector3(0f, 0.45f, 0f), 1.15f, 0.95f);
+            // A dark rim behind the mark, 2 mm all around: cyan alone fades on the bright sand of the photo.
+            // The point's rim is its child, so it hides with it inside a 360° photo (there "you" is a dot).
+            HudQuad("Outline", map.you, backPlate, new Vector3(0f, 0f, 0.0008f), new Vector3(1.3f, 1.3f, 1f));
+            HudTriangle("Outline", map.youHeading, backPlate, new Vector3(0f, -0.13f, 0.0008f), 1.61f, 1.33f);
             map.youHeading.gameObject.SetActive(false);
             map.scaleBar = HudQuad("ScaleBar", mapObject.transform, mark, new Vector3(0f, 0f, -0.003f), new Vector3(0.05f, 0.003f, 1f));
             map.stopMaterial = watch;

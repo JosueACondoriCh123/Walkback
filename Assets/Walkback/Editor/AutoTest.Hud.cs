@@ -253,6 +253,17 @@ namespace Walkback.EditorTools
                     else if (Mathf.Abs(v.y - top) <= 0.00001f) tips++;
                 }
             bool onPlate = reach > 0.02f && reach < 0.05f && tips == 1 && Mathf.Abs(tipX) < 0.00001f;
+
+            // The mini map's "you": a dark rim behind the dot and behind the point, a little bigger than each.
+            Transform you = hud.miniMap != null ? hud.miniMap.you : null;
+            Transform dotRim = you != null ? you.Find("Outline") : null;
+            Transform pointRim = point != null ? point.transform.Find("Outline") : null;
+            MeshRenderer youRenderer = you != null ? you.GetComponent<MeshRenderer>() : null;
+            bool rim = dotRim != null && pointRim != null && youRenderer != null && dotRim.localPosition.z > 0f && pointRim.localPosition.z > 0f &&
+                dotRim.localScale.x >= 1.2f && dotRim.localScale.x <= 1.5f && pointRim.GetComponent<MeshFilter>() != null && MeshFacing(pointRim.GetComponent<MeshFilter>().sharedMesh) == quadFacing &&
+                dotRim.GetComponent<MeshRenderer>().sharedMaterial != youRenderer.sharedMaterial && pointRim.GetComponent<MeshRenderer>().sharedMaterial != youRenderer.sharedMaterial;
+            Check("HUD: the mini map's \"you\" (dot and point) has a dark rim behind it, so it reads on the bright parts of the photo", rim,
+                dotRim != null && pointRim != null ? "rim " + ((dotRim.localScale.x - 1f) / 2f * hud.miniMap.you.localScale.x * 1000f).ToString("F1") + " mm around the dot" : "no rim");
             Check("HUD: the arrow to the next stop and the mini map's point are wound like Unity's quad (seen from the visor's side); the arrow points up and stays on its plate at any turn",
                 arrowFaces && pointFaces && onPlate,
                 "arrow " + arrowFaces + ", point " + pointFaces + ", arrow reaches " + (reach * 1000f).ToString("F0") + " mm from the middle of a 100 mm plate");
