@@ -69,3 +69,6 @@ desktop.ini
 # Meta Immersive Debugger settings: the SDK writes an access token into it on every open
 Assets/Resources/DevAgentSettings.asset
 Assets/Resources/DevAgentSettings.asset.meta
+
+# Command-line builds (Walkback > Build APK): the APK and Burst debug info
+/Builds/
