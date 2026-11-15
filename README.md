@@ -20,7 +20,7 @@ Built by team MARSXR for the NASA International Space Apps Challenge 2026, Santa
 - **WHAT IF.** The left stick click (or key F) re-plans with the tank at 15 %, then at 8 %, then back at 100 %. The verdict changes and the RETURN layer paints red the ground you can no longer walk back from. On this site (ESTIMATE): at 15 % the verdict is NOT VIABLE but nothing is red yet; at 8 %, 57.5 % of the ground that has a way back on foot is red.
 - **Globe and 360° photo.** A Mars globe (Viking colour mosaic) to land on the site, and Curiosity's Mastcam 360° panorama at Nevado Sajama (the 360° PHOTO button on that stop's card; the other three stops have no panorama and their cards say so).
 - **Helmet visor (HUD):** compass tape, heading, an arrow to the next stop, an oxygen bar with the reserve mark, minutes back to the habitat in green / amber / red, a two-beep alert when TURN BACK NOW comes on, a 2D corner map and a 3D wrist map that can be left in the air (X).
-- **Mission mode:** START MISSION on the verdict card takes you onto Mars at 1:1 scale (the same terrain mesh and photo), with the route on the ground, a pillar and an arrival card at each stop, jumps to the next stop (NEXT STOP sign, or left grip) and a room view (the visor and the route over the real floor). *Built and covered by the automatic test; not yet confirmed in the headset (see the status table).*
+- **Mission mode:** START MISSION on the verdict card takes you onto Mars at 1:1 scale (the same terrain mesh and photo), with the route on the ground, a pillar and an arrival card at each stop, jumps to the next stop (NEXT STOP sign, or left grip) and a room view (the visor and the route over the real floor). *Run in the headset on 15 Nov 2026: Mars at 1:1 at 72 fps, the room view and the way back to the table. Jumps between stops, the arrival card and TURN BACK NOW were not yet tried there (see the status table).*
 - **Current conditions card.** The latest Curiosity REMS weather report (sol 4995, Earth date 2026-08-25), season, daylight, surface radiation and the week's space weather, each with its source and date. The card is stored in the app. One line can be newer: at start, if the headset has internet, the app asks NASA DONKI once for the solar particle events of the last 7 days (public DEMO_KEY, 4 s limit) and marks that line "(live)" with the time of the check; with no usable answer it keeps the stored line, marked "(stored in the app)". The weather report is never downloaded live, and **nothing on this card feeds the oxygen estimate.**
 
 ### Every number is an estimate
@@ -46,14 +46,17 @@ How plan B works: each leg is the fastest way over the relief (Dijkstra on the e
 
 | Piece | Automatic test (no headset) | Seen in the Quest 3 |
 |---|---|---|
-| Gale terrain and the four layers | Passes | Yes (14 Nov, earlier build, 72 fps) |
-| Pointer, table, globe and jump into the 360° photo | Passes | Yes (14 Nov, earlier build, 72 fps) |
-| Verdict board and charts | Passes | Yes (14 Nov, earlier build); the START MISSION button: not yet |
-| Helmet HUD, corner map, wrist map left in the air | Passes | Yes, inside the 360° photo; in mission mode: not yet |
-| Route over the relief (plan B) | Passes | Not yet |
-| Mission mode (Mars at 1:1, jumps, room view) | Passes | **Not yet** |
+| Gale terrain and the four layers | Passes | Yes (15 Nov, the release candidate build, 72 fps) |
+| Pointer, table, globe and jump into the 360° photo | Passes | Yes (15 Nov, 72 fps, with hand tracking) |
+| Verdict board and charts, START MISSION | Passes | Yes (15 Nov) |
+| Route over the relief (plan B) | Passes | Yes, on the table (15 Nov) |
+| Helmet HUD, corner map, wrist map left in the air | Passes | Yes inside the 360° photo (15 Nov: its numbers matched the plan's); in mission mode it is on screen, its details not yet checked |
+| Mission mode (Mars at 1:1, room view, back to the table) | Passes | Yes (15 Nov: entered twice, 72 fps on Mars) |
+| Jumps between stops, arrival card, TURN BACK NOW | Passes | Not yet |
+| WHAT IF (tank at 15 % and 8 %) | Passes | Not yet in this build (it needs the controllers); seen on 14 Nov with an earlier build |
+| Current conditions card | Passes | Yes: the space-weather line was read from NASA DONKI at start and marked "(live)" (15 Nov, 03:28 local time) |
 
-This table is what the team saw up to the evening of 14 Nov (the 18:26 build). The builds made after it (later layout and mission-mode fixes) had not been confirmed in the headset when this file was written.
+This table is what the team saw on 15 Nov between 03:28 and 03:54 (local time) with the build of 01:37, the candidate for the release, read from the app's own log. With the controllers still to try: the WHAT IF in this build, the jumps, the arrival card, RECENTER, the menu button and TURN BACK NOW.
 
 ---
 
