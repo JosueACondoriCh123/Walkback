@@ -1,7 +1,7 @@
 # Written with Claude Code (AI), directed and tested by team MARSXR
 # Runs the automatic test inside the OPEN Unity editor, one caller at a time (a lock folder in Temp/).
 # Usage (from anywhere):
-#   powershell -NoProfile -ExecutionPolicy Bypass -File C:\Users\kevin\walkback-NASA-Space-Apps\Tools\run-autotest.ps1
+#   powershell -NoProfile -ExecutionPolicy Bypass -File <project>\Tools\run-autotest.ps1
 # Prints compile errors that appeared during the run (if any), then TestOutput/report.txt.
 # Exit code: 0 = PASS, 1 = FAIL, 2 = busy, timeout or Unity not open.
 # With Unity closed use the batchmode command in CLAUDE.md instead.
