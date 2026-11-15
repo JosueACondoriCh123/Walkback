@@ -1,0 +1,214 @@
+Walkback
+Copyright 2026 Team MARSXR
+
+Licensed under the Apache License, Version 2.0 (see LICENSE).
+
+This product was built for the NASA International Space Apps Challenge 2026
+(Santa Cruz, Bolivia, local event). Its code was written with AI assistance
+(Claude Code): see AI_USAGE.md.
+
+NASA does not endorse this project. NASA imagery and data are used under
+NASA's media usage guidelines; no NASA logo or insignia is used.
+
+The Apache License covers the team's own code and files only. The data,
+packages and assets below keep their own terms and credits.
+
+
+==========================================================================
+1. NASA and USGS data shipped with the app (Assets/StreamingAssets/Site/)
+==========================================================================
+
+Details, download commands and checks: DATA.md. The same credits are in
+site.json, stops.json and conditions.json and are shown in the app.
+
+heightmap.r16
+  MRO HiRISE Gale Crater DEM 1 m (Gale_DEM_SMG_1m), NASA Mars Trek.
+  Credit: NASA/JPL Mars Trek, MRO HiRISE Gale Crater DEM 1 m;
+  HiRISE images NASA/JPL/University of Arizona.
+
+ortho.jpg
+  MSL Gale Merged Orthophoto Mosaic 25 cm v3.
+  Credit: Calef and Parker (2016), MSL Gale Merged Orthophoto Mosaic v3,
+  USGS Astrogeology; HiRISE images NASA/JPL/University of Arizona.
+
+photoTint (in site.json)
+  Median ground colour of Curiosity's Mastcam 360-degree mosaic at
+  Nevado Sajama (PIA26696).
+  Credit: NASA/JPL-Caltech/MSSS.
+
+curiosity_traverse.json
+  MSL waypoints (85 rover positions, sols 4548 to 4914).
+  Credit: NASA/JPL-Caltech.
+
+mars_global.jpg
+  Viking MDIM 2.1 colour mosaic, resized to 4096 x 2048.
+  Credit: NASA/JPL/USGS.
+
+panorama_PIA26696.jpg
+  Mastcam 360-degree mosaic PIA26696, sols 4714-4741 (Nevado Sajama).
+  Credit: NASA/JPL-Caltech/MSSS.
+
+stops.json (stop names, positions and science lines)
+  NASA Curiosity blog: sols 4568-4569, 4695-4701, 4716-4722, 4893-4899
+  and 4900-4907. Positions from the MSL waypoints.
+  Credit: NASA/JPL-Caltech.
+
+stops.json (task minutes)
+  Proposed by the team from NASA/TP-2017-219457, table 30.
+  Credit: NASA.
+
+conditions.json (weather)
+  Curiosity REMS weather feed, sol 4995.
+  Credit: NASA/JPL-Caltech/CAB (CSIC-INTA).
+
+conditions.json (space weather)
+  NASA DONKI: SEP, GST and CME, 7-14 Nov 2026.
+  Credit: NASA CCMC.
+
+conditions.json (surface radiation)
+  0.64 mSv/day, Curiosity RAD.
+  Credit: Hassler et al. (2014), Science 343; NASA/JPL-Caltech/SwRI.
+
+sand.png
+  Not NASA data: all zero (no sand map), made by the team.
+
+Used to check the data, not shipped:
+  MSL Gale Merged DEM 1 m v3. Credit: Parker and Calef (2016), USGS
+  Astrogeology.
+
+HiRISE credit as written in site.json: "NASA/JPL/University of Arizona"
+(the HiRISE team's current form is "NASA/JPL-Caltech/UArizona"; both
+name the same institutions).
+
+
+==========================================================================
+2. NASA 3D models (Assets/Walkback/Models3D/, stored with Git LFS)
+==========================================================================
+
+Astronaut.glb       NASA 3D Resources, science.nasa.gov/3d-resources/astronaut/
+Perseverance.glb    NASA 3D Resources,
+                    science.nasa.gov/3d-resources/mars-2020-perseverance-rover/
+
+Listed as public domain in DATA.md. The app does not show them today
+(they need the glTFast package, not installed).
+Credit: NASA 3D Resources (see each model's page).
+
+
+==========================================================================
+3. Walking and oxygen model (plan B, labelled ESTIMATE on screen)
+==========================================================================
+
+Every walking and oxygen number in the app is labelled:
+  "ESTIMATE: plan B over the relief, not the walking model yet"
+
+Constants used (Assets/Walkback/App/ReturnStandIn.cs, HudEstimate.cs,
+TerrainLayers.cs, ReturnFallback.cs):
+
+  Slope pace           Tobler's hiking function, normalised to 1 on flat
+                       ground. Function: Tobler, W. (1993), "Three
+                       presentations on geographical analysis and
+                       modeling", NCGIA Technical Report 93-1 (cited in
+                       ReturnFallback.cs). Measured on Earth, without a
+                       suit.
+  Flat-ground pace     19.3 min/km. The code calls it the walking model's
+                       own test number ("ficha A").
+  Slope limit          20 degrees, no step on steeper ground.
+  Oxygen walking       20 L of O2 per km on flat ground.
+  Tank                 497 L of O2.
+  Reserve              31 L (30 min), never touched.
+  Design duration      480 min for the full tank (351 W design rate,
+                       per the code comment).
+  Task minutes         Proposed from NASA/TP-2017-219457, table 30 (see 1).
+
+  Except Tobler's function and the task minutes, these constants come
+  from the team's model notes ("ficha A"); their published sources are
+  not written in this repository yet. They are the prototype's settings,
+  not validated figures for a suited astronaut, and the app labels every
+  number made with them ESTIMATE.
+
+
+==========================================================================
+4. Third-party packages (Packages/manifest.json)
+==========================================================================
+
+None of these packages is copied into the repository: the manifest names
+them and Unity downloads them. They are compiled into the APK.
+
+Licenses as written in each package's own LICENSE file (read from the
+Unity package cache on 15 Nov 2026):
+
+Meta XR SDK 209.0.0: Core SDK, MR Utility Kit, Audio, Haptics,
+Interaction, Interaction OVR
+  Copyright (c) Meta Platforms, Inc. and affiliates. All rights reserved.
+  Oculus SDK License Agreement (proprietary, free to use).
+Meta XR Platform SDK 209.0.0 and Meta XR Voice SDK 85.0.1
+  Copyright Meta Platform Technologies, LLC and its affiliates.
+  Meta Platform Technologies SDK License Agreement.
+(MR Utility Kit and the Voice SDK are in the manifest; the app's own
+scripts do not call them.)
+
+Unity 6000.4.6f1 (editor, runtime and the built-in com.unity.modules.*)
+  Unity Terms of Service.
+
+Unity Companion License: OpenXR Plugin 1.16.1 (its source code), XR
+Management, Input System 1.19.0, Universal Render Pipeline 17.4.0 and
+Render Pipelines Core, Shader Graph, uGUI, Timeline, AI Navigation, Test
+Framework, Burst, Mathematics, Collections, XR Core Utils, XR Legacy
+Input Helpers, Editor Coroutines, Settings Manager, Searcher, Profile
+Analyzer, Code Coverage, Performance Testing, and Unity's packaging of
+Newtonsoft Json and Mono.Cecil.
+
+Unity Package Distribution License: Collab Proxy (Unity Version
+Control), Visual Scripting, Multiplayer Center, XR Hands, and Unity's
+custom NUnit.
+
+MIT License: IDE Rider integration (JetBrains Rider Editor).
+IDE Visual Studio integration: copyright Unity Technologies and
+Microsoft Corporation, as in its LICENSE file.
+Feature Development 1.0.2 and TextMeshPro: no LICENSE file in the
+package (Feature Development only groups other packages).
+
+
+==========================================================================
+5. Font, sounds and other assets in the app
+==========================================================================
+
+Font        Unity's built-in font (LegacyRuntime.ttf); no font file in the
+            repository.
+Sounds      Generated by code at run time (AudioClip.Create); no sound
+            files.
+Shaders, materials, scene
+            Made by the team (the scene is generated by code).
+Data tools (not redistributed)
+            GDAL 3.13.3 / QGIS 3.44.15, Python, ffmpeg, scrcpy.
+
+
+==========================================================================
+6. The presentation (pitch/presentacion/)
+==========================================================================
+
+NASA images in the slides: Curiosity Mastcam PIA26696
+(NASA/JPL-Caltech/MSSS); HiRISE (NASA/JPL/University of Arizona, NASA
+Mars Trek, USGS); Viking MDIM 2.1 (NASA/JPL/USGS).
+
+Closing-slide astronaut: AI-generated illustration (ART_CREDITS.md,
+img/astronaut-realistic.png, data/astronaut-realistic.js); a discarded
+AI-generated walk atlas, its video and two GIFs are kept in the folder
+(WALK_ANIMATION.md, img/astronaut-walk-atlas.png, data/astronaut-walk.js,
+media/astronaut-walking.mp4, Cierre-animado.gif, Cierre-caminando.gif).
+Not NASA imagery.
+
+Screenshots of the app: Team MARSXR.
+
+Inter font                  Copyright 2016 The Inter Project Authors.
+                            SIL Open Font License 1.1 (fonts/LICENSE.txt).
+three.js (three.min.js)     Copyright 2010-2021 Three.js Authors. MIT
+                            License.
+GLTFLoader.js,
+DRACOLoader.js              From three.js (r128, the version three.min.js
+                            names), MIT License, Copyright 2010-2021
+                            Three.js Authors. These two files carry no
+                            license header of their own; this notice
+                            covers them.
+Draco decoder               Copyright The Draco Authors (Google).
+                            Apache License 2.0 (draco_decoder_inline.js).
