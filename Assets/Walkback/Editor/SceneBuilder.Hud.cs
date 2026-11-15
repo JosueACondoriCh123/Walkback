@@ -28,11 +28,12 @@ namespace Walkback.EditorTools
             content.SetParent(root.transform, false);
             hud.content = content;
 
-            // The four corners sit a little farther from the middle than before (0.37 m to each side at 1.2 m,
-            // 17°), so the middle of the view stays clear; every card's center is within 20° of it.
-            hud.oxygenCard = Card(content, "Oxygen", 320f, 150f, new[] { 60, 24 }, new[] { WalkbackTheme.Safe, soft }, backPlate, ui, new Vector3(-0.37f, 0.23f, 0f));
-            hud.returnCard = Card(content, "Return", 340f, 150f, new[] { 56, 22, 22 }, new[] { WalkbackTheme.Safe, soft, text }, backPlate, ui, new Vector3(0.38f, 0.23f, 0f));
-            hud.nextCard = Card(content, "Next", 440f, 140f, new[] { 30, 24, 22 }, new[] { WalkbackTheme.Watch, text, soft }, backPlate, ui, new Vector3(-0.34f, -0.17f, 0f));
+            // The four corners sit out at the edges (0.50 m to each side at 1.2 m, about 23°; they were at 0.37 m
+            // and the visor read as one block around the pillar): the middle of the view stays open for Mars,
+            // the pillar and the route. Every card's center is within 26° of the middle.
+            hud.oxygenCard = Card(content, "Oxygen", 320f, 150f, new[] { 60, 24 }, new[] { WalkbackTheme.Safe, soft }, backPlate, ui, new Vector3(-0.50f, 0.24f, 0f));
+            hud.returnCard = Card(content, "Return", 340f, 150f, new[] { 56, 22, 22 }, new[] { WalkbackTheme.Safe, soft, text }, backPlate, ui, new Vector3(0.51f, 0.24f, 0f));
+            hud.nextCard = Card(content, "Next", 440f, 140f, new[] { 30, 24, 22 }, new[] { WalkbackTheme.Watch, text, soft }, backPlate, ui, new Vector3(-0.47f, -0.19f, 0f));
             hud.estimateTag = Card(content, "Estimate", 760f, 42f, new[] { 20 }, new[] { WalkbackTheme.Watch }, backPlate, ui, HelmetHud.EstimateAbove);
             hud.warningCard = Card(content, "TurnBack", 560f, 96f, new[] { 56 }, new[] { WalkbackTheme.Danger }, backPlate, ui, new Vector3(0f, 0.10f, 0f));
             foreach (var card in new[] { hud.oxygenCard, hud.returnCard, hud.nextCard, hud.estimateTag, hud.warningCard })
@@ -103,7 +104,7 @@ namespace Walkback.EditorTools
             // head on a shaft), turning about the plate's center. It was three loose bars before.
             var arrowPlate = new GameObject("NextArrow").transform;
             arrowPlate.SetParent(content, false);
-            arrowPlate.localPosition = new Vector3(-0.06f, -0.17f, 0f);
+            arrowPlate.localPosition = new Vector3(-0.18f, -0.19f, 0f);   // right against the NEXT card
             HudQuad("Plate", arrowPlate, backPlate, new Vector3(0f, 0f, 0.002f), new Vector3(0.10f, 0.10f, 1f));
             var arrow = new GameObject("Arrow").transform;
             arrow.SetParent(arrowPlate, false);
@@ -116,7 +117,7 @@ namespace Walkback.EditorTools
             // The 2D map in the bottom-right corner.
             var mapObject = new GameObject("MiniMap");
             mapObject.transform.SetParent(content, false);
-            mapObject.transform.localPosition = new Vector3(0.34f, -0.09f, 0f);
+            mapObject.transform.localPosition = new Vector3(0.49f, -0.13f, 0f);
             var map = mapObject.AddComponent<MiniMap>();
             float s = MiniMap.SizeMeters;
             HudQuad("Frame", mapObject.transform, backPlate, new Vector3(0f, 0f, 0.002f), new Vector3(s + 0.012f, s + 0.012f, 1f));

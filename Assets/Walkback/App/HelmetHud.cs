@@ -22,7 +22,7 @@ namespace Walkback
         /// </summary>
         public const string EstimateLine = "ESTIMATE · not the walking model yet";
         /// <summary>The estimate line's place inside a 360° photo: above the cards (the photo's own card is below).</summary>
-        public static readonly Vector3 EstimateAbove = new Vector3(0f, 0.33f, 0f);
+        public static readonly Vector3 EstimateAbove = new Vector3(0f, 0.345f, 0f);
         /// <summary>
         /// Its place in mission mode: below the cards. The next stop's name stands 3.35 m up on its pillar,
         /// so while walking it is always above the horizon; a line above the cards crossed it between
@@ -81,7 +81,7 @@ namespace Walkback
         {
             if (noWayBack) return "no way back on foot";
             if (state == HudEstimate.ReturnState.NotCovered) return "short by " + MinutesText(-marginMinutes);
-            return "O2 margin " + MinutesText(marginMinutes);
+            return "spare O2 " + MinutesText(marginMinutes);
         }
 
         void SetOxygen(float percentLeft)

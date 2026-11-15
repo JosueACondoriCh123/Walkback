@@ -104,7 +104,7 @@ namespace Walkback.EditorTools
                     (barLength * 1000f).ToString("F0") + " mm of " + (HelmetHud.OxygenBarMeters * 1000f).ToString("F0") + " mm for " + hud.Current.oxygenLeftPercent.ToString("F0") + " %");
                 Check("HUD: the minutes back are green, amber or red by the oxygen margin, and the margin is under them",
                     hud.returnCard.lines[0].color == HelmetHud.ReturnColor(hud.Current.returnState) && hud.Current.returnState == HudEstimate.ReturnState.Covered &&
-                    hud.returnCard.lines[2].text == HelmetHud.MarginText(hud.Current.returnState, hud.Current.marginMinutes, false) && hud.returnCard.lines[2].text.StartsWith("O2 margin"),
+                    hud.returnCard.lines[2].text == HelmetHud.MarginText(hud.Current.returnState, hud.Current.marginMinutes, false) && hud.returnCard.lines[2].text.StartsWith("spare O2"),
                     hud.returnCard.lines[0].text + " | " + hud.returnCard.lines[2].text);
                 float climb = RouteGeometry.HeightAt(site, hud.Current.nextPoint.x, hud.Current.nextPoint.y) - RouteGeometry.HeightAt(site, stopInfo.x, stopInfo.y);
                 Check("HUD: the next card says the height difference to the next stop, from the relief",
@@ -133,7 +133,7 @@ namespace Walkback.EditorTools
             worst = Mathf.Max(worst, Vector3.Angle(cam.transform.forward, hud.miniMap.transform.position - eye));
             foreach (var extra in new[] { hud.compass.transform, hud.headingCard.transform, hud.arrowPlate })
                 worst = Mathf.Max(worst, Vector3.Angle(cam.transform.forward, extra.position - eye));
-            Check("HUD: everything within 25° of the center of the view (the compass and the arrow too)", worst < 25f, worst.ToString("F1") + "° worst");
+            Check("HUD: everything within 26° of the center of the view (the compass and the arrow too)", worst < 26f, worst.ToString("F1") + "° worst");
             // The data is spread out: no two boxes of the visor overlap, and the very middle stays clear.
             {
                 bool middleClear;
@@ -279,7 +279,7 @@ namespace Walkback.EditorTools
                 (HudEstimate.StateOf(39f, 40f) == HudEstimate.ReturnState.NotCovered) == HudEstimate.TurnBack(HudEstimate.TankLiters - HudEstimate.ReserveLiters - 39f, 40f));
             Check("HUD: the oxygen margin is the walking minutes left after the way back (negative when short)",
                 Mathf.Abs(HudEstimate.MarginMinutes(100f, 40f) - 60f / rate) < 0.01f && HudEstimate.MarginMinutes(30f, 40f) < 0f &&
-                HelmetHud.MarginText(HudEstimate.ReturnState.Covered, 125f, false) == "O2 margin 2 h 5 min" &&
+                HelmetHud.MarginText(HudEstimate.ReturnState.Covered, 125f, false) == "spare O2 2 h 5 min" &&
                 HelmetHud.MarginText(HudEstimate.ReturnState.NotCovered, -6f, false) == "short by 6 min" &&
                 HelmetHud.MarginText(HudEstimate.ReturnState.NotCovered, 0f, true) == "no way back on foot",
                 HelmetHud.MarginText(HudEstimate.ReturnState.Covered, 125f, false));
