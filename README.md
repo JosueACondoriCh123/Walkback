@@ -2,12 +2,13 @@
 
 Abrir index.html con doble clic. Todos los recursos están incluidos; no requiere internet.
 
-5 láminas principales (3 minutos) y 2 anexos. Conserva el estilo y el terreno 3D de la rama pitch. El cierre conserva al astronauta estático y desplaza horizontalmente el plano visual; ver ART_CREDITS.md.
+6 láminas principales (3 minutos) y 2 anexos. Conserva el estilo y el terreno 3D de la rama pitch. El cierre conserva al astronauta estático y desplaza horizontalmente el plano visual; ver ART_CREDITS.md.
 
-- Flechas / espacio: navegar las 5 láminas principales.
+- Flechas / espacio: navegar las 6 láminas principales.
 - N: guion y notas. T: iniciar / reiniciar el reloj. F: pantalla completa.
 - A: abrir anexos / volver al inicio. Usa las flechas para recorrer los anexos.
-- En la lámina 3: D cambia la captura. P inicia / detiene la secuencia de 45 s.
+- En la lámina 3: D cambia la captura. P inicia / detiene la secuencia de referencias.
+- En la lámina 4: V permite cargar un video local para la demo de 45 segundos.
 
 La demo usa referencias del editor incluidas en el pitch original. Falta reemplazarlas por video del build actual comprobado en Quest. La tercera imagen no es un HUD. La ruta animada del pitch es ilustrativa, calculada por distancia: no se le atribuyen tiempos del cálculo provisional de la app. Los otros tres sitios se indican como pilares azules.
 

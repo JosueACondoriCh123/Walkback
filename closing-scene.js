@@ -50,6 +50,31 @@ window.createWalkbackAstronautScene = function (canvas, options) {
     map: texture, alphaTest: 0.04, side: THREE.DoubleSide });
   scene.add(astronaut);
 
+  // Original editor panels, shown ahead of the astronaut at human viewing scale.
+  // Cropping uses texture coordinates: the source screenshots remain unchanged.
+  let panelsLoaded = 0;
+  const panels = [];
+  function addPanel(name, crop, width, height, x, y, z, yaw) {
+    const source = window.WALKBACK_PANEL_TEXTURES?.[name];
+    if (!source) return;
+    const map = texFromDataUrl(source, () => {
+      panelsLoaded++;
+      needsRender = true;
+      if (panelsLoaded === 2) canvas.dataset.closingPanelsReady = 'true';
+    });
+    map.repeat.set(crop[2] / 1920, crop[3] / 1080);
+    map.offset.set(crop[0] / 1920, 1 - (crop[1] + crop[3]) / 1080);
+    const panel = new THREE.Mesh(new THREE.PlaneGeometry(width, height),
+      new THREE.MeshBasicMaterial({ map, toneMapped: false, side: THREE.DoubleSide }));
+    panel.position.set(x, y, z);
+    panel.rotation.y = yaw;
+    panel.frustumCulled = false;
+    panels.push(panel);
+    scene.add(panel);
+  }
+  addPanel('plan', [523,336,874,408], 1.58, 1.58*408/874, 1.10,1.48,-0.85,0.28);
+  addPanel('stops', [574,160,802,920], 0.94, 0.94*920/802, 3.52,1.43,-0.82,-0.22);
+
   const camera = new THREE.PerspectiveCamera(32, canvas.width / canvas.height, 0.1, 100);
   camera.position.set(0.3, 2.1, 8.6);
   camera.lookAt(0.2, 0.96, -10);
@@ -70,7 +95,7 @@ window.createWalkbackAstronautScene = function (canvas, options) {
   return {
     start() { t0 = performance.now() - offset; sampleTime = null; },
     seek(seconds) { sampleTime = seconds; },
-    inspect() { return { panX, position: astronaut.position.toArray(), rotation: astronaut.rotation.toArray().slice(0,3), video: false }; },
+    inspect() { return { panX, position: astronaut.position.toArray(), rotation: astronaut.rotation.toArray().slice(0,3), video: false, panels: panels.length, panelsLoaded }; },
     frame(now) {
       pan(sampleTime === null ? Math.max(0,(now - t0) / 1000) : sampleTime);
       if (needsRender) { renderer.render(scene, camera); needsRender = false; }

@@ -14,19 +14,30 @@ Walkback es un prototipo de planificación de caminatas en realidad mixta para M
 La animación ámbar es ilustrativa: conserva la ruta por distancia del pitch original. No atribuirle tiempos de la app, cuyo cálculo provisional optimiza tiempo.
 
 
-## 0:50–1:35 · Secuencia de demostración, 45 segundos
+## 0:50–1:00 · Presentar la decisión
 
-**0–15 s:** Primero vemos el recorrido y su veredicto estimado.
-**15–30 s:** Ahora reducimos el oxígeno disponible: el escenario muestra dónde deja de alcanzar para volver conservando la reserva.
-**30–45 s:** En modo misión, la ruta aparece sobre el suelo y el visor muestra el regreso estimado mientras avanzamos.
+El recorrido tiene un veredicto estimado. Ahora vamos a reducir el oxígeno disponible y observar qué cambia para el regreso. Veámoslo en la demo.
 ## Material de revisión
 
-Las imágenes son capturas del editor incluidas en el pitch original; no documentan la ejecución del WHAT IF ni el modo misión actual en Quest. La tercera es una vista de la ruta, no una captura del HUD. Reemplazar por una grabación de 45 segundos del build comprobado antes de defender. La secuencia es manual: D cambia la imagen; para ensayarla con cambios cada 15 segundos, pulsa P. Si se usa esta vista previa ante terceros, explicar la procedencia de las capturas.
+Esta lámina conserva las referencias del editor. La demo de 45 segundos se muestra en la lámina siguiente. D cambia la captura; P reproduce la secuencia de referencias. Los valores de las capturas son de prueba, no resultados validados de consumo humano.
 
 
-## 1:35–2:20 · Evidencia y límites
+## 1:00–1:45 · Mostrar la demo, 45 segundos
 
-La base es verificable: elevación de un metro, fotografías de aproximadamente veinticinco centímetros por píxel y paradas ubicadas con posiciones reales del rover. Contrastamos las pendientes con registros de Curiosity en ochenta y cinco posiciones. Esa comparación respalda el terreno, pero no valida el consumo humano de oxígeno. El cálculo actual es provisional y está identificado como estimación. Además, el relieve no resuelve todos los obstáculos ni los huecos con arena. Por eso el prototipo ayuda a evaluar decisiones y todavía necesita validación para un uso operativo.
+**0–15 s:** Primero vemos el recorrido y su veredicto estimado.
+**15–30 s:** Reducimos el oxígeno disponible y revisamos si todavía alcanza para el regreso conservando la reserva.
+**30–45 s:** Mostramos el paso al modo misión y el regreso estimado en el visor, únicamente si esa versión fue comprobada en Quest.
+## Operación
+
+Espacio de presentación para transmitir el Quest, compartir la ventana de la app o reproducir una grabación. La tecla V permite cargar un video local y reproducirlo dentro de esta lámina. Ningún video viene cargado de antemano. El video cargado permanece solo en este navegador; no se sube ni se agrega al repositorio.
+## Si se interrumpe
+
+Volver a la lámina anterior y explicar la decisión con sus capturas de referencia.
+
+
+## 1:45–2:20 · Evidencia y límites
+
+Trabajamos con relieve de HiRISE de un metro y fotografías de aproximadamente veinticinco centímetros por píxel. Las paradas proceden de posiciones reales de Curiosity y contrastamos las pendientes en ochenta y cinco posiciones. Esa comparación respalda el terreno; no valida el consumo humano de oxígeno. El cálculo sigue siendo provisional. Además, el relieve no resuelve todos los obstáculos ni los huecos con arena. Walkback ayuda a evaluar decisiones y todavía necesita validación para un uso operativo.
 ## Fuentes
 
 DATA.md; ReturnFallback.cs; MissionFallback.cs; HudEstimate.cs. El umbral de 20° es la configuración del prototipo, no una garantía de seguridad.
@@ -38,3 +49,6 @@ El objetivo es que un equipo pueda comparar salidas científicas y reconocer cu�
 ## 2:55–3:00
 
 Dejar el QR en pantalla. No añadir otra explicación.
+## Visual del cierre
+
+Vista ilustrativa en tercera persona del uso de Walkback. El astronauta y las ventanas permanecen quietos entre sí; solo se desplaza horizontalmente el plano completo. Las dos ventanas usan recortes de capturas originales del editor, con sus valores de prueba, y no representan una misión ni un HUD operativo validado.
