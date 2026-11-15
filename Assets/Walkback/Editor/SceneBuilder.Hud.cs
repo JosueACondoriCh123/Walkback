@@ -99,7 +99,8 @@ namespace Walkback.EditorTools
             hud.headingCard.SetLines(HudCompass.BearingText(0f));
             hud.headingCard.gameObject.SetActive(false);
 
-            // The arrow to the next stop, on its own plate right of the NEXT card: a shaft and two blades.
+            // The arrow to the next stop, on its own plate right of the NEXT card: one solid shape (a wide
+            // head on a shaft), turning about the plate's center. It was three loose bars before.
             var arrowPlate = new GameObject("NextArrow").transform;
             arrowPlate.SetParent(content, false);
             arrowPlate.localPosition = new Vector3(-0.06f, -0.17f, 0f);
@@ -107,11 +108,7 @@ namespace Walkback.EditorTools
             var arrow = new GameObject("Arrow").transform;
             arrow.SetParent(arrowPlate, false);
             arrow.localPosition = new Vector3(0f, 0f, -0.002f);
-            HudQuad("Shaft", arrow, watch, new Vector3(0f, -0.004f, 0f), new Vector3(0.012f, 0.064f, 1f));
-            Transform leftBlade = HudQuad("BladeLeft", arrow, watch, new Vector3(-0.0115f, 0.0225f, 0f), new Vector3(0.012f, 0.040f, 1f));
-            Transform rightBlade = HudQuad("BladeRight", arrow, watch, new Vector3(0.0115f, 0.0225f, 0f), new Vector3(0.012f, 0.040f, 1f));
-            leftBlade.localRotation = Quaternion.Euler(0f, 0f, -40f);
-            rightBlade.localRotation = Quaternion.Euler(0f, 0f, 40f);
+            HudArrow("Shape", arrow, watch, 0.078f, 0.036f, 0.062f, 0.020f);
             arrowPlate.gameObject.SetActive(false);
             hud.arrowPlate = arrowPlate;
             hud.arrow = arrow;
@@ -128,8 +125,9 @@ namespace Walkback.EditorTools
             map.nextRing = HudQuad("NextRing", mapObject.transform, mark, new Vector3(0f, 0f, -0.0025f), new Vector3(0.016f, 0.016f, 1f));
             map.habitat = HudQuad("Habitat", mapObject.transform, safe, new Vector3(0f, 0f, -0.003f), new Vector3(0.012f, 0.012f, 1f));
             map.you = HudQuad("You", mapObject.transform, live, new Vector3(0f, 0f, -0.005f), new Vector3(0.013f, 0.013f, 1f));
-            // The heading tick rides on the "you" dot and sticks out of it toward where the astronaut looks.
-            map.youHeading = HudQuad("Heading", map.you, live, new Vector3(0f, 0.95f, 0f), new Vector3(0.36f, 0.9f, 1f));
+            // The heading point rides on the "you" dot: a triangle in front of it, toward where the astronaut looks
+            // (dot + point read as one pointer; it was a thin bar before).
+            map.youHeading = HudTriangle("Heading", map.you, live, new Vector3(0f, 0.45f, 0f), 1.15f, 0.95f);
             map.youHeading.gameObject.SetActive(false);
             map.scaleBar = HudQuad("ScaleBar", mapObject.transform, mark, new Vector3(0f, 0f, -0.003f), new Vector3(0.05f, 0.003f, 1f));
             map.stopMaterial = watch;
@@ -180,6 +178,49 @@ namespace Walkback.EditorTools
             go.transform.SetParent(parent, false);
             go.transform.localPosition = localPosition;
             go.transform.localScale = localScale;
+            var r = go.GetComponent<MeshRenderer>();
+            r.sharedMaterial = material;
+            r.shadowCastingMode = ShadowCastingMode.Off;
+            return go.transform;
+        }
+
+        /// <summary>
+        /// A flat arrow pointing up (+y) in its parent's plane, centered on the parent's origin and seen from -z
+        /// like a quad: shaft and head as one mesh, saved in the scene with it.
+        /// </summary>
+        static Transform HudArrow(string name, Transform parent, Material material, float length, float headLength, float headWidth, float shaftWidth)
+        {
+            float top = length / 2f, bottom = -length / 2f, neck = top - headLength, s = shaftWidth / 2f, h = headWidth / 2f;
+            var vertices = new[]
+            {
+                new Vector3(-s, bottom, 0f), new Vector3(-s, neck, 0f), new Vector3(s, neck, 0f), new Vector3(s, bottom, 0f),
+                new Vector3(-h, neck, 0f), new Vector3(0f, top, 0f), new Vector3(h, neck, 0f),
+            };
+            // Clockwise seen from -z (the side the HUD is looked at from), as Unity's quad.
+            var triangles = new[] { 0, 1, 2, 0, 2, 3, 4, 5, 6 };
+            return HudMesh(name, parent, material, vertices, triangles, Vector3.zero);
+        }
+
+        /// <summary>A flat triangle pointing up (+y), its base centered on localPosition, seen from -z.</summary>
+        static Transform HudTriangle(string name, Transform parent, Material material, Vector3 localPosition, float width, float height)
+        {
+            var vertices = new[] { new Vector3(-width / 2f, 0f, 0f), new Vector3(0f, height, 0f), new Vector3(width / 2f, 0f, 0f) };
+            return HudMesh(name, parent, material, vertices, new[] { 0, 1, 2 }, localPosition);
+        }
+
+        static Transform HudMesh(string name, Transform parent, Material material, Vector3[] vertices, int[] triangles, Vector3 localPosition)
+        {
+            var mesh = new Mesh { name = name + "Mesh" };
+            mesh.vertices = vertices;
+            mesh.triangles = triangles;
+            var normals = new Vector3[vertices.Length];
+            for (int i = 0; i < normals.Length; i++) normals[i] = Vector3.back;
+            mesh.normals = normals;
+            mesh.RecalculateBounds();
+            var go = new GameObject(name, typeof(MeshFilter), typeof(MeshRenderer));
+            go.transform.SetParent(parent, false);
+            go.transform.localPosition = localPosition;
+            go.GetComponent<MeshFilter>().sharedMesh = mesh;
             var r = go.GetComponent<MeshRenderer>();
             r.sharedMaterial = material;
             r.shadowCastingMode = ShadowCastingMode.Off;
