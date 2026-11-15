@@ -14,9 +14,9 @@ Team MARSXR used AI tools to build Walkback during the NASA International Space 
 
 - **App code.** Every C# script in `Assets/Walkback/` was written with Claude Code. Several Claude Code sessions worked in parallel, each on its own files: the app (scene, terrain and layers, panel, pointer and table, globe and jump, helmet HUD, mission mode), the data, and the documentation. A session was also assigned the team's walking and oxygen model; that model is not in the repository, and the app's numbers come from a stand-in (see the last section).
 - **Data pipeline.** The scripts in `data-pipeline/` and the site package in `Assets/StreamingAssets/Site/` were made by a Claude Code session: downloading the NASA and USGS windows, building the heightmap and photo, placing the stops, and running the checks listed in DATA.md (for example, DEM slope against Curiosity's tilt sensor).
-- **Audits.** Several review rounds with the Fable 5.2 model read the app, wrote patches with their test checks and wrote reports; the team chose which patches to apply. Parts of the app (the stand-in route and verdict, mission mode) were first written as such patches.
+- **Audits.** Several review rounds with the Fable 5.2 model read the app, wrote patches with their test checks and wrote reports; the team chose which patches to apply. Parts of the app (the stand-in route and verdict, mission mode, the live space-weather line) were first written as such patches. Some rounds split their work between parallel sub-agents of the same model. The rounds are listed at the end of this file.
 - **Research.** Gemini and Grok proposed candidate stops (Altadena came from that round). Every position was then checked against Curiosity's waypoints and every line against the NASA Curiosity blog; drill numbers the research gave that could not be found in the blog posts were not used (DATA.md, decision 5).
-- **Documentation.** DATA.md, this file, README.md and NOTICE were drafted with Claude Code and reviewed by the team.
+- **Documentation.** DATA.md, this file, README.md and NOTICE were drafted with Claude Code and reviewed by the team. The texts of the submission form, the outline of the demo for NASA, the script of the defense and the answers prepared for the jury's questions were also drafted with Claude Code; the team decides what is sent and what is said.
 
 ## What the team did
 
@@ -44,3 +44,18 @@ The commits carry no AI co-author line: the team removed it from the history on 
 ## What the AI did not decide
 
 The walking and oxygen numbers on screen are a stand-in ("plan B") until the team's walking model lands, and the app labels every one of them "ESTIMATE: plan B over the relief, not the walking model yet". The AI did not choose the mission constants on its own: they are listed in NOTICE, which also says which of their sources are not written in this repository yet.
+
+## Audit rounds with the Fable 5.2 model (log)
+
+Times are local (Bolivia, UTC-4) and are the times the team's working notes (`CLAUDE.md`) give for applying each round. The app's Claude Code session (Opus 5.5 by default) applied the patches, ran the automatic test and built the app; the count is that test's.
+
+| Round | Applied | What the AI wrote | Test after it |
+|---|---|---|---|
+| Earlier rounds | 14 Nov, 15:20 to 18:02 | The stand-in route, return map and verdict ("plan B"), mission mode, the visor's compass and the board's charts, and a first set of fixes | 388 of 388 (18:02) |
+| R12 | 14 Nov, 21:10 | Patches 0023-0028: the NEXT STOP and ROOM VIEW signs in mission mode, an error behind the fade curtain no longer leaves the headset black, the menu button read three ways | 396 of 396 |
+| R13 | 14 Nov, 21:46 | Patches 0029-0035: a stop card that ran over its box, the table brought in front of the user after the mission, a RECENTER sign, larger board text, new test checks | 403 of 403 |
+| R14 | 14 Nov, 23:07 | Patches 0037, 0038 and 0040 (the arrival card under the visor, END OF ROUTE, checks for the sources board); 0039 was applied and reverted; one patch was kept on hold. Also a guide to read the headset's log and a demo script | 408 of 408 |
+| R15 | 14 Nov, by 23:41 | Patches 0041-0043, 0045, 0046 and 0048: the WHAT IF no longer starts during a fade, checks for the numbers said in the defense, lower table pillars, truer empty-state texts. Run with four parallel sub-agents | 414 of 414 |
+| R16 | 15 Nov, 00:35 | Patches 0049-0051: the app waits for the head pose before placing the table, ESTIMATE instead of PLACEHOLDER, the 360° PHOTO button's name. Also a review of the presentation | 416 of 416 |
+| R17 | 15 Nov, 01:20 | No code. Corrected drafts of README.md, AI_USAGE.md and NOTICE, of the demo outline and form texts for NASA, and of the team's morning checklist | 416 of 416 |
+| R18 | 15 Nov, 01:35 | Patches 0052 and 0053: the live space-weather line from NASA DONKI and its README text. Also phrases for the defense | 424 of 424 |
