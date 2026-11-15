@@ -1,9 +1,14 @@
-"""Pack the Gale site package into JS files the pitch deck can load from file:// (no fetch)."""
+# Written with Claude Code (AI), directed and tested by team MARSXR
+"""Pack the Gale site package into JS files the pitch deck can load from file:// (no fetch).
+
+Usage: python -I tools/build_pitch_data.py <Assets/StreamingAssets/Site> data
+Writes data/gale.js and data/globe.js. (data/stops.js and data/sajama.js are not written by this script.)
+"""
 import base64, heapq, io, json, math, sys
 import numpy as np
 from PIL import Image
 
-site_dir, out_dir, glb = sys.argv[1], sys.argv[2], sys.argv[3]
+site_dir, out_dir = sys.argv[1], sys.argv[2]
 site = json.load(open(f"{site_dir}/site.json", encoding="utf-8"))
 stops = json.load(open(f"{site_dir}/stops.json", encoding="utf-8"))
 trav = json.load(open(f"{site_dir}/curiosity_traverse.json", encoding="utf-8"))
@@ -83,9 +88,6 @@ with open(f"{out_dir}/gale.js", "w", encoding="utf-8") as f:
 with open(f"{out_dir}/globe.js", "w", encoding="utf-8") as f:
     f.write("// Viking MDIM 2.1 colour mosaic, NASA/JPL/USGS. Left edge 180 W.\n")
     f.write("window.GLOBE_TEX = " + json.dumps(jpg_b64(f"{site_dir}/mars_global.jpg", 2048, 80)) + ";\n")
-with open(f"{out_dir}/astronaut.js", "w", encoding="utf-8") as f:
-    f.write("// NASA 3D Resources, Astronaut.glb (public domain).\n")
-    f.write("window.ASTRONAUT_GLB = " + json.dumps(base64.b64encode(open(glb, "rb").read()).decode()) + ";\n")
 
 for k, v in routes.items():
     print(k, "route nodes:", len(v) if v else None)
