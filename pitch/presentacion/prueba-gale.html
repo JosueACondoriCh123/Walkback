@@ -1,0 +1,101 @@
+<!doctype html>
+<!-- Written with Claude Code (AI), directed and tested by team MARSXR -->
+<!-- Walkback pitch: a small page that shows scenes/gale-core.js working. Open with a double click (file://).
+     Keys: 1 table, 2 board, 3 what if (from above), 4 evidence, 5 closing, W runs the WHAT IF 100 -> 15 -> 8 %, 0 puts the tank back.
+     This is NOT the deck: it is the known-good wiring (run in headless Chrome by audit R20) for the deck to copy. -->
+<html lang="en"><head><meta charset="utf-8"><title>Walkback · gale-core check</title>
+<style>
+@font-face { font-family: Inter; src: url(fonts/Inter-Black.woff2) format('woff2'); font-weight: 800; }
+@font-face { font-family: Inter; src: url(fonts/Inter-Regular.woff2) format('woff2'); font-weight: 400; }
+html, body { margin: 0; height: 100%; background: #0B0D0F; color: #EBEBEB; font-family: Inter, sans-serif; overflow: hidden; }
+#stage { position: absolute; left: 50%; top: 50%; width: 1920px; height: 1080px; transform-origin: center; background: #0B0D0F url(img/ortho.jpg) center / contain no-repeat; }
+#stage.webgl { background-image: none; }
+canvas { position: absolute; inset: 0; width: 1920px; height: 1080px; }
+#hud { position: absolute; right: 60px; top: 60px; width: 480px; text-align: right; }
+#tank { font: 800 150px Inter, sans-serif; line-height: 1; }
+#reach { font: 400 44px Inter, sans-serif; color: #CCD1D9; margin-top: 12px; }
+#verdict { font: 800 96px Inter, sans-serif; margin-top: 40px; }
+#red { font: 400 36px Inter, sans-serif; color: #CCD1D9; margin-top: 16px; }
+#est { display: inline-block; margin-top: 24px; padding: 6px 16px; border: 2px solid #FFB80D; color: #FFB80D; font: 800 28px Inter, sans-serif; letter-spacing: 2px; }
+#keys { position: absolute; left: 60px; bottom: 40px; font: 400 22px Inter, sans-serif; color: #CCD1D9; }
+</style></head><body>
+<div id="stage"><canvas id="world" width="1920" height="1080"></canvas>
+  <div id="hud"><div id="tank">100 %</div><div id="reach"></div><div id="verdict"></div><div id="red"></div><div id="est">ESTIMATE</div></div>
+  <div id="keys">1 table · 2 board · 3 what if · 4 evidence · 5 closing · W run the WHAT IF · 0 full tank</div></div>
+<script src="vendor/three.min.js"></script>
+<script src="data/gale.js"></script><script src="data/stops.js"></script>
+<script src="walkback-model.js"></script><script src="scenes/gale-core.js"></script>
+<script>
+(function () {
+  'use strict';
+  var stage = document.getElementById('stage');
+  function fit() { stage.style.transform = 'translate(-50%,-50%) scale(' + Math.min(innerWidth / 1920, innerHeight / 1080) + ')'; }
+  addEventListener('resize', fit); fit();
+
+  var M = window.WalkbackModel, reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var renderer, W, scene, camera, rig;
+  try {
+    var canvas = document.getElementById('world');
+    renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, alpha: true });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
+    renderer.setSize(1920, 1080, false);
+    renderer.outputEncoding = THREE.sRGBEncoding;
+    W = WalkbackGale.build(THREE, window.GALE, window.GALE_STOPS, M, { habitatName: 'HABITAT' });
+    scene = new THREE.Scene(); scene.add(W.group);
+    camera = new THREE.PerspectiveCamera(38, 1920 / 1080, 1, 8000);
+    rig = WalkbackGale.cameraRig(THREE, camera, WalkbackGale.POSES, { reduced: reduced });
+    canvas.addEventListener('webglcontextlost', function (e) { e.preventDefault(); stage.classList.remove('webgl'); canvas.style.display = 'none'; });
+    stage.classList.add('webgl');
+  } catch (e) {            // no WebGL: the stage keeps the real HiRISE photo as its background, the numbers still show
+    console.error(e); document.getElementById('world').style.display = 'none'; W = null;
+  }
+
+  // The numbers never depend on WebGL.
+  var site = M.siteFromGale(window.GALE); site.stops = window.GALE_STOPS;
+  var slope = M.slopeDegrees(site), plans = {}, back = M.returnMinutes(site, slope);
+  function planAt(percent) { var k = Math.round(percent * 10) / 10; return plans[k] || (plans[k] = M.plan(site, slope, window.GALE_STOPS, k)); }
+  function showTank(percent) {
+    var w = M.whatIf(back, percent), d = M.describe(planAt(percent >= 99.95 ? 100 : percent));
+    document.getElementById('tank').textContent = Math.round(percent) + ' %';
+    document.getElementById('reach').textContent = 'covers ' + (w.reachMinutes >= 60 ? Math.floor(w.reachMinutes / 60) + ' h ' + Math.round(w.reachMinutes % 60) + ' min' : w.reachMinutes.toFixed(1) + ' min') + ' of walking back';
+    var v = document.getElementById('verdict'); v.textContent = d.headline; v.style.color = d.headline === 'VIABLE' ? '#40D966' : '#F23829';
+    document.getElementById('red').textContent = w.beyond ? w.redPercent.toFixed(1) + ' % of the ground with a way back is red' : 'no red on the map';
+    if (W) W.set('reach', percent >= 99.95 ? Infinity : w.reachMinutes);
+  }
+
+  var states = {
+    table:    { slope: 1, ret: 0, route: 1, dots: 0 },
+    board:    { slope: 0, ret: 0, route: 1, dots: 0 },
+    whatif:   { slope: 0, ret: 1, route: 1, dots: 0 },
+    evidence: { slope: 1, ret: 0, route: 0, dots: 1 },
+    closing:  { slope: 0, ret: 0, route: 1, dots: 0 }
+  };
+  function go(name, now) {
+    if (!W) return;
+    var s = states[name]; Object.keys(s).forEach(function (k) { W.set(k, s[k]); });
+    rig.goTo(name, 1.5, now);
+  }
+  var timeline = null, tlStart = 0;
+  addEventListener('keydown', function (e) {
+    var now = performance.now(), map = { '1': 'table', '2': 'board', '3': 'whatif', '4': 'evidence', '5': 'closing' };
+    if (map[e.key]) go(map[e.key], now);
+    else if (e.key.toLowerCase() === 'w') { go('whatif', now); timeline = WalkbackGale.whatIfSteps(M, [[100, 0], [15, 2], [8, 6]]); tlStart = now + 1500; }
+    else if (e.key === '0') { timeline = null; showTank(100); }
+  });
+
+  showTank(100);
+  if (W) {
+    rig.snap('table'); var st = states.table; Object.keys(st).forEach(function (k) { W.set(k, st[k]); });
+    // Labels drawn before Inter has loaded use the fallback font: redraw them when it is there, and once more a moment later.
+    if (document.fonts && document.fonts.load) document.fonts.load('800 92px Inter').then(function () { W.refreshLabels(); setTimeout(W.refreshLabels, 400); });
+    (function loop(now) {
+      if (timeline) { var t = (now - tlStart) / 1000; if (t >= 0) { var v = timeline(t); showTank(v.percent); if (t > 6.2) timeline = null; } }
+      W.set('time', now / 1000);
+      rig.update(now); W.layoutLabels(camera);
+      renderer.render(scene, camera);
+      requestAnimationFrame(loop);
+    })(performance.now());
+  }
+  window.__check = { W: W, rig: rig, renderer: renderer, camera: camera, showTank: showTank };
+})();
+</script></body></html>
