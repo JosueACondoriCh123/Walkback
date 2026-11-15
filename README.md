@@ -67,7 +67,7 @@ All data in the app comes from public sources; each one is named on screen and i
 | Base photo, 25 cm | MSL Gale Merged Orthophoto Mosaic 25 cm v3 | Calef and Parker (2016), USGS Astrogeology; HiRISE images NASA/JPL/University of Arizona |
 | Curiosity's positions (the stops' places and the slope check; the path itself is not drawn in the app) | MSL waypoints | NASA/JPL-Caltech |
 | Stop science and names | NASA Curiosity blog (sols 4568–4569, 4695–4701, 4716–4722, 4893–4899, 4900–4907) | NASA/JPL-Caltech |
-| Stop task minutes | Proposed from NASA/TP-2017-219457, table 30 | NASA |
+| Stop task minutes | Proposed by the team; NASA/TP-2017-219457, table 30, gives the Apollo statistics for station tasks to compare with (median 9 to 11 min) | NASA |
 | Weather | Curiosity REMS weather feed, sol 4995 | NASA/JPL-Caltech/CAB (CSIC-INTA) |
 | Space weather | NASA DONKI (SEP, GST, CME), stored answer for 7–14 Nov 2026; at start the app can read the last 7 days of SEP live | NASA CCMC |
 | Surface radiation | 0.64 mSv/day, Curiosity RAD | Hassler et al. (2014), *Science* 343; NASA/JPL-Caltech/SwRI |

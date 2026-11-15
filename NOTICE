@@ -54,7 +54,8 @@ stops.json (stop names, positions and science lines)
   Credit: NASA/JPL-Caltech.
 
 stops.json (task minutes)
-  Proposed by the team from NASA/TP-2017-219457, table 30.
+  Proposed by the team. NASA/TP-2017-219457, table 30, gives the Apollo
+  statistics for station tasks to compare with (section 3).
   Credit: NASA.
 
 conditions.json (weather)
@@ -112,29 +113,72 @@ Every walking and oxygen number in the app is labelled:
   "ESTIMATE: plan B over the relief, not the walking model yet"
 
 Constants used (Assets/Walkback/App/ReturnStandIn.cs, HudEstimate.cs,
-TerrainLayers.cs, ReturnFallback.cs):
+TerrainLayers.cs, ReturnFallback.cs). "Same figure as" and "for
+comparison" mean a published document gives that number; they do not
+mean the document validates this prototype. The NASA documents below
+were read on 15 Nov 2026.
 
-  Slope pace           Tobler's hiking function, normalised to 1 on flat
-                       ground. Function: Tobler, W. (1993), "Three
-                       presentations on geographical analysis and
-                       modeling", NCGIA Technical Report 93-1 (cited in
-                       ReturnFallback.cs). Measured on Earth, without a
-                       suit.
-  Flat-ground pace     19.3 min/km. The code calls it the walking model's
-                       own test number ("ficha A").
-  Slope limit          20 degrees, no step on steeper ground.
-  Oxygen walking       20 L of O2 per km on flat ground.
-  Tank                 497 L of O2.
-  Reserve              31 L (30 min), never touched.
-  Design duration      480 min for the full tank (351 W design rate,
-                       per the code comment).
-  Task minutes         Proposed from NASA/TP-2017-219457, table 30 (see 1).
+  Slope pace           Tobler's hiking function,
+                       W = 6 exp(-3.5 |S + 0.05|) km/h, S = rise / run.
+                       Tobler, W. (1993), "Three presentations on
+                       geographical analysis and modeling", NCGIA
+                       Technical Report 93-1 (cited in ReturnFallback.cs).
+                       Measured on Earth, without a suit. The app keeps
+                       only the shape of the curve (1 on flat ground);
+                       its flat-ground pace is the next line, not
+                       Tobler's 5 km/h.
+  Flat-ground pace     19.3 min/km (3.1 km/h). From the team's model
+                       notes ("ficha A"); no published source for it is
+                       written in this repository. For comparison,
+                       NASA's Exploration EVA concept of operations
+                       assumes about 2 km/h for walking traverses on the
+                       Moon, a value it marks as still to be resolved
+                       (EVA-EXP-0042 Rev B, section 4.2.1.3.1.1).
+  Slope limit          20 degrees, no step on steeper ground. Same figure
+                       as the slope the Exploration EVA suit is to walk
+                       up, down or across (EVA-EXP-0042 Rev B, section
+                       4.2.1.3).
+  Design duration      480 min (8 h) for the full tank. Same figure as
+                       the longest EVA the Exploration EVA suit supports
+                       (EVA-EXP-0042 Rev B, sections 4.1.4 and 4.2.1.1).
+  Design rate          351 W, which is 1200 Btu/h: the average metabolic
+                       rate at which the Apollo portable life support
+                       system's duration is stated (4 h for the -6 unit,
+                       6 h for the -7; its average metabolic load
+                       requirement was 1600 Btu/h), and the average that
+                       studies expected for a 4-hour lunar surface EVA
+                       (Beggs, J. C. and Goodwin, F. H., "Apollo PLSS:
+                       environmental control of the smallest manned
+                       space vehicle", Hamilton Standard, 1972, NASA NTRS
+                       19720019459, table 3.1). Eight hours at that rate
+                       is this prototype's own combination.
+  Tank                 497 L of O2. Derived, not published: 351 W for
+                       480 min is about 10.1 MJ, which is 497 L at about
+                       20.3 kJ per litre of oxygen. The conversion is
+                       from the team's notes; its source is not written
+                       in this repository.
+  Reserve              31 L, never touched. Derived: 30 min at the design
+                       rate (497 L / 480 min). For comparison, the
+                       emergency oxygen of the Apollo OPS and of the
+                       Shuttle suit's secondary oxygen pack lasts 30 min
+                       (NTRS 19720019459; NASA EG-1998-03-112-HQ,
+                       "Suited for Spacewalking"); the Exploration EVA
+                       suit plans 1 hour (EVA-EXP-0042 Rev B, 4.2.1.1).
+  Oxygen walking       20 L of O2 per km on flat ground. Derived:
+                       19.3 min at the design rate.
+  Task minutes         Proposed by the team. Miller, M. J., Claybrook,
+                       A., Greenlund, S., Marquez, J. J. and Feigh, K. M.
+                       (2017), "Operational Assessment of Apollo Lunar
+                       Surface Extravehicular Activity",
+                       NASA/TP-2017-219457, table 30, gives the Apollo
+                       statistics for tasks at a station (median 9 to
+                       11 min, quartiles 4 to 25 min); it does not give
+                       times for these particular tasks.
 
-  Except Tobler's function and the task minutes, these constants come
-  from the team's model notes ("ficha A"); their published sources are
-  not written in this repository yet. They are the prototype's settings,
-  not validated figures for a suited astronaut, and the app labels every
-  number made with them ESTIMATE.
+  These are the prototype's settings, not validated figures for a suited
+  astronaut on Mars: the pace and the oxygen numbers were not measured in
+  a suit or in Mars gravity. The app labels every number made with them
+  ESTIMATE.
 
 
 ==========================================================================
