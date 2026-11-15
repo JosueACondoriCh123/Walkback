@@ -604,6 +604,73 @@ namespace Walkback.EditorTools
                         jumps + " jumps for " + plan.Legs.Count + " legs, then \"" + atEndOfRoute + "\"");
                 }
 
+                // ---- The defense's demo on this site's relief. The notes are facts to read in the report before the
+                // demo (what the WHAT IF paints, where TURN BACK NOW comes on); the checks are the rules behind them.
+                {
+                    if (site.IsMarsData)
+                        Check("Demo: the numbers said in the defense are the plan's (1.8 km, 43 min walking, 2 h 12 min of work, 2 h 55 min in all, 181 L = 36 % of the oxygen, 285 L spare)",
+                            HelmetHud.MetersText(plan.WalkMeters) == "1.8 km" && HelmetHud.MinutesText(plan.WalkMinutes) == "43 min" && HelmetHud.MinutesText(plan.WorkMinutes) == "2 h 12 min" &&
+                            HelmetHud.MinutesText(plan.TotalMinutes) == "2 h 55 min" && Mathf.RoundToInt(plan.UsedLiters) == 181 &&
+                            Mathf.RoundToInt(plan.UsedLiters / HudEstimate.TankLiters * 100f) == 36 && Mathf.RoundToInt(plan.SpareLiters) == 285 && plan.Viable,
+                            MissionFallback.LogLine(plan));
+
+                    // WHAT IF on the map: red is the ground farther back than the oxygen above the reserve covers.
+                    float[] demoBack = app.terrain.ReturnMinutes;
+                    float demoReach15 = MissionFallback.ReachMinutes(15f), demoReach8 = MissionFallback.ReachMinutes(8f), demoFarthest = 0f;
+                    int demoReachable = 0, demoBeyond15 = 0, demoBeyond8 = 0;
+                    foreach (float backMinutes in demoBack)
+                    {
+                        if (float.IsInfinity(backMinutes) || float.IsNaN(backMinutes)) continue;
+                        demoReachable++;
+                        demoFarthest = Mathf.Max(demoFarthest, backMinutes);
+                        if (backMinutes > demoReach15) demoBeyond15++;
+                        if (backMinutes > demoReach8) demoBeyond8++;
+                    }
+                    Vector2 demoHabitat = new Vector2(site.Habitat.x / site.SideMeters, site.Habitat.y / site.SideMeters);
+                    int demoRed15 = 0, demoRed8 = 0;
+                    foreach (Color32 pixel in TerrainLayers.PaintReturn(demoBack, site.GridSize, 256, demoHabitat, demoReach15))
+                        if (Same(pixel, TerrainLayers.TooFar) || Same(pixel, TerrainLayers.TooFarHatch)) demoRed15++;
+                    foreach (Color32 pixel in TerrainLayers.PaintReturn(demoBack, site.GridSize, 256, demoHabitat, demoReach8))
+                        if (Same(pixel, TerrainLayers.TooFar) || Same(pixel, TerrainLayers.TooFarHatch)) demoRed8++;
+                    Check("What if: the map is red only where the way back is longer than the oxygen left covers (less of a tank, more red)",
+                        (demoRed15 == 0 || demoBeyond15 > 0) && (demoRed8 == 0 || demoBeyond8 > 0) && demoRed8 >= demoRed15 && demoReach8 < demoReach15 &&
+                        (demoBeyond8 * 100 < demoReachable || demoRed8 > 0),
+                        "15 %: " + demoRed15 + " red px, 8 %: " + demoRed8 + " red px of " + (256 * 256));
+
+                    VerdictState demoState;
+                    string demoHeadline, demoSummary15, demoSummary8, demoNote;
+                    MissionFallback.Plan demoPlan15 = MissionFallback.Make(site, app.terrain.Slope, 15f), demoPlan8 = MissionFallback.Make(site, app.terrain.Slope, 8f);
+                    MissionFallback.Describe(demoPlan15, out demoState, out demoHeadline, out demoSummary15, out demoNote);
+                    MissionFallback.Describe(demoPlan8, out demoState, out demoHeadline, out demoSummary8, out demoNote);
+                    float demoNodes = Mathf.Max(1, demoReachable);
+                    Note("Demo, WHAT IF at 15 %: the oxygen covers " + demoReach15.ToString("F1") + " min of walking back and the farthest ground is " + demoFarthest.ToString("F1") + " min away: " +
+                        (demoBeyond15 == 0 ? "NO red on the map" : (demoBeyond15 / demoNodes * 100f).ToString("F1") + " % of the map is red") +
+                        ". The card: " + (demoPlan15.Viable ? "VIABLE" : "NOT VIABLE") + ", " + demoSummary15);
+                    Note("Demo, WHAT IF at 8 %: the oxygen covers " + demoReach8.ToString("F1") + " min of walking back: " + (demoBeyond8 / demoNodes * 100f).ToString("F1") +
+                        " % of the map is red. The card: " + (demoPlan8.Viable ? "VIABLE" : "NOT VIABLE") + ", " + demoSummary8);
+
+                    // The same WHAT IF carried into the mission (START MISSION with the tank at 8 %): where TURN BACK NOW comes on.
+                    if (demoPlan8.HasRoute && demoPlan8.Legs.Count > 1)
+                    {
+                        var demoWalk = new MissionProgress(site, demoPlan8, demoBack);
+                        demoWalk.JumpNext();
+                        MissionProgress.Snapshot demoLanding = demoWalk.Read(demoWalk.PointAt(demoWalk.RouteMeters));
+                        Vector2 demoStop = demoWalk.LegTarget(0);
+                        demoWalk.Walk(demoStop);
+                        MissionProgress.Snapshot demoAtStop = demoWalk.Read(demoStop);
+                        demoWalk.JumpNext();
+                        MissionProgress.Snapshot demoSecond = demoWalk.Read(demoWalk.PointAt(demoWalk.RouteMeters));
+                        Note("Demo, mission with the tank at 8 %: TURN BACK NOW after the first jump (" + MissionProgress.ApproachMeters.ToString("0.0") + " m before " + demoPlan8.Legs[0].ToName + "): " +
+                            (demoLanding.turnBack ? "ON" : "off, " + demoLanding.marginMinutes.ToString("F1") + " min of oxygen to spare") + "; at the stop: " +
+                            (demoAtStop.turnBack ? "ON" : "off, " + demoAtStop.marginMinutes.ToString("F1") + " min to spare") + "; after the second jump: " + (demoSecond.turnBack ? "ON" : "off"));
+                        // The visor reads the map's return layer and the plan its own way home: the same numbers while the layer is plan B's.
+                        if (app.terrain.ReturnPlaceholderLabel == ReturnFallback.Label)
+                            Check("Mission HUD: with a WHAT IF's tank, TURN BACK NOW at the first stop says what the verdict card says (no oxygen to walk back from there, or still enough)",
+                                demoAtStop.turnBack == (demoPlan8.FailsAtStop == 0 && demoPlan8.FailsOnArrival),
+                                "visor " + (demoAtStop.turnBack ? "TURN BACK" : "no warning") + ", card: " + demoSummary8);
+                    }
+                }
+
                 // ---- An error in a change behind the curtain must not leave the curtain closed
                 {
                     int failedBefore = mission.FailedChanges;
