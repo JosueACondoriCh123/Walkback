@@ -12,6 +12,7 @@ namespace Walkback.EditorTools
             var hud = app.hud;
             var wrist = app.wristMap;
             Check("HUD: helmet HUD and wrist map are in the scene, hidden at start", hud != null && wrist != null && !hud.Visible && !wrist.Visible);
+            if (hud != null) CheckHudMarks(hud);
 
             // The estimate on hand-made inputs: 1 km on flat ground = 19.3 min and 20 L (ficha A test numbers).
             var line = SiteLoader.Synthetic();
@@ -226,6 +227,54 @@ namespace Walkback.EditorTools
         /// The boxes the visor shows now (TURN BACK NOW always counts, shown or not), in the visor's plane:
         /// which ones overlap, and whether anything but TURN BACK NOW comes within 5 cm of the middle.
         /// </summary>
+        /// <summary>
+        /// The visor's arrow and the mini map's point are meshes the scene builder makes by hand: they must be
+        /// wound like Unity's quad (seen from -z, where the visor is looked at from), or they would not be drawn.
+        /// </summary>
+        static void CheckHudMarks(HelmetHud hud)
+        {
+            GameObject probe = GameObject.CreatePrimitive(PrimitiveType.Quad);
+            float quadFacing = MeshFacing(probe.GetComponent<MeshFilter>().sharedMesh);
+            Object.DestroyImmediate(probe);
+            MeshFilter arrow = hud.arrow != null ? hud.arrow.GetComponentInChildren<MeshFilter>(true) : null;
+            MeshFilter point = hud.miniMap != null && hud.miniMap.youHeading != null ? hud.miniMap.youHeading.GetComponent<MeshFilter>() : null;
+            bool arrowFaces = arrow != null && arrow.sharedMesh != null && quadFacing != 0f && MeshFacing(arrow.sharedMesh) == quadFacing;
+            bool pointFaces = point != null && point.sharedMesh != null && quadFacing != 0f && MeshFacing(point.sharedMesh) == quadFacing;
+
+            // The arrow turns about the middle of its 100 mm plate: its farthest corner stays on the plate at any
+            // turn, and "up" is one single vertex, the tip, on the axis.
+            float reach = 0f, top = float.MinValue, tipX = 1f;
+            int tips = 0;
+            if (arrow != null && arrow.sharedMesh != null)
+                foreach (Vector3 v in arrow.sharedMesh.vertices)
+                {
+                    reach = Mathf.Max(reach, new Vector2(v.x, v.y).magnitude);
+                    if (v.y > top + 0.00001f) { top = v.y; tips = 1; tipX = v.x; }
+                    else if (Mathf.Abs(v.y - top) <= 0.00001f) tips++;
+                }
+            bool onPlate = reach > 0.02f && reach < 0.05f && tips == 1 && Mathf.Abs(tipX) < 0.00001f;
+            Check("HUD: the arrow to the next stop and the mini map's point are wound like Unity's quad (seen from the visor's side); the arrow points up and stays on its plate at any turn",
+                arrowFaces && pointFaces && onPlate,
+                "arrow " + arrowFaces + ", point " + pointFaces + ", arrow reaches " + (reach * 1000f).ToString("F0") + " mm from the middle of a 100 mm plate");
+        }
+
+        /// <summary>-1 or +1 when every triangle of a flat mesh is wound the same way about z; 0 when they differ or one has no area.</summary>
+        static float MeshFacing(Mesh mesh)
+        {
+            Vector3[] v = mesh.vertices;
+            int[] t = mesh.triangles;
+            float facing = 0f;
+            for (int i = 0; i + 2 < t.Length; i += 3)
+            {
+                float z = Vector3.Cross(v[t[i + 1]] - v[t[i]], v[t[i + 2]] - v[t[i]]).z;
+                if (Mathf.Abs(z) < 1e-12f) return 0f;
+                float sign = Mathf.Sign(z);
+                if (facing == 0f) facing = sign;
+                else if (sign != facing) return 0f;
+            }
+            return facing;
+        }
+
         static string HudOverlaps(HelmetHud hud, out bool middleClear, out int count)
         {
             var names = new System.Collections.Generic.List<string>();

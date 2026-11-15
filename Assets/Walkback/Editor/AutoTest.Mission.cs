@@ -266,7 +266,7 @@ namespace Walkback.EditorTools
                         overlaps.Length == 0 && middleClear && boxCount >= 10 && wide.Length == 0, boxCount + " boxes " + overlaps + wide);
 
                     // The compass and the heading sit between and over the top cards, under where the pillar's name
-                    // is seen. A jump lands 5 m from the stop: from there in, looking level or down at the path,
+                    // is seen. From 5 m in (a jump lands MissionProgress.ApproachMeters from the stop), looking level or down at the path,
                     // with the stop's ground level with the user's, 0.4 m lower or 0.5 m higher, they stay under the name.
                     Vector3 wasAt = cam.transform.position;
                     Quaternion wasLooking = cam.transform.rotation;
@@ -276,7 +276,7 @@ namespace Walkback.EditorTools
                     string where = "";
                     foreach (float stopGround in new[] { -0.4f, 0f, 0.5f })
                         foreach (float pitch in new[] { 0f, 10f, 20f })
-                            foreach (float meters in new[] { 5f, 4.5f, 4f, 3f, 2f })
+                            foreach (float meters in new[] { 5f, 4f, 3f, MissionProgress.ApproachMeters, 2f, MissionProgress.ArriveMeters })
                             {
                                 float eyeY = labelAt.y - (MissionMode.PillarHeightMeters + 0.35f - 1.6f) - stopGround;
                                 cam.transform.position = new Vector3(labelAt.x, eyeY, labelAt.z) + away * meters;
@@ -295,7 +295,8 @@ namespace Walkback.EditorTools
                     mission.pillarLabel.Face(cam.transform.position);
                     visor.SnapTo(cam.transform);
                     mission.Tick(cam.transform, 0.3f);
-                    Check("Mission HUD: from where a jump lands (5 m) to the stop, the compass and the heading never cover the name on the pillar", covered == 0, covered + " of " + poses + " poses covered" + where);
+                    Check("Mission HUD: from 5 m to the arrival, where a jump lands (" + MissionProgress.ApproachMeters.ToString("0.#") + " m) included, the compass and the heading never cover the name on the pillar",
+                        covered == 0, covered + " of " + poses + " poses covered" + where);
                 }
 
                 // ---- Walking: the headset's position moves the numbers; nothing else moves
