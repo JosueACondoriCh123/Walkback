@@ -8,29 +8,29 @@
 </head>
 <body>
 <!-- Written with Claude Code (AI), directed and tested by team MARSXR.
-     No text lives here: every word, number and note is in content.js. The slides are built by deck.js. -->
+     No text lives here: every word, number and note is in content.js. The slides are built by deck.js.
+     index.html?lang=en opens in English; index.html?lang=en&print=1 lays out the 7 pages of the PDF. -->
 <main id="stage">
   <div id="layers"></div>
   <div id="slides"></div>
 </main>
+<div id="print"></div>
 <div id="hud"></div>
 <div id="notes"></div>
 <div id="progress"></div>
 <input id="video-file" type="file" accept="video/*" hidden>
 
-<!-- libraries (no internet: everything is local) -->
+<!-- library (no internet: everything is local) -->
 <script src="vendor/three.min.js"></script>
-<script src="vendor/GLTFLoader.js"></script>
-<script src="vendor/DRACOLoader.js"></script>
-<script src="vendor/draco_decoder_inline.js"></script>
 <!-- data from the app's site package (tools/build_pitch_data.py) -->
 <script src="data/gale.js"></script>
 <script src="data/stops.js"></script>
 <script src="data/globe.js"></script>
 <script src="data/sajama.js"></script>
-<script src="data/astronaut.js"></script>
 <!-- the app's own rule, ported (tools/check-model.js checks it against the app) -->
 <script src="walkback-model.js"></script>
+<!-- every {key} of the texts, from the app's rule and content.js FACTS (tools/check-content.js checks the texts) -->
+<script src="placeholders.js"></script>
 <!-- every text of the presentation -->
 <script src="content.js"></script>
 <!-- scenes -->
@@ -39,7 +39,6 @@
 <script src="scenes/gale.js"></script>
 <script src="scenes/globe.js"></script>
 <script src="scenes/panorama.js"></script>
-<script src="scenes/astronaut.js"></script>
 <script src="scenes/board.js"></script>
 <script src="deck.js"></script>
 </body>

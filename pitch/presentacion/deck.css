@@ -1,5 +1,6 @@
 /* Written with Claude Code (AI), directed and tested by team MARSXR */
-/* Walkback pitch · palette and type (AUDIT-R19, section 2: the app's own colours, WalkbackTheme.cs) */
+/* Walkback pitch · palette and type (AUDIT-R19, section 2: the app's own colours, WalkbackTheme.cs).
+   Where the text goes on each slide follows the map's place in each camera pose (AUDIT-R20-F4, fix 6). */
 @font-face { font-family: Inter; font-weight: 400; src: url(fonts/Inter-Regular.woff2) format("woff2"); }
 @font-face { font-family: Inter; font-weight: 600; src: url(fonts/Inter-SemiBold.woff2) format("woff2"); }
 @font-face { font-family: Inter; font-weight: 700; src: url(fonts/Inter-Bold.woff2) format("woff2"); }
@@ -23,92 +24,128 @@ html, body { height: 100%; background: var(--back); color: var(--text); font-fam
 .layer.fallback canvas { display: none; }
 .layer.fallback .fb { display: block; }
 .layer.dim { opacity: .28; }
+.webgl-note { position: absolute; right: 60px; top: 20px; z-index: 5; display: none; font-size: 22px; line-height: 1.3; text-align: center; color: var(--soft); background: rgba(11,13,15,.88); padding: 6px 14px; border-radius: 6px; }
 
 .slide { position: absolute; inset: 0; opacity: 0; transition: opacity .5s ease; pointer-events: none; }
 .slide.on { opacity: 1; pointer-events: auto; }
 
-/* type scale (AUDIT-R19: on a 1920 x 1080 canvas) */
+/* type scale (AUDIT-R19 and R20-F4, on a 1920 x 1080 canvas) */
 .tag { font-size: 26px; font-weight: 700; letter-spacing: 5px; text-transform: uppercase; color: var(--amber); }
 .title { font-size: 96px; font-weight: 700; line-height: 1.04; letter-spacing: -2px; }
 .title .accent { color: var(--amber); display: block; }
+.title.one { font-size: 60px; white-space: nowrap; letter-spacing: -1.5px; line-height: 1.1; }
+.title.one .accent { display: inline; }
+.accent-safe .title .accent { color: var(--green); }       /* VIABLE is green, as in the app */
 .body { font-size: 40px; line-height: 1.4; color: var(--text); }
 .soft { color: var(--soft); }
-.credit { position: absolute; left: 120px; bottom: 36px; right: 120px; font-size: 22px; color: var(--credit); line-height: 1.4; }
-.app-word { font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }
-.pill { display: inline-block; font-size: 26px; font-weight: 600; color: var(--amber); border: 2px solid var(--amber); border-radius: 999px; padding: 8px 22px; letter-spacing: 1px; }
+.credit { position: absolute; left: 120px; bottom: 24px; right: 120px; font-size: 22px; color: var(--credit); line-height: 1.4; }
+.pill { display: inline-block; font-size: 32px; font-weight: 600; color: var(--amber); border: 3px solid var(--amber); border-radius: 999px; padding: 6px 24px; letter-spacing: 2px; line-height: 1.2; white-space: nowrap; }
 
-/* left reading column over a 3D scene */
+/* reading areas over a 3D scene */
 .scrim-left { position: absolute; inset: 0; background: linear-gradient(90deg, rgba(11,13,15,.97) 0%, rgba(11,13,15,.90) 34%, rgba(11,13,15,.35) 52%, rgba(11,13,15,0) 66%); }
 .scrim-bottom { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(11,13,15,.05) 0%, rgba(11,13,15,.35) 45%, rgba(11,13,15,.94) 82%, var(--back) 100%); }
+.scrim-top { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(11,13,15,.94) 0%, rgba(11,13,15,.80) 34%, rgba(11,13,15,.25) 48%, rgba(11,13,15,0) 56%); }
+.scrim-foot { position: absolute; left: 0; right: 0; bottom: 0; height: 150px; background: linear-gradient(180deg, rgba(11,13,15,0) 0%, rgba(11,13,15,.82) 55%, rgba(11,13,15,.92) 100%); }
 .col { position: absolute; left: 120px; top: 110px; width: 780px; display: flex; flex-direction: column; gap: 30px; }
+.top { position: absolute; left: 120px; right: 120px; top: 34px; display: flex; flex-direction: column; gap: 8px; }
 
-/* big numbers */
-.bigs { display: flex; gap: 56px; margin-top: 14px; }
-.big b { display: block; font-size: 110px; font-weight: 900; letter-spacing: -3px; line-height: 1; }
-.big span { display: block; font-size: 28px; color: var(--soft); margin-top: 10px; }
-.bigs.three { gap: 44px; }
-.bigs.three .big b { font-size: 78px; white-space: nowrap; letter-spacing: -2px; }
-.bigs.three .big span { font-size: 24px; }
-.s-solution .title, .s-evidence .title { font-size: 76px; }
-.s-solution .col, .s-evidence .col { gap: 26px; top: 96px; }
-.s-solution .legend { font-size: 26px; gap: 10px; }
+/* big numbers: a row under the map; the ESTIMATE pill stands right next to them (fix 9) */
+.figs { position: absolute; left: 120px; right: 120px; top: 874px; display: flex; align-items: flex-end; gap: 56px; }
+.big b { display: block; font-size: 84px; font-weight: 900; letter-spacing: -2px; line-height: 1; white-space: nowrap; }
+.big span { display: block; font-size: 26px; color: var(--soft); margin-top: 8px; white-space: nowrap; }
+.est { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; }
+.figs .est { padding-bottom: 2px; }
+.est .qual { font-size: 24px; color: var(--soft); white-space: nowrap; }
 
-/* map legend */
-.legend { display: flex; flex-direction: column; gap: 14px; font-size: 30px; }
-.legend i { display: inline-block; width: 22px; height: 22px; border-radius: 50%; margin-right: 16px; vertical-align: -2px; }
-.legend .hatch { border-radius: 4px; background: repeating-linear-gradient(45deg, var(--slope) 0 5px, #6E2C00 5px 10px); }
+/* map legend: one line, 28 px, right above the map (fix 8); stacked in the demo's side column */
+.legend { font-size: 28px; color: var(--soft); }
+.legend .item { display: inline-flex; align-items: center; gap: 12px; }
+.legend.line { position: absolute; left: 120px; right: 120px; top: 156px; display: flex; gap: 36px; white-space: nowrap; }
+.legend.stacked { display: flex; flex-direction: column; gap: 10px; line-height: 1.25; }
+.legend.stacked .item { align-items: flex-start; }
+.legend.stacked .sw { margin-top: 4px; }
+.sw { flex: 0 0 auto; display: inline-block; width: 26px; height: 26px; }
+.sw-route { width: 34px; height: 9px; border-radius: 5px; background: var(--amber); }
+.legend.stacked .sw-route { margin-top: 13px; }
+.sw-stop { border-radius: 50%; background: var(--amber); width: 20px; height: 20px; }
+.sw-habitat { border-radius: 50%; background: var(--green); width: 22px; height: 22px; }
+.sw-slope { border-radius: 4px; background: repeating-linear-gradient(45deg, var(--slope) 0 5px, #6E2C00 5px 10px); }
+.sw-red { border-radius: 4px; background: repeating-linear-gradient(45deg, var(--red) 0 5px, #8C1A14 5px 10px); }
+.sw-gray { border-radius: 4px; background: repeating-linear-gradient(-45deg, var(--gray) 0 5px, #8C8C92 5px 10px); }
+.sw-ring { border-radius: 50%; border: 3px solid var(--text); }
+.sw-dots { border-radius: 50%; background: var(--sky); width: 20px; height: 20px; }
 
 /* title */
-.s-title .col { top: 300px; }
+.s-title .col { top: 250px; width: 900px; gap: 26px; }
+.s-title .tag { font-size: 24px; letter-spacing: 3px; white-space: nowrap; }
 .s-title .brand { font-size: 200px; font-weight: 900; letter-spacing: -7px; line-height: 1; }
 .s-title .motto { font-size: 56px; font-weight: 700; color: var(--amber); }
+.s-title .challenge { font-size: 32px; font-weight: 600; color: var(--text); margin-top: 8px; }
+.s-title .members { font-size: 28px; color: var(--soft); line-height: 1.4; }
 
 /* problem */
 .s-problem .q { position: absolute; left: 120px; right: 120px; bottom: 150px; }
 .s-problem .q .title { font-size: 150px; letter-spacing: -5px; font-weight: 900; }
 .s-problem .q .body { margin-top: 34px; }
 
-/* verdict: board on the right */
-.board-box { position: absolute; right: 70px; top: 110px; width: 900px; height: 860px; }
-.s-verdict .col { width: 760px; }
+/* verdict: map on the left half (board pose), the app's board on the right half */
+.board-box { position: absolute; left: 990px; right: 60px; top: 118px; height: 846px; }
+.s-verdict .top { right: auto; width: 840px; top: 40px; }
+.s-verdict .title { font-size: 64px; }
+.s-verdict .est-corner { position: absolute; right: 64px; top: 46px; }
 
-/* demo */
-.s-demo .live { position: absolute; left: 120px; top: 120px; display: flex; flex-direction: column; gap: 24px; }
-.s-demo .live .head { display: flex; align-items: center; gap: 28px; }
-.s-demo .live .dot { width: 34px; height: 34px; border-radius: 50%; background: var(--red); animation: blink 1.2s infinite; }
+/* demo: map on the left two thirds (whatif pose); the side column holds the live title, then the WHAT IF */
+.s-demo .side { position: absolute; left: 1290px; right: 56px; top: 64px; bottom: 76px; }
+.s-demo .live { display: flex; flex-direction: column; gap: 20px; }
+.s-demo .live .head { display: flex; align-items: center; gap: 22px; }
+.s-demo .live .dot { width: 30px; height: 30px; border-radius: 50%; background: var(--red); animation: blink 1.2s infinite; flex: 0 0 auto; }
 @keyframes blink { 50% { opacity: .25; } }
-.s-demo .live h1 { font-size: 170px; font-weight: 900; letter-spacing: 6px; line-height: 1; }
-.s-demo .acts { position: absolute; left: 120px; bottom: 120px; display: flex; gap: 22px; }
-.s-demo .act { width: 360px; background: rgba(31,34,41,.92); border-radius: 18px; padding: 24px 28px; border-top: 6px solid var(--line); }
-.s-demo .act b { display: block; font-size: 34px; font-weight: 900; letter-spacing: 2px; margin-bottom: 10px; }
-.s-demo .act span { font-size: 26px; color: var(--soft); line-height: 1.35; }
-.s-demo .act.on { border-top-color: var(--amber); }
+.s-demo .live h1 { font-size: 150px; font-weight: 900; letter-spacing: 4px; line-height: 1; }
+.s-demo .live .sub { font-size: 36px; color: var(--soft); }
+.s-demo .acts { display: flex; flex-direction: column; gap: 14px; margin-top: 12px; }
+.s-demo .act { background: rgba(31,34,41,.92); border-radius: 14px; padding: 16px 22px; border-left: 6px solid var(--line); }
+.s-demo .act b { display: block; font-size: 30px; font-weight: 900; letter-spacing: 2px; margin-bottom: 6px; }
+.s-demo .act span { font-size: 25px; color: var(--soft); line-height: 1.35; }
+.s-demo .act.on { border-left-color: var(--amber); }
 .s-demo .act.on b { color: var(--amber); }
-.s-demo .hint { position: absolute; right: 120px; top: 140px; font-size: 22px; color: var(--credit); }
-.s-demo .tank { position: absolute; right: 120px; top: 120px; text-align: right; display: none; }
-.s-demo .tank b { display: block; font-size: 96px; font-weight: 900; letter-spacing: -3px; line-height: 1; }
-.s-demo .tank span { font-size: 28px; color: var(--soft); }
-.s-demo.backup .tank { display: block; }
-.s-demo.backup .hint { display: none; }
-.s-demo .board-box { display: none; right: 70px; top: 290px; width: 640px; height: 560px; }
-.s-demo.backup.act1 .board-box, .s-demo.backup.act2.done .board-box { display: block; }
+.s-demo .hint { font-size: 22px; color: var(--credit); margin-top: 6px; }
+.s-demo .what { display: none; flex-direction: column; gap: 12px; }
+.s-demo.backup .live { display: none; }
+.s-demo.backup.act2 .what { display: flex; }
+.s-demo .act-name { font-size: 30px; font-weight: 900; letter-spacing: 4px; color: var(--amber); }
+.s-demo .tank span { display: block; font-size: 28px; font-weight: 700; letter-spacing: 4px; color: var(--soft); }
+.s-demo .tank b { display: block; font-size: 140px; font-weight: 900; letter-spacing: -4px; line-height: .95; }
+.s-demo .reach { font-size: 32px; color: var(--soft); line-height: 1.25; }
+.s-demo .verdict { font-size: 76px; font-weight: 700; line-height: 1; margin-top: 10px; letter-spacing: -1px; }
+.s-demo .verdict.ok { color: var(--green); }
+.s-demo .verdict.no { color: var(--red); }
+.s-demo .summary { font-size: 28px; color: var(--soft); line-height: 1.25; }
+.s-demo .summary:empty, .s-demo .stops:empty { display: none; }
+.s-demo .red { font-size: 34px; line-height: 1.25; margin-top: 8px; }
+.s-demo .stops { font-size: 32px; font-weight: 700; color: var(--red); }
+.s-demo .what .est { margin: 6px 0 8px; }
+.s-demo .plan-head { display: none; position: absolute; left: 990px; right: 64px; top: 46px; justify-content: space-between; align-items: center; }
+.s-demo.backup.act1 .plan-head { display: flex; }
+.s-demo .board-box { display: none; }
+.s-demo.backup.act1 .board-box { display: block; }
 .s-demo video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; background: #000; display: none; }
 .s-demo.video video { display: block; }
 
-/* evidence */
-.s-evidence .lines { display: flex; flex-direction: column; gap: 12px; font-size: 32px; line-height: 1.4; }
+/* evidence: map seen from the east, the three lines on its left */
+.s-evidence .lines { position: absolute; left: 120px; top: 236px; width: 470px; display: flex; flex-direction: column; gap: 26px; font-size: 30px; line-height: 1.35; }
 .s-evidence .lines p:nth-child(2) { color: var(--amber); }
 .s-evidence .lines p:nth-child(3) { color: var(--soft); }
 
-/* closing */
-.s-closing .col { top: 100px; width: 820px; }
-.s-closing .title { font-size: 84px; }
-.s-closing .brand { font-size: 110px; font-weight: 900; letter-spacing: -3px; line-height: 1; margin-top: 10px; }
-.s-closing .motto { font-size: 44px; color: var(--amber); font-weight: 700; }
-.s-closing .repo { position: absolute; left: 120px; bottom: 130px; display: flex; gap: 28px; align-items: center; }
-.s-closing .repo img { width: 170px; height: 170px; background: #fff; padding: 10px; border-radius: 10px; }
-.s-closing .repo span { font-size: 28px; line-height: 1.5; }
-.s-closing .next { font-size: 26px; color: var(--soft); max-width: 760px; }
+/* closing: Gale from Campo Marte in the lower half; title, name and QR in the upper half */
+.s-closing .top { right: 480px; top: 46px; gap: 14px; }
+.s-closing .title { font-size: 70px; }
+.s-closing .brandline { display: flex; align-items: baseline; gap: 28px; margin-top: 6px; }
+.s-closing .brand { font-size: 84px; font-weight: 900; letter-spacing: -3px; line-height: 1; }
+.s-closing .motto { font-size: 40px; color: var(--amber); font-weight: 700; }
+.s-closing .next { font-size: 26px; color: var(--soft); line-height: 1.4; max-width: 1240px; }
+.s-closing .repo { position: absolute; right: 120px; top: 56px; display: flex; flex-direction: column; align-items: flex-end; gap: 14px; text-align: right; }
+.s-closing .repo img { width: 200px; height: 200px; background: #fff; padding: 12px; border-radius: 10px; }
+.s-closing .repo span { font-size: 28px; line-height: 1.45; }
 
 /* annex */
 .s-annex .qa { position: absolute; left: 120px; right: 120px; top: 300px; display: grid; grid-template-columns: 1fr 1fr; gap: 40px; }
@@ -123,9 +160,19 @@ html, body { height: 100%; background: var(--back); color: var(--text); font-fam
 
 @media (prefers-reduced-motion: reduce) { .slide, .layer { transition: none; } .s-demo .live .dot { animation: none; } }
 
+/* print: P (or Ctrl+P, or ?print=1) builds one 1920 x 1080 page per slide in #print */
+#print { display: none; }
+html.print-mode, html.print-mode body { height: auto; overflow: visible; }
+html.print-mode #stage, html.print-mode #hud, html.print-mode #notes, html.print-mode #progress { display: none !important; }
+html.print-mode #print { display: block; }
+#print .page { position: relative; width: 1920px; height: 1080px; overflow: hidden; background: var(--back); break-after: page; page-break-after: always; }
+#print .page:last-child { break-after: auto; page-break-after: auto; }
+#print .page > img.bg { position: absolute; left: 0; top: 0; width: 100%; height: 100%; object-fit: cover; }
+#print .slide { opacity: 1; position: absolute; inset: 0; transition: none; }
+#print .s-demo .live .dot { animation: none; }
 @media print {
-  html, body { height: auto; overflow: visible; }
-  #hud, #notes, #progress { display: none !important; }
-  #stage { position: relative; left: 0; top: 0; transform: none !important; }
   @page { size: 1920px 1080px; margin: 0; }
+  html, body { height: auto !important; overflow: visible !important; background: var(--back); -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  #stage, #hud, #notes, #progress { display: none !important; }
+  #print { display: block !important; }
 }
