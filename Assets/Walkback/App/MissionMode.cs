@@ -68,6 +68,13 @@ namespace Walkback
         public Transform border;
         /// <summary>The dark shell around the head for the fades (may be null: then changes are immediate).</summary>
         public Renderer curtain;
+        /// <summary>
+        /// Two signs low in front of the user while the mission shows, pressed with the pointer (hands or
+        /// controllers): the way on and the way out when the menu button or the grip do not reach the app.
+        /// </summary>
+        public Transform controls;
+        public PointerButton nextStopButton;
+        public PointerButton nextViewButton;
         public bool showFreeSpaceBorder = true;
         /// <summary>Keep Mars' ground under the feet while walking (the real floor is flat).</summary>
         public bool followGround = true;
@@ -169,6 +176,7 @@ namespace Walkback
             if (head != null) Refresh(head, MetersOf(head.position));
             if (head != null) ShowHeading(head);
             if (app.hud != null && head != null) app.hud.SnapTo(head);
+            ShowControls(head);
             WalkbackLog.Info("Mission mode: " + Current + (Current == Mode.Mars ? " (Mars all around, 1:1)" : " (the room, HUD and route on the real floor)"));
         }
 
@@ -233,6 +241,7 @@ namespace Walkback
             if (border != null) border.gameObject.SetActive(false);
             if (stopCard != null) stopCard.gameObject.SetActive(false);
             if (curtain != null) curtain.gameObject.SetActive(false);
+            if (controls != null) controls.gameObject.SetActive(false);
             CurtainAlpha = 0f;
             CardShown = false;
             if (app != null && app.hud != null) app.hud.Hide();
@@ -321,6 +330,7 @@ namespace Walkback
             if (Current == Mode.Table || Fading || head == null) return false;
             Anchor(head);
             PlaceBorder(head);
+            PlaceControls(head);
             Refresh(head, MetersOf(head.position));
             WalkbackLog.Info("Mission recentered");
             return true;
@@ -371,6 +381,49 @@ namespace Walkback
             return f.sqrMagnitude > 1e-4f ? f.normalized : Vector3.forward;
         }
 
+        public const float ControlsAheadMeters = 0.7f;
+        public const float ControlsBelowEyeMeters = 0.55f;
+        /// <summary>The signs come back in front once the user is this far from them (or has turned away).</summary>
+        public const float ControlsFollowMeters = 1f;
+        public const string NextStopText = "NEXT STOP";
+        public const string RoomViewText = "ROOM VIEW";
+        public const string BackToTableText = "BACK TO TABLE";
+
+        /// <summary>Shows the two signs for the current mode, in front of the user, and wires what they do.</summary>
+        void ShowControls(Transform head)
+        {
+            if (controls == null) return;
+            if (nextStopButton != null && nextStopButton.Clicked == null)
+                nextStopButton.Clicked = () => Jump(app.HeadTransform());
+            if (nextViewButton != null)
+            {
+                if (nextViewButton.Clicked == null) nextViewButton.Clicked = () => NextMode(app.HeadTransform());
+                // The sign says where the press leads: Mars -> the room -> the table.
+                if (nextViewButton.label != null) nextViewButton.label.text = After(Current) == Mode.Table ? BackToTableText : RoomViewText;
+            }
+            controls.gameObject.SetActive(Current != Mode.Table);
+            PlaceControls(head);
+        }
+
+        /// <summary>The signs low in front of where the head looks, tilted up to face the eyes.</summary>
+        void PlaceControls(Transform head)
+        {
+            if (controls == null || head == null) return;
+            Vector3 at = head.position + FlatForward(head) * ControlsAheadMeters + Vector3.down * ControlsBelowEyeMeters;
+            controls.SetPositionAndRotation(at, Quaternion.LookRotation(at - head.position, Vector3.up));
+        }
+
+        /// <summary>While walking: the signs stay where they are until the user leaves them behind.</summary>
+        void FollowControls(Transform head)
+        {
+            if (controls == null || !controls.gameObject.activeSelf) return;
+            Vector3 to = controls.position - head.position;
+            to.y = 0f;
+            bool far = to.magnitude > ControlsFollowMeters;
+            bool behind = to.magnitude > 0.3f && Vector3.Dot(to.normalized, FlatForward(head)) < -0.2f;
+            if (far || behind) PlaceControls(head);
+        }
+
         void PlaceBorder(Transform head)
         {
             if (border == null || head == null) return;
@@ -390,6 +443,7 @@ namespace Walkback
             Progress.Walk(here);
             if (followGround) SetGroundHeight(here);
             ShowHeading(head);
+            FollowControls(head);
 
             refreshIn -= deltaTime;
             if (refreshIn <= 0f) Refresh(head, here);
@@ -485,6 +539,7 @@ namespace Walkback
             if (stopCard != null) stopCard.gameObject.SetActive(false);
             Anchor(head);
             PlacePillar();
+            PlaceControls(head);
             Refresh(head, MetersOf(head.position));
             WalkbackLog.Info("Mission jump " + Progress.Jumps + ": " + Last.nextName + " " + Last.nextMeters.ToString("F1") + " m ahead, walked so far " +
                 Last.walkMinutes.ToString("F1") + " min, O2 used " + Last.usedLiters.ToString("F1") + " L");

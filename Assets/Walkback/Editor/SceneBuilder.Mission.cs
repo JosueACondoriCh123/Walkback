@@ -75,6 +75,19 @@ namespace Walkback.EditorTools
                 border.gameObject.SetActive(false);
                 mission.border = border;
 
+                // The way on and the way out with the pointer (hands or controllers): two signs low in front of the user.
+                var controls = new GameObject("MissionControls").transform;
+                controls.SetParent(root.transform, false);
+                var signSize = new Vector2(0.38f, 0.08f);
+                mission.nextStopButton = PointerButton.Create("NextStopButton", MissionMode.NextStopText, signSize, backPlate, ui);
+                mission.nextStopButton.transform.SetParent(controls, false);
+                mission.nextStopButton.transform.localPosition = new Vector3(-0.205f, 0f, 0f);
+                mission.nextViewButton = PointerButton.Create("NextViewButton", MissionMode.RoomViewText, signSize, backPlate, ui);
+                mission.nextViewButton.transform.SetParent(controls, false);
+                mission.nextViewButton.transform.localPosition = new Vector3(0.205f, 0f, 0f);
+                controls.gameObject.SetActive(false);
+                mission.controls = controls;
+
                 if (fade != null)
                 {
                     // A shell around the head, bigger than the near plane and drawn from inside (the shader does not cull).

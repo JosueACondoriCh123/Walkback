@@ -366,6 +366,39 @@ namespace Walkback.EditorTools
                         ready && inMars && signHidden && signBack && mission.Current == MissionMode.Mode.Table,
                         "ready " + ready + ", Mars " + inMars + ", sign hidden " + signHidden + ", back " + signBack);
                 }
+
+                // ---- Without the menu button or the grip: two signs low in front, pressed with the pointer
+                {
+                    mission.NextMode(cam.transform);
+                    Transform bar = mission.controls;
+                    PointerButton stopSign = mission.nextStopButton, viewSign = mission.nextViewButton;
+                    bool shown = bar != null && bar.gameObject.activeSelf && stopSign != null && viewSign != null &&
+                        stopSign.GetComponent<Collider>() != null && viewSign.GetComponent<Collider>() != null && mission.Current == MissionMode.Mode.Mars;
+                    Vector3 toBar = shown ? bar.position - cam.transform.position : Vector3.zero;
+                    bool inReach = shown && new Vector2(toBar.x, toBar.z).magnitude < 1f && toBar.y < -0.3f && toBar.y > -0.9f && Vector3.Dot(bar.forward, toBar) > 0f;
+                    string onMars = viewSign != null && viewSign.label != null ? viewSign.label.text : "";
+
+                    // Walking 3 m away leaves them behind: they come back in front.
+                    Vector3 stood = cam.transform.position;
+                    cam.transform.position = stood + Vector3.ProjectOnPlane(cam.transform.forward, Vector3.up).normalized * 3f;
+                    mission.Tick(cam.transform, 0.3f);
+                    Vector3 after = shown ? bar.position - cam.transform.position : Vector3.zero;
+                    bool follows = shown && new Vector2(after.x, after.z).magnitude < 1f;
+                    cam.transform.position = stood;
+                    mission.Tick(cam.transform, 0.3f);
+
+                    int jumpsBefore = mission.Progress != null ? mission.Progress.Jumps : -1;
+                    if (stopSign != null) stopSign.OnPointerClick(stopSign.transform.position);
+                    bool signJumped = mission.Progress != null && mission.Progress.Jumps == jumpsBefore + 1;
+                    if (viewSign != null) viewSign.OnPointerClick(viewSign.transform.position);
+                    bool inRoom = mission.Current == MissionMode.Mode.Room && bar != null && bar.gameObject.activeSelf;
+                    string inRoomText = viewSign != null && viewSign.label != null ? viewSign.label.text : "";
+                    if (viewSign != null) viewSign.OnPointerClick(viewSign.transform.position);
+                    bool atTable = mission.Current == MissionMode.Mode.Table && bar != null && !bar.gameObject.activeSelf;
+                    Check("Mission: NEXT STOP and the view sign float low in front of the user and do the grip's and the menu button's job (hands or controllers)",
+                        shown && inReach && follows && signJumped && inRoom && atTable && onMars == MissionMode.RoomViewText && inRoomText == MissionMode.BackToTableText,
+                        "shown " + shown + ", in reach " + inReach + ", follows " + follows + ", jump " + signJumped + ", room " + inRoom + ", table " + atTable);
+                }
             }
             finally
             {
