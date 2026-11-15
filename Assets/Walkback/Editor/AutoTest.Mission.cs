@@ -16,6 +16,13 @@ namespace Walkback.EditorTools
         /// <summary>The anchor pose, the height on the mesh's own triangles and the curtain's curve: no scene needed.</summary>
         static void CheckMissionMath()
         {
+            // The menu button read as "held" (Unity's XR input) counts once per press, however long it is held.
+            bool before = false;
+            int presses = 0;
+            foreach (bool held in new[] { false, true, true, true, false, false, true, false })
+                if (WalkbackApp.RisingEdge(held, ref before)) presses++;
+            Check("Mission button: a held menu button counts once per press (two presses in the test)", presses == 2, presses + " presses");
+
             // A point 100 m east and 200 m north of the south-west corner, 7 m up in the mesh, must land on the
             // feet; and the route's direction (north-east) must turn to where the user looks (west).
             Vector3 feet = new Vector3(2f, 0f, -3f);
