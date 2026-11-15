@@ -119,7 +119,7 @@ Use exactly these versions (newer ones were not tested):
 
 ## Automatic test (no headset)
 
-The project carries its own test (`Assets/Walkback/Editor/AutoTest*.cs`): it builds the scene, loads the Gale package, runs the route, verdict, HUD, panel, pointer, globe and mission-mode checks and saves screenshots in `TestOutput/`. Last count: **416 checks, all passing (15 Nov 2026, 00:32)**.
+The project carries its own test (`Assets/Walkback/Editor/AutoTest*.cs`): it builds the scene, loads the Gale package, runs the route, verdict, HUD, panel, pointer, globe and mission-mode checks and saves screenshots in `TestOutput/`. Last count: **424 checks, all passing (15 Nov 2026, 01:33)**.
 
 - Unity open: menu *Walkback > Run Auto Test*.
 - Unity closed: `Unity.exe -batchmode -projectPath . -executeMethod Walkback.EditorTools.AutoTest.RunBatch -logFile TestOutput/unity.log`

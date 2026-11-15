@@ -30,7 +30,7 @@ Local coordinates: meters from the south-west corner, x east, y north. The squar
 | Stop science | Curiosity blog: sols 4568-4569 (Altadena, 11 Jun 2025), 4695-4701 (13 Nov 2025), 4716-4722 (18 Nov 2025), 4893-4899 and 4900-4907 (Campo Marte, May 2026). Read on 14 Nov 2026 15:30 before use | `science.nasa.gov/blog/` | NASA/JPL-Caltech |
 | Stop task times | Proposed from NASA/TP-2017-219457, table 30 | | NASA |
 | Weather | Curiosity REMS weather feed (the data CAB publishes) | `https://mars.nasa.gov/rss/api/?feed=weather&category=msl&feedtype=json` | NASA/JPL-Caltech/CAB (CSIC-INTA) |
-| Space weather | NASA DONKI: SEP, GST, CME for the week | `https://api.nasa.gov/DONKI/SEP?startDate=2026-11-07&endDate=2026-11-14&api_key=DEMO_KEY` (same for GST, CME) | NASA CCMC |
+| Space weather | NASA DONKI: SEP, GST, CME for the week | `https://api.nasa.gov/DONKI/SEP?startDate=2026-11-07&endDate=2026-11-14&api_key=DEMO_KEY` (same for GST, CME). Since 15 Nov (audit R18, patch 0052) the app also asks the SEP endpoint once at start for the last 7 days (`DEMO_KEY`, 4 s limit); the card then says "(live)" with the time, otherwise "(stored in the app)" | NASA CCMC |
 | Surface radiation | 0.64 mSv/day (dose equivalent), Curiosity RAD | Hassler et al. (2014), *Science* 343 | NASA/JPL-Caltech/SwRI |
 | Globe (in use) | Viking MDIM 2.1 colour mosaic, 1 km/px, 21339 x 10670 (36 708 552 bytes, matches the server) | guion §5.1, row 4 | NASA/JPL/USGS |
 | Globe (plan B, used 12:10-12:23) | Mars image texture, from Viking images processed at the USGS, 1440 x 720 | `https://assets.science.nasa.gov/content/dam/science/cds/3d/resources/image/mars/Mars.jpg` | NASA/JPL-Caltech |
