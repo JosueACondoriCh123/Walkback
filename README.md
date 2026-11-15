@@ -74,7 +74,7 @@ All data in the app comes from public sources; each one is named on screen and i
 | Globe | Viking MDIM 2.1 colour mosaic | NASA/JPL/USGS |
 | 360° panorama | Mastcam mosaic PIA26696, sols 4714–4741 | NASA/JPL-Caltech/MSSS |
 
-How the terrain was checked: the slopes of the Mars Trek DEM match Curiosity's own tilt sensor within 2.0° (mean difference) on 85 rover positions (DATA.md, "Checks"). That supports the terrain; it does not validate the oxygen numbers.
+How the terrain was checked: the slopes of the Mars Trek DEM differ from Curiosity's own tilt sensor by 2.0° on average (r = 0.77, largest difference 21°) on 85 rover positions (DATA.md, "Checks"). That supports the terrain; it does not validate the oxygen numbers.
 
 ---
 
