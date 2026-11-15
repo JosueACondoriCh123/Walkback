@@ -71,6 +71,7 @@ namespace Walkback
         /// <summary>
         /// WHAT IF the suit fails: the same plan starting with less oxygen (100 % -> 15 % -> 8 % -> 100 %).
         /// With less than a full tank the map switches to the return layer, where red = too far to walk back.
+        /// Back at 100 % the map shows again the layer it had before the WHAT IF.
         /// </summary>
         public void NextWhatIf()
         {
@@ -78,11 +79,31 @@ namespace Walkback
             SetWhatIfTank(WhatIfSteps[whatIfStep]);
         }
 
+        /// <summary>The layer the map showed when the WHAT IF began (kept from 15 % to 8 %).</summary>
+        MapLayer layerBeforeWhatIf = MapLayer.Photo;
+        bool whatIfChangedLayer;
+
         public void SetWhatIfTank(float percent)
         {
+            bool wasFull = WhatIfTankPercent >= 100f;
             WhatIfTankPercent = Mathf.Clamp(percent, 0f, 100f);
             PlanMission(false);
-            if (WhatIfTankPercent < 100f && terrain != null) terrain.ShowLayer(MapLayer.Return);
+            if (terrain != null && WhatIfTankPercent < 100f)
+            {
+                if (wasFull)
+                {
+                    layerBeforeWhatIf = terrain.Layer;
+                    whatIfChangedLayer = true;
+                }
+                terrain.ShowLayer(MapLayer.Return);
+            }
+            else if (terrain != null && whatIfChangedLayer)
+            {
+                // The full tank again: the layer of before comes back (it stayed on RETURN, without any red, and
+                // the user had to press PHOTO). Not if they chose another layer in the meantime.
+                whatIfChangedLayer = false;
+                if (terrain.Layer == MapLayer.Return && layerBeforeWhatIf != MapLayer.Return) terrain.ShowLayer(layerBeforeWhatIf);
+            }
             WalkbackLog.Info("What if: tank at " + WhatIfTankPercent.ToString("0") + " %");
         }
 

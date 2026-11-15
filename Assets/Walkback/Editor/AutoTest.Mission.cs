@@ -512,6 +512,35 @@ namespace Walkback.EditorTools
                         "stays " + stays + ", came " + came + ", in front " + inFront + " (" + toTable.magnitude.ToString("F2") + " m)");
                 }
 
+                // ---- WHAT IF with the left stick: 100 % -> 15 % -> 8 % -> 100 %, and the map's layer comes back
+                // (it stayed on RETURN with the full tank again, without any red, until the user pressed PHOTO)
+                {
+                    MapLayer shownBefore = app.terrain.Layer;
+                    app.terrain.ShowLayer(MapLayer.Photo);
+                    MapLayer startLayer = app.terrain.Layer;   // HEIGHT on a site without a photo
+                    bool viableFull = app.Plan != null && app.Plan.Viable;
+                    app.NextWhatIf();
+                    float firstTank = app.WhatIfTankPercent;
+                    bool firstOnReturn = app.terrain.Layer == MapLayer.Return && !float.IsInfinity(app.terrain.ReturnReachMinutes);
+                    string firstVerdict = app.panel.verdictTitle.text + ", " + app.panel.verdictDetail.text;
+                    app.NextWhatIf();
+                    float secondTank = app.WhatIfTankPercent;
+                    bool secondOnReturn = app.terrain.Layer == MapLayer.Return && app.panel.Verdict == VerdictState.NotViable;
+                    app.NextWhatIf();
+                    bool fullAgain = Mathf.Approximately(app.WhatIfTankPercent, 100f) && float.IsInfinity(app.terrain.ReturnReachMinutes) && app.Plan != null && app.Plan.Viable == viableFull;
+                    MapLayer afterLayer = app.terrain.Layer;
+                    // A layer the user chooses during the WHAT IF stays when the tank is full again.
+                    app.NextWhatIf();
+                    app.NextWhatIf();
+                    app.terrain.ShowLayer(MapLayer.Slope);
+                    app.NextWhatIf();
+                    bool choiceKept = app.terrain.Layer == MapLayer.Slope && Mathf.Approximately(app.WhatIfTankPercent, 100f);
+                    app.terrain.ShowLayer(shownBefore);
+                    Check("What if: the left stick steps the tank 100 -> 15 -> 8 -> 100 %; the map goes to RETURN and, with the full tank again, back to the layer it showed (a layer chosen meanwhile stays)",
+                        Mathf.Approximately(firstTank, 15f) && firstOnReturn && Mathf.Approximately(secondTank, 8f) && secondOnReturn && fullAgain && afterLayer == startLayer && choiceKept,
+                        firstTank.ToString("0") + " % (" + firstVerdict + ") -> " + secondTank.ToString("0") + " % -> 100 % on " + afterLayer + ", chosen layer kept " + choiceKept);
+                }
+
                 // ---- RECENTER with the pointer: B and Y do not exist with hands
                 {
                     mission.NextMode(cam.transform);
