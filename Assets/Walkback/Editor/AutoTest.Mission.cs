@@ -399,6 +399,17 @@ namespace Walkback.EditorTools
                         shown && inReach && follows && signJumped && inRoom && atTable && onMars == MissionMode.RoomViewText && inRoomText == MissionMode.BackToTableText,
                         "shown " + shown + ", in reach " + inReach + ", follows " + follows + ", jump " + signJumped + ", room " + inRoom + ", table " + atTable);
                 }
+
+                // ---- An error in a change behind the curtain must not leave the curtain closed
+                {
+                    int failedBefore = mission.FailedChanges;
+                    bool threw = false, ran = false;
+                    try { ran = mission.BehindCurtain(MissionMode.JumpFadeSeconds, cam.transform, () => { throw new System.InvalidOperationException("test"); }); }
+                    catch (System.Exception) { threw = true; }
+                    Check("Mission: an error in a change behind the fade curtain is logged and the curtain still opens (no black headset)",
+                        ran && !threw && mission.FailedChanges == failedBefore + 1 && !mission.Fading && mission.CurtainAlpha == 0f &&
+                        (mission.curtain == null || !mission.curtain.gameObject.activeSelf), "threw " + threw + ", failed changes " + (mission.FailedChanges - failedBefore));
+                }
             }
             finally
             {

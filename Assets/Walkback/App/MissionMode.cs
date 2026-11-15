@@ -565,11 +565,31 @@ namespace Walkback
             if (Fading || change == null) return false;
             if (curtain == null || head == null || !Application.isPlaying)
             {
-                change();
+                RunChange(change);
                 return true;
             }
             StartCoroutine(FadeThen(seconds, head, change));
             return true;
+        }
+
+        /// <summary>How many changes behind the curtain threw an error (each one is in the log).</summary>
+        public int FailedChanges { get; private set; }
+
+        /// <summary>
+        /// Runs the change of world and keeps going if it throws: an error inside the fade would otherwise
+        /// stop it with the curtain closed (a black headset for good, and no later fade could start).
+        /// </summary>
+        void RunChange(System.Action change)
+        {
+            try
+            {
+                change();
+            }
+            catch (System.Exception e)
+            {
+                FailedChanges++;
+                WalkbackLog.Warn("A change behind the fade curtain failed, the curtain opens anyway: " + e);
+            }
         }
 
         IEnumerator FadeThen(float seconds, Transform head, System.Action change)
@@ -586,7 +606,7 @@ namespace Walkback
                     // The curtain is closed for this frame: change the world behind it.
                     SetCurtain(1f, head);
                     changed = true;
-                    change();
+                    RunChange(change);
                     yield return null;
                     continue;
                 }
