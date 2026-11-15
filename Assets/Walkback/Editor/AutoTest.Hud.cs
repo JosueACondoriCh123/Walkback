@@ -24,6 +24,11 @@ namespace Walkback.EditorTools
             Check("HUD estimate: TURN BACK only when the tank above the reserve no longer covers the way back",
                 HudEstimate.TurnBack(460f, 10f) && !HudEstimate.TurnBack(100f, 10f) && !at.turnBack);
 
+            Check("HUD: minutes are rounded before they are split into hours (never \"1 h 60 min\")",
+                HelmetHud.MinutesText(119.6f) == "2 h 0 min" && HelmetHud.MinutesText(59.7f) == "1 h 0 min" && HelmetHud.MinutesText(174.7f) == "2 h 55 min" &&
+                HelmetHud.MinutesText(132f) == "2 h 12 min" && HelmetHud.MinutesText(42.7f) == "43 min" && HelmetHud.MinutesText(0.4f) == "under 1 min",
+                HelmetHud.MinutesText(119.6f) + " | " + HelmetHud.MinutesText(59.7f) + " | " + HelmetHud.MinutesText(174.7f));
+
             // Stand at a stop with a photo, as after JUMP TO SITE.
             var site = app.terrain.Site;
             int stop = -1;

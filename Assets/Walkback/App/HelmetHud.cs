@@ -279,9 +279,10 @@ namespace Walkback
         public static string MinutesText(float minutes)
         {
             if (minutes < 1f) return "under 1 min";
-            if (minutes < 60f) return F(minutes, "0") + " min";
-            int h = Mathf.FloorToInt(minutes / 60f);
-            return h + " h " + Mathf.RoundToInt(minutes - h * 60f) + " min";
+            // Rounded to whole minutes first: 119.6 is "2 h 0 min", never "1 h 60 min"; 59.7 is "1 h 0 min", not "60 min".
+            int whole = Mathf.FloorToInt(minutes + 0.5f);
+            if (whole < 60) return whole.ToString(CultureInfo.InvariantCulture) + " min";
+            return (whole / 60) + " h " + (whole % 60) + " min";
         }
 
         public static string MetersText(float meters)
