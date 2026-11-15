@@ -1,0 +1,116 @@
+{
+ "site": "Gale crater boxwork",
+ "demSource": "marstrek",
+ "dem": "gale_dem_window.tif",
+ "ortho": {
+  "size": 4096,
+  "metersPerPixel": 0.2441,
+  "stretch": [
+   43.0,
+   214.0
+  ]
+ },
+ "heightmap": {
+  "min": -3721.456,
+  "max": -3492.944,
+  "edgeCellsFilled": 0,
+  "quantizationErrorMaxMm": 1.74
+ },
+ "slope": {
+  "maxDeg": 63.6,
+  "over15pct": 28.65,
+  "over20pct": 19.25,
+  "over25pct": 12.29
+ },
+ "sand": {
+  "mode": "none",
+  "demHollowPct": 3.2,
+  "writtenHollowPct": 0.0
+ },
+ "boxworkCheck": {
+  "reliefVsBrightnessR": 0.19,
+  "photoBrightnessInHollows": 116.5,
+  "photoBrightnessElsewhere": 117.8,
+  "reliefVarianceInRowMeansPct": 1.07,
+  "reliefVarianceInColumnMeansPct": 4.26
+ },
+ "curiosity": {
+  "pointsInside": 85,
+  "sols": [
+   4548,
+   4914
+  ],
+  "demMinusRoverElevationMean": 17.13,
+  "demMinusRoverElevationStd": 1.04
+ },
+ "stops": [
+  {
+   "name": "Altadena",
+   "x": 650.1,
+   "y": 924.0,
+   "height": -3630.45,
+   "relief": -0.19,
+   "sand": false,
+   "slope": 5.0,
+   "maxSlopeWithin12m": 7.9,
+   "scienceWords": 17
+  },
+  {
+   "name": "Valle de la Luna",
+   "x": 502.1,
+   "y": 450.3,
+   "height": -3593.19,
+   "relief": -0.58,
+   "sand": true,
+   "slope": 9.6,
+   "maxSlopeWithin12m": 17.7,
+   "scienceWords": 17
+  },
+  {
+   "name": "Nevado Sajama",
+   "x": 500.2,
+   "y": 440.3,
+   "height": -3591.1,
+   "relief": -0.02,
+   "sand": false,
+   "slope": 13.1,
+   "maxSlopeWithin12m": 17.6,
+   "scienceWords": 18
+  },
+  {
+   "name": "Campo Marte",
+   "x": 534.3,
+   "y": 61.5,
+   "height": -3551.46,
+   "relief": -0.01,
+   "sand": false,
+   "slope": 5.3,
+   "maxSlopeWithin12m": 9.7,
+   "scienceWords": 17
+  }
+ ],
+ "habitat": {
+  "x": 514.8,
+  "y": 777.0,
+  "slope": 5.2,
+  "maxSlopeWithin15m": 11.8,
+  "sand": false,
+  "straightLineToStops": [
+   200,
+   327,
+   337,
+   716
+  ]
+ },
+ "files": {
+  "conditions.json": 741,
+  "curiosity_traverse.json": 4586,
+  "heightmap.r16": 526338,
+  "mars_global.jpg": 2550912,
+  "ortho.jpg": 4988703,
+  "panorama_PIA26696.jpg": 1152195,
+  "sand.png": 143,
+  "site.json": 2419,
+  "stops.json": 4376
+ }
+}
