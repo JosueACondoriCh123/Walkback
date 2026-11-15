@@ -247,7 +247,11 @@ Mars Trek, USGS); Viking MDIM 2.1 (NASA/JPL/USGS).
 
 Closing-slide astronaut: Astronaut.glb, NASA 3D Resources (public
 domain), data/astronaut.js; its place and size on the slide are
-illustrative. No AI-generated imagery is used in the presentation.
+illustrative. English version (for NASA): no AI-generated imagery.
+Spanish version (local defense), closing slide only: an AI-generated
+astronaut illustration (img/astronaut-realistic.png), credited on the
+slide and declared in AI_USAGE.md. Title slide: the Viking mosaic with
+its colour enhanced, said in its credit.
 
 The slides carry no screenshots: their 3D scenes are drawn from the
 data above, and their numbers come from the app's rule ported to
