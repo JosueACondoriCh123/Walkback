@@ -136,15 +136,35 @@ html, body { height: 100%; background: var(--back); color: var(--text); font-fam
 .s-evidence .lines { position: absolute; left: 120px; top: 236px; width: 470px; display: flex; flex-direction: column; gap: 26px; font-size: 30px; line-height: 1.35; }
 .s-evidence .lines p:nth-child(1) { color: var(--amber); }
 .s-evidence .lines p:nth-child(2) { color: var(--soft); }
+/* evidence: where the data comes from (left column, under the lines; the map is on the right) */
+.s-evidence .sources { display: flex; flex-direction: column; gap: 9px; margin-top: 6px; }
+.s-evidence .src-title { font-size: 19px; font-weight: 800; letter-spacing: 3px; text-transform: uppercase; color: var(--amber); }
+.s-evidence .src { display: flex; flex-direction: column; align-items: flex-start; gap: 3px; }
+.s-evidence .src-name { font-size: 23px; line-height: 1.2; color: var(--text); }
+.s-evidence .src-tag { font-size: 14px; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase; color: var(--soft);
+  border: 1.5px solid rgba(255,255,255,.35); border-radius: 999px; padding: 1px 10px; }
+.s-evidence .src-tag.live { color: var(--sky); border-color: var(--sky); }
+.s-evidence .src-note { font-size: 20px; color: var(--soft); margin-top: 2px; }
 
 /* closing: Gale from Campo Marte in the lower half; title, name and QR in the upper half */
 .s-closing .top { right: 480px; top: 46px; gap: 14px; }
-.s-closing .title { font-size: 70px; }
+.s-closing .title { font-size: 60px; }
 .s-closing .brandline { display: flex; align-items: baseline; gap: 28px; margin-top: 6px; }
-.s-closing .brand { font-size: 84px; font-weight: 900; letter-spacing: -3px; line-height: 1; }
+.s-closing .brand { font-size: 72px; font-weight: 900; letter-spacing: -3px; line-height: 1; }
 .s-closing .motto { font-size: 40px; color: var(--amber); font-weight: 700; }
 .s-closing .motto:empty { display: none; }
-.s-closing .next { font-size: 26px; color: var(--soft); line-height: 1.4; max-width: 1240px; }
+.s-closing .next { font-size: 21px; color: var(--soft); line-height: 1.35; max-width: 1190px; }
+/* closing: today (works, green) and the next step (not done, amber dashed) */
+.s-closing .flow { display: flex; flex-direction: column; gap: 8px; margin-top: 6px; max-width: 1190px; }
+.s-closing .flow-row { display: grid; grid-template-columns: 206px 1fr 30px 1fr 30px 1fr; align-items: center; }
+.s-closing .flow-label { display: flex; flex-direction: column; line-height: 1.1; }
+.s-closing .flow-label b { font-size: 19px; font-weight: 900; letter-spacing: 2px; color: var(--green); }
+.s-closing .flow-label span { font-size: 17px; color: var(--soft); }
+.s-closing .flow-row.later .flow-label b { color: var(--amber); }
+.s-closing .flow-box { font-size: 23px; font-weight: 700; color: var(--text); text-align: center; white-space: nowrap; background: rgba(11,13,15,.8);
+  border: 2px solid rgba(64,217,102,.7); border-radius: 10px; padding: 7px 10px; }
+.s-closing .flow-row.later .flow-box { border: 2px dashed rgba(255,184,13,.85); color: var(--soft); }
+.s-closing .flow-arrow { text-align: center; font-size: 26px; color: var(--soft); }
 .s-closing .repo { position: absolute; right: 120px; top: 56px; display: flex; flex-direction: column; align-items: flex-end; gap: 14px; text-align: right; }
 .s-closing .repo img { width: 200px; height: 200px; background: #fff; padding: 12px; border-radius: 10px; }
 .s-closing .repo span { font-size: 28px; line-height: 1.45; }

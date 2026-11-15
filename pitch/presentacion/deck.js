@@ -99,6 +99,23 @@
     return items.length ? '<div class="legend ' + (cls || 'line') + '">' + items.join('') + '</div>' : '';
   }
   function credit(t) { return '<div class="credit">' + T(t.credit) + '</div>'; }
+  /** Evidence slide: where each piece of data comes from, tagged stored or asked at start (content.js, sources). */
+  function sourcesHtml(t) {
+    if (!t.sources || !t.sources.length) return '';
+    return '<div class="sources"><div class="src-title">' + T(t.sourcesTitle) + '</div>' +
+      t.sources.map(function (s) {
+        return '<div class="src"><span class="src-name">' + T(s[0]) + '</span><span class="src-tag' + (s[2] === 'live' ? ' live' : '') + '">' + T(s[1]) + '</span></div>';
+      }).join('') + (t.sourcesNote ? '<div class="src-note">' + T(t.sourcesNote) + '</div>' : '') + '</div>';
+  }
+  /** Closing slide: today (works) and the next step (not done), as two rows of boxes (content.js, flow). */
+  function flowHtml(t) {
+    if (!t.flow || !t.flow.length) return '';
+    return '<div class="flow">' + t.flow.map(function (r, i) {
+      return '<div class="flow-row' + (i ? ' later' : '') + '"><div class="flow-label"><b>' + T(r[0]) + '</b><span>' + T(r[1]) + '</span></div>' +
+        '<div class="flow-box">' + T(r[2]) + '</div><div class="flow-arrow">&#8594;</div><div class="flow-box">' + T(r[3]) +
+        '</div><div class="flow-arrow">&#8594;</div><div class="flow-box">' + T(r[4]) + '</div></div>';
+    }).join('') + '</div>';
+  }
 
   var templates = {
     title: function (t) {
@@ -141,7 +158,7 @@
     // evidence pose: seen from the east (x 412..1650, y 211..882): title above, the three lines on the left, figures under it
     evidence: function (t) {
       return '<div class="top"><div class="tag">' + T(t.tag) + '</div>' + titleHtml(t, true) + '</div>' + legendHtml(t.legend) +
-        '<div class="lines">' + (t.lines || []).map(function (l) { return '<p>' + T(l) + '</p>'; }).join('') + '</div>' +
+        '<div class="lines">' + (t.lines || []).map(function (l) { return '<p>' + T(l) + '</p>'; }).join('') + sourcesHtml(t) + '</div>' +
         '<div class="figs">' + bigsHtml(t.big) + '</div>' + credit(t);
     },
     // closing pose: low over Campo Marte looking home along the route; the terrain fills the lower half, text on top
@@ -164,7 +181,7 @@
       }
       return '<div class="scrim-top"></div><div class="scrim-foot"></div>' + hud + '<div class="top"><div class="tag">' + T(t.tag) + '</div>' + titleHtml(t) +
         '<div class="brandline"><span class="brand">' + T(t.brand) + '</span><span class="motto">' + T(t.sub) + '</span></div>' +
-        (t.next ? '<div class="next">' + T(t.next) + '</div>' : '') + '</div>' +
+        flowHtml(t) + (t.next ? '<div class="next">' + T(t.next) + '</div>' : '') + '</div>' +
         '<div class="repo"><img src="img/qr.png" alt="QR"><span>' + esc(ui('project')) + '<br><b>' + T(t.qr) + '</b></span></div>' +
         '<div class="credit' + (local ? ' credit-local' : '') + '">' + T(local && t.creditLocal ? t.creditLocal : t.credit) + '</div>';
     },
@@ -213,7 +230,7 @@
   // If WebGL fails, each layer shows a real photo instead (data, not screenshots); the Gale photo sits where the map would.
   var FALLBACK = { globe: 'img/mars_global.jpg', panorama: 'img/sajama_crop.jpg', gale: 'img/ortho.jpg' };
   var FB_BOX = {          // where the HiRISE photo goes when the 3D map cannot be drawn: inside the pose's map area (x, y, side in px)
-    table: [590, 205, 600], board: [190, 242, 642], whatif: [215, 70, 900], evidence: [760, 205, 620], closing: [730, 445, 470]
+    table: [590, 205, 600], board: [190, 242, 642], whatif: [215, 70, 900], evidence: [760, 205, 620], closing: [730, 500, 450]
   };
   function noteStyle(b) { return 'display:block;left:' + b[0] + 'px;top:' + (b[1] + b[2] + 8) + 'px;width:' + b[2] + 'px;right:auto'; }
   var layers = {};

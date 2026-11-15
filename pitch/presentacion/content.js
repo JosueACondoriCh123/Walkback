@@ -20,7 +20,7 @@ window.WALKBACK_CONTENT = {
     slopeMax: '21°',
     demMeters: 1,             // DATA.md: HiRISE DEM (Mars Trek), 1 m
     photoCm: 25,              // DATA.md: foto HiRISE, 25 cm por píxel
-    fps: 72,                  // CLAUDE.md: en la mesa, Quest 3, 14/11 (Marte a escala real: sin medir)
+    fps: 72,                  // log de la app en el Quest 3, 15/11 03:28-03:54: mesa, Marte a escala real, sala y foto 360°
     tests: '424 de 424',      // CLAUDE.md, 15/11. OJO: poner la cuenta del commit del tag v1.0-submission si cambió
     testsEn: '424 of 424'
   },
@@ -111,12 +111,24 @@ window.WALKBACK_CONTENT = {
             big: [['{demMeters} m', 'relieve HiRISE'], ['{positions}', 'posiciones de Curiosity'], ['{slopeMeanDiff}', 'diferencia media de pendiente']],
             lines: ['Oxígeno y tiempo: estimados, y la app lo dice.'],
             legend: ['Celeste: las {positions} posiciones de Curiosity', 'Rayado: pendiente de más de {limit}°'],
+            // De dónde sale cada dato. El tercer valor 'live' marca el único que la app consulta al abrir (NASA DONKI);
+            // todo lo demás viaja guardado en la app. El clima no entra en la cuenta del oxígeno.
+            sourcesTitle: 'De dónde salen los datos',
+            sources: [['Relieve {demMeters} m y foto {photoCm} cm · HiRISE', 'guardado'], ['{positions} posiciones de Curiosity', 'guardado'],
+                      ['Cuatro paradas · blog de Curiosity', 'guardado'], ['Clima: último reporte de Curiosity (REMS)', 'guardado'],
+                      ['Clima espacial · NASA DONKI', 'se consulta al abrir', 'live']],
+            sourcesNote: 'El clima no entra en la cuenta del oxígeno.',
             credit: 'DATA.md · r = {slopeR}, diferencia máxima {slopeMax} · prueba automática de la app: {tests}',
-            dice: '¿Por qué creernos? El terreno no lo inventamos: el relieve es de HiRISE, a un metro, y lo comparamos con el sensor de inclinación del propio Curiosity en ochenta y cinco posiciones. La diferencia media es de dos grados. El oxígeno y el tiempo son estimaciones, y la app lo dice en pantalla. No escondemos nada. (Rocas chicas y arena: solo si preguntan.)' },
+            dice: '¿Por qué creernos? El terreno no lo inventamos: el relieve es de HiRISE, a un metro, y lo comparamos con el sensor de inclinación del propio Curiosity en ochenta y cinco posiciones. La diferencia media es de dos grados. Todo sale de datos públicos de la NASA, y el clima espacial se consulta al abrir. El oxígeno y el tiempo son estimaciones, y la app lo dice en pantalla. (Rocas chicas y arena: solo si preguntan.)' },
       en: { tag: 'Why trust it', title: 'Terrain checked', titleAccent: 'against Curiosity itself.',
             big: [['{demMeters} m', 'HiRISE relief'], ['{positions}', 'Curiosity positions'], ['{slopeMeanDiffEn}', 'mean slope difference']],
             lines: ['Oxygen and time: estimates, and the app says so.', 'The map does not see rocks under about 4 m, or sand.'],
             legend: ['Light blue: Curiosity\'s {positions} positions', 'Hatched: slope over {limit}°'],
+            sourcesTitle: 'Where the data comes from',
+            sources: [['{demMeters} m relief and {photoCm} cm photo · HiRISE', 'stored'], ['{positions} Curiosity positions', 'stored'],
+                      ['Four stops · Curiosity blog', 'stored'], ['Weather: Curiosity\'s latest report (REMS)', 'stored'],
+                      ['Space weather · NASA DONKI', 'asked at start', 'live']],
+            sourcesNote: 'Weather does not feed the oxygen estimate.',
             credit: 'DATA.md · r = {slopeREn}, largest difference {slopeMax} · the app\'s automatic test: {testsEn}', dice: '' }
     },
     {
@@ -128,22 +140,27 @@ window.WALKBACK_CONTENT = {
       id: 'closing', scene: 'gale', pose: 'closing', overlay: 'qr', segundos: 40,
       es: { tag: 'MARSXR · NASA Space Apps 2026', title: 'Porque volver también', titleAccent: 'es parte de la misión.',
             brand: 'Walkback', sub: '', qr: 'github.com/kendal-dev/Walkback',
-            next: 'Lo que sigue (no está hecho): el modelo definitivo de caminata y oxígeno; leer la telemetría de un traje en lugar de estimarla. Hoy Walkback no lee telemetría de ningún traje.',
+            // Hoy y el próximo paso. La fila de abajo NO está hecha: se dice así en la lámina y en voz alta.
+            flow: [['HOY', 'funciona', 'Datos de la NASA + regla', 'Ruta, veredicto, vuelta', 'Visor: Quest 3'],
+                   ['PRÓXIMO PASO', 'no está hecho', 'Telemetría del traje', 'Misma regla, sin estimar', 'Visor del casco']],
+            next: 'Hoy Walkback no lee telemetría de ningún traje: es el tipo de problema que plantea el desafío NASA SUITS. Hoy el Quest 3 hace de visor del casco.',
             credit: 'Gale, de Campo Marte al hábitat · relieve HiRISE 1 m: NASA Mars Trek · foto HiRISE: USGS / NASA/JPL/University of Arizona · ruta del plan: ESTIMADO · proyecto hecho con ayuda de IA, declarado en AI_USAGE.md',
             creditLocal: 'Astronauta: ilustración hecha con IA, solo para esta defensa (no está en el repositorio) · visor: textos y números de la app (ESTIMADO) · Gale: relieve HiRISE 1 m, NASA Mars Trek; foto HiRISE, USGS / NASA/JPL/University of Arizona · IA declarada en AI_USAGE.md',
-            dice: 'Walkback convierte una pregunta de vida o muerte en un color: verde, seguís; rojo, volvés. Hoy el Quest 3 hace de visor del casco. Lo que sigue: el modelo definitivo de oxígeno y leer la telemetría del traje en lugar de estimarla. Somos MARSXR, de Santa Cruz. Porque volver también es parte de la misión. Gracias. (Últimos 5 s: el QR en pantalla, sin hablar.)' },
+            dice: 'Walkback convierte una pregunta de vida o muerte en un color: verde, seguís; rojo, volvés. El astronauta no va a llevar un Quest: el producto es el software, y el visor puede ser el del casco. El próximo paso es leer la telemetría del traje, el tipo de problema que plantea el desafío NASA SUITS, en lugar de estimarla. Somos MARSXR, de Santa Cruz. Porque volver también es parte de la misión. Gracias. (Últimos 5 s: el QR en pantalla, sin hablar.)' },
       en: { tag: 'MARSXR · NASA Space Apps 2026', title: 'Because coming back', titleAccent: 'is part of the mission.',
             brand: 'Walkback', sub: '', qr: 'github.com/kendal-dev/Walkback',
             credit: 'Gale, from Campo Marte to the habitat · HiRISE 1 m relief: NASA Mars Trek · HiRISE photo: USGS / NASA/JPL/University of Arizona · the plan\'s route: ESTIMATE · project built with AI help, declared in AI_USAGE.md',
-            next: 'Next (not done): the final walking and oxygen model; reading suit telemetry instead of estimating it. Walkback reads no suit telemetry today.', dice: '' }
+            flow: [['TODAY', 'works', 'NASA data + the rule', 'Route, verdict, way back', 'Visor: Quest 3'],
+                   ['NEXT STEP', 'not done', 'Suit telemetry', 'Same rule, no estimate', 'Helmet visor']],
+            next: 'Walkback reads no suit telemetry today: it is the kind of problem the NASA SUITS challenge sets. Today the Quest 3 stands in for the helmet display.', dice: '' }
     }
   ],
 
   // Respaldo (tecla A): no cuenta en los 3 minutos.
   backup: {
     es: { realtime: '¿Datos en tiempo real? Una cosa: al abrir, la app consulta NASA DONKI por los eventos de partículas solares de la semana y muestra la hora; la línea dice (live) o (stored in the app). El clima de Marte es el último reporte de Curiosity, con su fecha. Nada de eso entra en la cuenta del oxígeno.',
-          fps: '{fps} fps en la mesa (Quest 3, 14/11). Marte a escala real: sin medir.' },
+          fps: '{fps} fps en la mesa y en Marte a escala real (Quest 3, 15/11, del log de la app).' },
     en: { realtime: 'Real-time data? One thing: at start the app asks NASA DONKI for the week\'s solar particle events and shows the time; the line says (live) or (stored in the app). Mars weather is Curiosity\'s latest report, with its date. None of it feeds the oxygen estimate.',
-          fps: '{fps} fps at the table (Quest 3, 14 Nov). Mars at real scale: not measured.' }
+          fps: '{fps} fps at the table and on Mars at real scale (Quest 3, 15 Nov, from the app\'s own log).' }
   }
 };

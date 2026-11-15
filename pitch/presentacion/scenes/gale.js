@@ -23,7 +23,8 @@
     //   table     camera 16 % farther, picture 7 % lower, turn 0.006 rad/s (R20: 0.02, about 34° in the slide's 30 s)
     //   board     picture 7 % lower (Altadena's label sat next to the title)
     //   evidence  camera 5 % farther, picture 9.6 % to the right (room for the three lines), turn -0.004 (R20: -0.015)
-    //   closing   picture 12 % lower, so the pillars stay under the title (its labels are off)
+    //   closing   picture 16 % lower (12 % until 15/11 08:40), so the pillars stay under the title and the
+    //             today / next-step diagram (its labels are off)
     // prueba-gale.html keeps R20's own poses.
     var poses = ctx.poses || (function () {
       var p = {};
@@ -31,7 +32,7 @@
       Object.assign(p.table, { pos: [744, 834, 1273], shift: [0, 0.07], orbit: 0.006 });
       Object.assign(p.board, { shift: [-0.266, 0.07] });
       Object.assign(p.evidence, { pos: [1295, 1200, 500], shift: [0.096, -0.01], orbit: -0.004 });
-      Object.assign(p.closing, { shift: [0.10, 0.12] });
+      Object.assign(p.closing, { shift: [0.10, 0.16] });
       return p;
     })();
     var rig = WG.cameraRig(THREE, camera, poses, { reduced: !!ctx.reduced });
