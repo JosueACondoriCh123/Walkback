@@ -141,7 +141,8 @@ namespace Walkback
             SiteData site = app != null && app.terrain != null ? app.terrain.Site : null;
             if (site == null || site.Stops.Length == 0) { Hide(); return; }
             // The way back is read from the same return layer the map on the table shows.
-            var s = HudEstimate.AtStop(site, index, app.terrain.ReturnMinutes);
+            // Time, oxygen and the next leg are the plan's own (the board's numbers, and its WHAT IF tank).
+            var s = HudEstimate.AtStop(site, index, app.terrain.ReturnMinutes, app.Plan);
             Current = s;
             AtStop = s.stop;
 

@@ -28,6 +28,17 @@ namespace Walkback.EditorTools
                 HelmetHud.MinutesText(119.6f) == "2 h 0 min" && HelmetHud.MinutesText(59.7f) == "1 h 0 min" && HelmetHud.MinutesText(174.7f) == "2 h 55 min" &&
                 HelmetHud.MinutesText(132f) == "2 h 12 min" && HelmetHud.MinutesText(42.7f) == "43 min" && HelmetHud.MinutesText(0.4f) == "under 1 min",
                 HelmetHud.MinutesText(119.6f) + " | " + HelmetHud.MinutesText(59.7f) + " | " + HelmetHud.MinutesText(174.7f));
+            // With a plan, the visor at a stop shows the plan's numbers and its tank (a WHAT IF reaches the visor in the photo too).
+            {
+                for (int i = 0; i < line.Heights.Length; i++) line.Heights[i] = 0f;
+                var flat = new float[line.GridSize * line.GridSize];
+                var full = HudEstimate.AtStop(line, 0, null, MissionFallback.Make(line, flat, 100f));
+                var low = HudEstimate.AtStop(line, 0, null, MissionFallback.Make(line, flat, 8f));
+                Check("HUD estimate: at a stop the visor uses the plan's tank (WHAT IF at 8 %: 4 % left on arrival and TURN BACK)",
+                    Mathf.Abs(full.elapsedMinutes - 19.3f) < 0.05f && Mathf.Abs(full.oxygenLeftPercent - 95.98f) < 0.05f && !full.turnBack &&
+                    Mathf.Abs(low.oxygenLeftPercent - 3.98f) < 0.05f && low.turnBack && low.returnState == HudEstimate.ReturnState.NotCovered,
+                    "full tank " + full.oxygenLeftPercent.ToString("F1") + " %, tank at 8 % " + low.oxygenLeftPercent.ToString("F1") + " %, turn back " + low.turnBack);
+            }
 
             // Stand at a stop with a photo, as after JUMP TO SITE.
             var site = app.terrain.Site;
@@ -49,6 +60,21 @@ namespace Walkback.EditorTools
             Canvas.ForceUpdateCanvases();
 
             Check("HUD: shows at the stop", hud.Visible && hud.AtStop == stop, stopInfo.name + (app.siteJump.Inside ? ", inside its photo" : ", no photo"));
+            if (app.Plan != null && app.Plan.HasRoute && stop + 1 < app.Plan.Legs.Count)
+            {
+                float planWalk = 0f, planWork = 0f;
+                for (int i = 0; i <= stop; i++)
+                {
+                    planWalk += app.Plan.Legs[i].Minutes;
+                    if (i < stop) planWork += app.Plan.Legs[i].WorkMinutesAtEnd;
+                }
+                float planLeft = (app.Plan.TankLiters - planWalk * HudEstimate.WalkLitersPerMinute - planWork * HudEstimate.DesignLitersPerMinute) / HudEstimate.TankLiters * 100f;
+                Check("HUD: at a stop the visor's time, oxygen and next leg are the plan's own (the visor and the board agree)",
+                    Mathf.Abs(hud.Current.elapsedMinutes - (planWalk + planWork)) < 0.01f && Mathf.Abs(hud.Current.oxygenLeftPercent - planLeft) < 0.01f &&
+                    Mathf.Abs(hud.Current.nextMeters - app.Plan.Legs[stop + 1].Meters) < 0.01f && Mathf.Abs(hud.Current.nextMinutes - app.Plan.Legs[stop + 1].Minutes) < 0.01f,
+                    "elapsed " + hud.Current.elapsedMinutes.ToString("F1") + " min, O2 left " + hud.Current.oxygenLeftPercent.ToString("F1") + " %, next " + hud.Current.nextMeters.ToString("F0") + " m");
+            }
+            else Note("HUD: no plan with a route at this point of the test, the visor shows the straight-line estimate");
             Check("HUD: oxygen, way back and next stop are on the visor",
                 hud.oxygenCard.lines[0].text.Contains("%") && hud.returnCard.lines[0].text.Contains("min") && hud.nextCard.lines[0].text.StartsWith("NEXT"),
                 hud.oxygenCard.lines[0].text + " | " + hud.returnCard.lines[0].text + " | " + hud.nextCard.lines[0].text + " | " + hud.nextCard.lines[1].text);

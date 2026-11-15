@@ -122,6 +122,37 @@ namespace Walkback
             return s;
         }
 
+        /// <summary>
+        /// The visor on arrival at a stop with the plan's own numbers, so the visor inside the 360° photo
+        /// and the board on the table never disagree: walking minutes and meters from the plan's legs
+        /// (the route over the relief, not straight lines), oxygen from the tank the plan starts with
+        /// (a WHAT IF carries into the visor) and the same TURN BACK rule the verdict uses.
+        /// Without a plan with a route, or for a stop the plan does not reach, the straight-line estimate stays.
+        /// </summary>
+        public static State AtStop(SiteData site, int index, float[] returnMinutes, MissionFallback.Plan plan)
+        {
+            State s = AtStop(site, index, returnMinutes);
+            if (plan == null || !plan.HasRoute || s.stop < 0 || s.stop + 1 >= plan.Legs.Count || plan.Legs[s.stop].ToStop != s.stop) return s;
+            float walk = 0f, work = 0f;
+            for (int i = 0; i <= s.stop; i++)
+            {
+                walk += plan.Legs[i].Minutes;
+                if (i < s.stop) work += plan.Legs[i].WorkMinutesAtEnd;
+            }
+            float used = walk * WalkLitersPerMinute + work * DesignLitersPerMinute;
+            s.elapsedMinutes = walk + work;
+            s.oxygenLeftPercent = Mathf.Max(0f, (plan.TankLiters - used) / TankLiters * 100f);
+            MissionFallback.Leg next = plan.Legs[s.stop + 1];
+            s.nextMeters = next.Meters;
+            s.nextMinutes = next.Minutes;
+            s.nextOxygenPercent = next.Minutes * WalkLitersPerMinute / TankLiters * 100f;
+            float aboveReserve = plan.TankLiters - used - ReserveLiters;
+            s.turnBack = aboveReserve < s.returnLiters;
+            s.marginMinutes = MarginMinutes(aboveReserve, s.returnLiters);
+            s.returnState = StateOf(aboveReserve, s.returnLiters);
+            return s;
+        }
+
         /// <summary>On arrival at stop <paramref name="index"/>, walking habitat -> stops in order (work done at the earlier stops).</summary>
         public static State AtStop(SiteData site, int index)
         {
