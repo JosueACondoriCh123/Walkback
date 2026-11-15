@@ -107,11 +107,28 @@ namespace Walkback
             WalkbackLog.Info("What if: tank at " + WhatIfTankPercent.ToString("0") + " %");
         }
 
+        /// <summary>After the mission, the WHAT IF button waits this long before it answers again.</summary>
+        public const float WhatIfQuietSeconds = 1f;
+        float missionSeenAt = -10f;
+
+        /// <summary>
+        /// May the WHAT IF button act now? Not while the map is locked (globe opening, 360° photo, mission).
+        /// Not while a fade runs: START MISSION fades for half a second before the map locks, and a click of
+        /// the stick in that time re-planned with 15 % of a tank, so the mission began with that tank.
+        /// Not in the first second after the mission: there the same click of the left stick changes the
+        /// view, and one click too many at BACK TO TABLE started a WHAT IF.
+        /// </summary>
+        public static bool WhatIfAllowed(bool mapLocked, bool fading, float secondsSinceMission)
+        {
+            return !mapLocked && !fading && secondsSinceMission >= WhatIfQuietSeconds;
+        }
+
         partial void UpdateRoute()
         {
             // WHAT IF: F on the keyboard, or a click of the left thumbstick. Not while the map is locked
-            // (globe opening, inside a 360° photo).
-            if (MapControlsLocked) return;
+            // (globe opening, inside a 360° photo), nor during a fade or right after the mission.
+            if (MissionActive) missionSeenAt = Time.unscaledTime;
+            if (!WhatIfAllowed(MapControlsLocked, mission != null && mission.Fading, Time.unscaledTime - missionSeenAt)) return;
             var keyboard = Keyboard.current;
             bool key = keyboard != null && keyboard.fKey.wasPressedThisFrame;
             bool stick = !DesktopMode && OVRInput.GetDown(OVRInput.Button.PrimaryThumbstick, OVRInput.Controller.LTouch);

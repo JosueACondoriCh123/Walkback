@@ -27,6 +27,13 @@ namespace Walkback.EditorTools
                 WalkbackApp.WhereName(MissionMode.Mode.Table, true, true) == "360 photo" && WalkbackApp.WhereName(MissionMode.Mode.Table, false, true) == "opening" &&
                 WalkbackApp.WhereName(MissionMode.Mode.Table, false, false) == "table");
 
+            // The WHAT IF button (left stick, F) is also the mission's view button: it must not answer during a
+            // fade (START MISSION locks the map only half a second later) nor right after the mission ends.
+            Check("What if: the left stick starts none while the map is locked, while a fade runs, or in the first second after the mission (there the same click changes the view)",
+                WalkbackApp.WhatIfAllowed(false, false, 10f) && !WalkbackApp.WhatIfAllowed(true, false, 10f) && !WalkbackApp.WhatIfAllowed(false, true, 10f) &&
+                !WalkbackApp.WhatIfAllowed(false, false, 0.2f) && WalkbackApp.WhatIfAllowed(false, false, WalkbackApp.WhatIfQuietSeconds),
+                "quiet for " + WalkbackApp.WhatIfQuietSeconds.ToString("0.0") + " s after the mission");
+
             // A point 100 m east and 200 m north of the south-west corner, 7 m up in the mesh, must land on the
             // feet; and the route's direction (north-east) must turn to where the user looks (west).
             Vector3 feet = new Vector3(2f, 0f, -3f);
