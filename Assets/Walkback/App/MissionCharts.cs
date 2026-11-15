@@ -24,11 +24,7 @@ namespace Walkback
         public const float BarWidth = 645f;
         public const float BarHeight = 40f;
         public const float PlotWidth = 1360f;
-        /// <summary>
-        /// 210 mm since the source line, the legend and the footer left this board: with 150 the last card ended
-        /// 90 mm above the board's bottom edge, three times the air between the cards.
-        /// </summary>
-        public const float PlotHeight = 210f;
+        public const float PlotHeight = 150f;
         public const float PlotLeft = 70f;
         public const float PlotTop = 680f;
         public const float StopLabelWidth = 230f;
@@ -341,7 +337,7 @@ namespace Walkback
             float profileTop = cardsTop + smallHigh + gap;
             MissionPanel.AddBox(board, "TankCard", ui, WalkbackTheme.CardBack, MissionPanel.Margin, cardsTop, cardWide, smallHigh);
             MissionPanel.AddBox(board, "TimeCard", ui, WalkbackTheme.CardBack, rightCard, cardsTop, cardWide, smallHigh);
-            MissionPanel.AddBox(board, "ProfileCard", ui, WalkbackTheme.CardBack, MissionPanel.Margin, profileTop, MissionPanel.PixelsWide - 2f * MissionPanel.Margin, PlotHeight + 140f);
+            MissionPanel.AddBox(board, "ProfileCard", ui, WalkbackTheme.CardBack, MissionPanel.Margin, profileTop, MissionPanel.PixelsWide - 2f * MissionPanel.Margin, 290f);
 
             // Oxygen, left card.
             float lx = MissionPanel.Margin + 20f, rx = rightCard + 20f;
