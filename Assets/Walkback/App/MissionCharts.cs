@@ -28,6 +28,13 @@ namespace Walkback
         public const float PlotLeft = 70f;
         public const float PlotTop = 680f;
         public const float StopLabelWidth = 230f;
+        public const float StopLabelHeight = 36f;
+        /// <summary>
+        /// Every text of the charts, in pixels = millimeters. The board is read from 1.95 m or more: the
+        /// project's floor of 17 mm at 1.2 m is 28 mm there, and these are the plan's numbers (they were 26).
+        /// </summary>
+        public const int TextSize = 30;
+        const float TextHeight = 38f;
         public const int MaxStops = 4;
 
         public static readonly Color Track = new Color(0.20f, 0.22f, 0.26f);
@@ -309,7 +316,7 @@ namespace Walkback
                 float center = Mathf.Clamp(PlotLeft + PlotX(profile.StopMeters[i]), PlotLeft + half, PlotLeft + PlotWidth - half);
                 bool low = center - half < lastRight && !lastLow;
                 var rect = (RectTransform)label.transform;
-                rect.anchoredPosition = new Vector2(center - StopLabelWidth / 2f, -(PlotTop + PlotHeight + 4f + (low ? 32f : 0f)));
+                rect.anchoredPosition = new Vector2(center - StopLabelWidth / 2f, -(PlotTop + PlotHeight + 4f + (low ? StopLabelHeight : 0f)));
                 lastRight = center + half;
                 lastLow = low;
             }
@@ -334,30 +341,32 @@ namespace Walkback
 
             // Oxygen, left card.
             float lx = MissionPanel.Margin + 20f, rx = rightCard + 20f;
-            tankCaption = MissionPanel.AddText(board, "TankCaption", "OXYGEN", font, ui, 26, FontStyle.Bold, soft, lx, cardsTop + 12f, BarWidth, 34f);
+            tankCaption = MissionPanel.AddText(board, "TankCaption", "OXYGEN", font, ui, TextSize, FontStyle.Bold, soft, lx, cardsTop + 10f, BarWidth, TextHeight);
             tankBar = AddChart(board, "TankBar", ui, lx, cardsTop + 52f, BarWidth, BarHeight);
-            tankUsed = MissionPanel.AddText(board, "TankUsed", " ", font, ui, 26, FontStyle.Bold, Used, lx, cardsTop + 104f, 200f, 34f);
-            tankSpare = MissionPanel.AddText(board, "TankSpare", " ", font, ui, 26, FontStyle.Bold, Spare, lx + 200f, cardsTop + 104f, 210f, 34f);
-            tankReserve = MissionPanel.AddText(board, "TankReserve", " ", font, ui, 26, FontStyle.Bold, Reserve, lx + BarWidth - 235f, cardsTop + 104f, 235f, 34f);
+            tankUsed = MissionPanel.AddText(board, "TankUsed", " ", font, ui, TextSize, FontStyle.Bold, Used, lx, cardsTop + 102f, 205f, TextHeight);
+            tankSpare = MissionPanel.AddText(board, "TankSpare", " ", font, ui, TextSize, FontStyle.Bold, Spare, lx + 205f, cardsTop + 102f, 210f, TextHeight);
+            tankReserve = MissionPanel.AddText(board, "TankReserve", " ", font, ui, TextSize, FontStyle.Bold, Reserve, lx + BarWidth - 230f, cardsTop + 102f, 230f, TextHeight);
             tankReserve.alignment = TextAnchor.MiddleRight;
 
-            // Time, right card.
-            timeCaption = MissionPanel.AddText(board, "TimeCaption", "TIME", font, ui, 26, FontStyle.Bold, soft, rx, cardsTop + 12f, BarWidth, 34f);
-            timeBar = AddChart(board, "TimeBar", ui, rx, cardsTop + 52f, BarWidth, BarHeight);
-            timeWalk = MissionPanel.AddText(board, "TimeWalk", " ", font, ui, 26, FontStyle.Bold, Walk, rx, cardsTop + 104f, 190f, 34f);
-            timeWork = MissionPanel.AddText(board, "TimeWork", " ", font, ui, 26, FontStyle.Bold, Work, rx + 190f, cardsTop + 104f, 220f, 34f);
-            timeTotal = MissionPanel.AddText(board, "TimeTotal", " ", font, ui, 26, FontStyle.Bold, text, rx + BarWidth - 235f, cardsTop + 104f, 235f, 34f);
+            // Time, right card. The total sits on the caption's line, at the right (as the profile's numbers do):
+            // under the bar there is room for two numbers of this size, not three ("WORK 2 h 12 min" is 250 mm wide).
+            timeCaption = MissionPanel.AddText(board, "TimeCaption", "TIME", font, ui, TextSize, FontStyle.Bold, soft, rx, cardsTop + 10f, BarWidth - 320f, TextHeight);
+            timeTotal = MissionPanel.AddText(board, "TimeTotal", " ", font, ui, TextSize, FontStyle.Bold, text, rx + BarWidth - 300f, cardsTop + 10f, 300f, TextHeight);
             timeTotal.alignment = TextAnchor.MiddleRight;
+            timeBar = AddChart(board, "TimeBar", ui, rx, cardsTop + 52f, BarWidth, BarHeight);
+            timeWalk = MissionPanel.AddText(board, "TimeWalk", " ", font, ui, TextSize, FontStyle.Bold, Walk, rx, cardsTop + 102f, 290f, TextHeight);
+            timeWork = MissionPanel.AddText(board, "TimeWork", " ", font, ui, TextSize, FontStyle.Bold, Work, rx + 300f, cardsTop + 102f, BarWidth - 300f, TextHeight);
+            timeWork.alignment = TextAnchor.MiddleRight;
 
             // Height along the route, full width.
-            profileCaption = MissionPanel.AddText(board, "ProfileCaption", "HEIGHT ALONG THE ROUTE", font, ui, 26, FontStyle.Bold, soft, PlotLeft, profileTop + 14f, 420f, 34f);
-            profileNumbers = MissionPanel.AddText(board, "ProfileNumbers", " ", font, ui, 26, FontStyle.Normal, text, PlotLeft + 440f, profileTop + 14f, PlotWidth - 440f, 34f);
+            profileCaption = MissionPanel.AddText(board, "ProfileCaption", "HEIGHT ALONG THE ROUTE", font, ui, TextSize, FontStyle.Bold, soft, PlotLeft, profileTop + 10f, 470f, TextHeight);
+            profileNumbers = MissionPanel.AddText(board, "ProfileNumbers", " ", font, ui, TextSize, FontStyle.Normal, text, PlotLeft + 490f, profileTop + 10f, PlotWidth - 490f, TextHeight);
             profileNumbers.alignment = TextAnchor.MiddleRight;
             profilePlot = AddChart(board, "ProfilePlot", ui, PlotLeft, PlotTop, PlotWidth, PlotHeight);
             stopLabels = new Text[MaxStops];
             for (int i = 0; i < MaxStops; i++)
             {
-                stopLabels[i] = MissionPanel.AddText(board, "ProfileStop" + i, " ", font, ui, 26, FontStyle.Normal, text, PlotLeft, PlotTop + PlotHeight + 4f, StopLabelWidth, 32f);
+                stopLabels[i] = MissionPanel.AddText(board, "ProfileStop" + i, " ", font, ui, TextSize, FontStyle.Normal, text, PlotLeft, PlotTop + PlotHeight + 4f, StopLabelWidth, StopLabelHeight);
                 stopLabels[i].alignment = TextAnchor.MiddleCenter;
                 stopLabels[i].horizontalOverflow = HorizontalWrapMode.Overflow;
                 stopLabels[i].gameObject.SetActive(false);

@@ -251,11 +251,27 @@ namespace Walkback.EditorTools
             string small = "", wide = "";
             foreach (var t in new[] { charts.tankCaption, charts.tankUsed, charts.tankSpare, charts.tankReserve, charts.timeCaption, charts.timeWalk, charts.timeWork, charts.timeTotal, charts.profileCaption, charts.profileNumbers })
             {
-                if (t.fontSize < 26) small += t.name + " " + t.fontSize + " px; ";
+                if (t.fontSize < MissionCharts.TextSize) small += t.name + " " + t.fontSize + " px; ";
                 float box = ((RectTransform)t.transform).rect.width;
                 if (t.preferredWidth > box) wide += t.text + " " + t.preferredWidth.ToString("F0") + "/" + box.ToString("F0") + " px; ";
             }
-            Check("Charts: every text is 26 mm or more and fits its place on one line", small.Length == 0 && wide.Length == 0, small + wide);
+            Check("Charts: every text is " + MissionCharts.TextSize + " mm or more and fits its place on one line", small.Length == 0 && wide.Length == 0, small + wide);
+
+            // The whole main board against the project's own floor for text: 17 mm at 1.2 m, so 28 mm at the board's 1.95 m.
+            Transform mainCanvas = panel.transform.Find("Canvas");
+            float boardMeters = (panel.transform.position - MissionPanel.UserEye).magnitude;
+            float neededMeters = 0.017f * boardMeters / 1.2f;
+            string tooSmall = "";
+            int texts = 0;
+            if (mainCanvas != null)
+                foreach (var t in mainCanvas.GetComponentsInChildren<Text>(true))
+                {
+                    texts++;
+                    float tall = (t.resizeTextForBestFit ? t.resizeTextMinSize : t.fontSize) * Mathf.Abs(t.transform.lossyScale.y);
+                    if (tall < neededMeters) tooSmall += t.name + " " + (tall * 1000f).ToString("F0") + " mm; ";
+                }
+            Check("Panel: no text on the main board is under the floor for its distance (17 mm at 1.2 m)", texts > 20 && tooSmall.Length == 0,
+                tooSmall.Length > 0 ? tooSmall : texts + " texts, " + (neededMeters * 1000f).ToString("F1") + " mm needed at " + boardMeters.ToString("F2") + " m");
 
             app.ClearPlannedRoute();
             panel.ShowNoRoute();

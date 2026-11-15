@@ -376,8 +376,8 @@ namespace Walkback
             verdictTitle = AddText(rect, "VerdictTitle", "NO ROUTE YET", font, uiMaterial, 96, FontStyle.Bold, WalkbackTheme.Watch, 262, VerdictTop + 10, 860, 116);
             missionButton = PanelButton.Create(rect, "StartMission", "START MISSION", font, uiMaterial, 30, PixelsWide - Margin - 24 - 270, VerdictTop + 22, 270, ButtonHeight);
             missionButton.SetInteractable(false);
-            verdictDetail = AddText(rect, "VerdictDetail", "Time  ·  oxygen  ·  margin to return", font, uiMaterial, 34, FontStyle.Normal, WalkbackTheme.Text, 264, VerdictTop + 126, 1160, 44);
-            verdictNote = AddText(rect, "VerdictNote", DefaultDetail(VerdictState.NoRoute), font, uiMaterial, 26, FontStyle.Normal, WalkbackTheme.TextSoft, 264, VerdictTop + 172, 1160, 34);
+            verdictDetail = AddText(rect, "VerdictDetail", "Time  ·  oxygen  ·  margin to return", font, uiMaterial, 34, FontStyle.Normal, WalkbackTheme.Text, 264, VerdictTop + 124, 1160, 44);
+            verdictNote = AddText(rect, "VerdictNote", DefaultDetail(VerdictState.NoRoute), font, uiMaterial, MissionCharts.TextSize, FontStyle.Normal, WalkbackTheme.TextSoft, 264, VerdictTop + 170, 1160, 38);
 
             // The charts: the verdict's icon, the oxygen tank, the mission's time, the height along the route.
             charts = gameObject.GetComponent<MissionCharts>();
