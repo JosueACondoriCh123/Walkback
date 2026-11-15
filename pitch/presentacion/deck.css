@@ -59,7 +59,8 @@ html, body { height: 100%; background: var(--back); color: var(--text); font-fam
 .legend .hatch { border-radius: 4px; background: repeating-linear-gradient(45deg, var(--slope) 0 5px, #6E2C00 5px 10px); }
 
 /* title */
-.s-title .col { top: 300px; }
+.s-title .col { top: 330px; width: 860px; }
+.s-title .scrim-left { background: linear-gradient(90deg, rgba(11,13,15,.92) 0%, rgba(11,13,15,.6) 30%, rgba(11,13,15,0) 48%); }
 .s-title .brand { font-size: 200px; font-weight: 900; letter-spacing: -7px; line-height: 1; }
 .s-title .motto { font-size: 56px; font-weight: 700; color: var(--amber); }
 
@@ -97,12 +98,13 @@ html, body { height: 100%; background: var(--back); color: var(--text); font-fam
 
 /* evidence */
 .s-evidence .lines { display: flex; flex-direction: column; gap: 12px; font-size: 32px; line-height: 1.4; }
-.s-evidence .lines p:nth-child(2) { color: var(--amber); }
-.s-evidence .lines p:nth-child(3) { color: var(--soft); }
+.s-evidence .lines p:nth-child(1) { color: var(--amber); }
+.s-evidence .lines p:nth-child(2) { color: var(--soft); }
 
 /* closing */
-.s-closing .col { top: 100px; width: 820px; }
-.s-closing .title { font-size: 84px; }
+.s-closing .col { top: 110px; width: 1020px; }
+.s-closing .title { font-size: 80px; }
+.s-closing .motto:empty { display: none; }
 .s-closing .brand { font-size: 110px; font-weight: 900; letter-spacing: -3px; line-height: 1; margin-top: 10px; }
 .s-closing .motto { font-size: 44px; color: var(--amber); font-weight: 700; }
 .s-closing .repo { position: absolute; left: 120px; bottom: 130px; display: flex; gap: 28px; align-items: center; }
@@ -129,3 +131,21 @@ html, body { height: 100%; background: var(--back); color: var(--text); font-fam
   #stage { position: relative; left: 0; top: 0; transform: none !important; }
   @page { size: 1920px 1080px; margin: 0; }
 }
+.s-title .tag { white-space: nowrap; }
+
+/* closing, Spanish version: realistic astronaut seen from behind + the app's HUD (texts and plan numbers from the app) */
+.s-closing .astro-real { position: absolute; left: 1400px; top: 425px; height: 560px; filter: drop-shadow(0 18px 30px rgba(0,0,0,.45)); }
+.s-closing .astro-shadow { position: absolute; left: 1430px; top: 950px; width: 330px; height: 46px; border-radius: 50%; background: radial-gradient(rgba(0,0,0,.55), rgba(0,0,0,0) 70%); }
+.s-closing .hud { position: absolute; left: 1300px; top: 110px; width: 580px; display: grid; grid-template-columns: 1fr 1fr; gap: 14px;
+  transform: perspective(1400px) rotateY(-9deg); transform-origin: right center; }
+.s-closing .hud-card { background: rgba(11,13,15,.72); border: 1.5px solid rgba(89,209,255,.35); border-radius: 12px; padding: 14px 18px; display: flex; flex-direction: column; gap: 6px;
+  box-shadow: 0 0 24px rgba(89,209,255,.12) inset; backdrop-filter: blur(2px); }
+.s-closing .hud-card .k { font-size: 18px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--sky); }
+.s-closing .hud-card b { font-size: 36px; font-weight: 900; line-height: 1; }
+.s-closing .hud-card span { font-size: 17px; color: var(--soft); }
+.s-closing .hud-card b.ok, .s-closing .hud-verdict b { color: var(--green); }
+.s-closing .hud-card .dot { display: inline-block; width: 18px; height: 18px; border-radius: 50%; background: var(--green); margin-right: 12px; vertical-align: 4px; box-shadow: 0 0 12px var(--green); }
+.s-closing .hud .bar { position: relative; height: 20px; border-radius: 4px; background: rgba(64,217,102,.85); overflow: hidden; margin: 6px 0 2px; }
+.s-closing .hud .bar i { position: absolute; left: 0; top: 0; bottom: 0; background: #5b616b; }
+.s-closing .hud .bar em { position: absolute; top: 0; bottom: 0; width: 4px; margin-left: -2px; background: var(--amber); right: auto; }
+.s-closing .hud-foot { position: absolute; left: 1300px; top: 384px; width: 580px; text-align: right; font-size: 18px; letter-spacing: 1px; color: var(--amber); }

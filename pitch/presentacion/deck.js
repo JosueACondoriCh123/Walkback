@@ -79,11 +79,11 @@
     },
     problem: function (t) {
       return '<div class="scrim-bottom"></div><div class="q"><div class="title">' + T(t.title) + '<span class="accent">' + T(t.titleAccent) +
-        '</span></div><div class="body">' + (t.lines || []).map(T).join('<br>') + '</div></div><div class="credit">' + T(t.credit) + '</div>';
+        '</span></div>' + ((t.lines || []).length ? '<div class="body">' + t.lines.map(T).join('<br>') + '</div>' : '') + '</div><div class="credit">' + T(t.credit) + '</div>';
     },
     solution: function (t) {
       return '<div class="scrim-left"></div><div class="col"><div class="tag">' + T(t.tag) + '</div>' + titleHtml(t) + bigs(t.big, true) +
-        '<div><span class="pill">' + T(t.estimate) + '</span></div><div class="body soft" style="font-size:32px">' + T(t.list) + '</div>' + legendHtml() +
+        '<div><span class="pill">' + T(t.estimate) + '</span></div>' +
         '</div><div class="credit">' + T(t.credit) + '</div>';
     },
     verdict: function (t) {
@@ -102,7 +102,18 @@
         '<div class="lines">' + (t.lines || []).map(function (l) { return '<p>' + T(l) + '</p>'; }).join('') + '</div></div><div class="credit">' + T(t.credit) + '</div>';
     },
     closing: function (t) {
-      return '<div class="scrim-left"></div><div class="col"><div class="tag">' + T(t.tag) + '</div>' + titleHtml(t) +
+      var v = values(lang), hud = '';
+      if (lang === 'es') {                 // defense only: AI illustration (credited) + the app's HUD texts with the plan's numbers
+        hud = '<img class="astro-real" src="img/astronaut-realistic.png" alt=""><div class="astro-shadow"></div>' +
+          '<div class="hud">' +
+            '<div class="hud-card hud-verdict"><b>&#10003; VIABLE</b><span>' + esc(v.total) + ' · ' + esc(v.km) + '</span></div>' +
+            '<div class="hud-card"><span class="k">O2</span><div class="bar"><i style="width:' + v.usedPct + '%"></i><em style="left:' + (100 - 100 * M.RESERVE_LITERS / M.TANK_LITERS).toFixed(1) + '%"></em></div>' +
+              '<span>' + esc(v.usedPct) + ' % del tanque · spare O2 ' + esc(v.spareL) + ' L</span></div>' +
+            '<div class="hud-card"><span class="k">back to habitat (estimate)</span><b class="ok">' + esc(v.farStopMin) + ' min</b><span>desde la parada más lejana</span></div>' +
+            '<div class="hud-card"><span class="k">NEXT</span><b><i class="dot"></i>Habitat</b><span>la luz verde</span></div>' +
+          '</div><div class="hud-foot">ESTIMATE · not the walking model yet</div>';
+      }
+      return '<div class="scrim-left"></div>' + hud + '<div class="col"><div class="tag">' + T(t.tag) + '</div>' + titleHtml(t) +
         '<div class="brand">' + T(t.brand) + '</div><div class="motto">' + T(t.sub) + '</div>' + (t.next ? '<div class="next">' + T(t.next) + '</div>' : '') + '</div>' +
         '<div class="repo"><img src="img/qr.png" alt="QR"><span>' + (lang === 'en' ? 'The project' : 'El proyecto') + '<br><b>' + T(t.qr) + '</b></span></div>' +
         '<div class="credit">' + T(t.credit) + '</div>';

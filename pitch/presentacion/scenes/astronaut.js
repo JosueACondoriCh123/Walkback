@@ -163,6 +163,7 @@
       renderer.clear();
       renderer.render(bgScene, bgCam);
       renderer.clearDepth();
+      holder.visible = document.documentElement.lang !== 'es';   // ES (defense): the realistic illustration is an <img> on the slide
       renderer.render(scene, camera);
     }
 
