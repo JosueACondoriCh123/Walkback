@@ -174,7 +174,7 @@ namespace Walkback
         {
             if (state == VerdictState.Viable) return "Oxygen to walk back from every point, reserve untouched.";
             if (state == VerdictState.NotViable) return "The oxygen left does not cover the walk back.";
-            return "Point at a stop to start.";
+            return "No route has been planned for this map.";
         }
 
         // ---------------------------------------------------------------- binding (runtime and test)
@@ -276,7 +276,7 @@ namespace Walkback
             if (index < 0 || index >= stops.Length || stops[index] == null)
             {
                 stopName.text = "NO STOP SELECTED";
-                stopBadge.text = "Point at a pillar to see the stop.";
+                stopBadge.text = "Press a pillar or a stop button.";
                 stopBadge.color = WalkbackTheme.Live;
                 stopScience.text = "Science, tasks and minutes of each stop.";
                 stopTasks.text = stops.Length > 0 ? stops.Length + " stops on this map" : "No stops on this map yet";
@@ -429,7 +429,7 @@ namespace Walkback
             stopName.resizeTextMinSize = 32;
             stopName.resizeTextMaxSize = 46;
             jumpButton = PanelButton.Create(rect, "JumpToSite", "JUMP TO SITE", font, uiMaterial, 30, 464, 266, 250, ButtonHeight);
-            stopBadge = AddText(rect, "StopBadge", "Point at a pillar to see the stop.", font, uiMaterial, 28, FontStyle.Bold, WalkbackTheme.Live, 54, 374, 660, 40);
+            stopBadge = AddText(rect, "StopBadge", "Press a pillar or a stop button.", font, uiMaterial, 28, FontStyle.Bold, WalkbackTheme.Live, 54, 374, 660, 40);
             stopScience = AddText(rect, "StopScience", "Science, tasks and minutes of each stop.", font, uiMaterial, 30, FontStyle.Normal, WalkbackTheme.Text, 54, 424, 660, 110);
             stopScience.alignment = TextAnchor.UpperLeft;
             stopTasks = AddText(rect, "StopTasks", "No stops on this map yet.", font, uiMaterial, 30, FontStyle.Normal, WalkbackTheme.Text, 54, 544, 660, 110);
