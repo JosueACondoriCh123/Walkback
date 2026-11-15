@@ -85,6 +85,10 @@ namespace Walkback.EditorTools
                 mission.nextViewButton = PointerButton.Create("NextViewButton", MissionMode.RoomViewText, signSize, backPlate, ui);
                 mission.nextViewButton.transform.SetParent(controls, false);
                 mission.nextViewButton.transform.localPosition = new Vector3(0.205f, 0f, 0f);
+                // RECENTER under them, smaller: the least used of the three, and the only way to recenter with hands.
+                mission.recenterButton = PointerButton.Create("MissionRecenterButton", MissionMode.RecenterText, new Vector2(0.30f, 0.07f), backPlate, ui);
+                mission.recenterButton.transform.SetParent(controls, false);
+                mission.recenterButton.transform.localPosition = new Vector3(0f, -0.095f, 0f);
                 controls.gameObject.SetActive(false);
                 mission.controls = controls;
 

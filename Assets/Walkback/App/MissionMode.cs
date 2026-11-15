@@ -75,6 +75,8 @@ namespace Walkback
         public Transform controls;
         public PointerButton nextStopButton;
         public PointerButton nextViewButton;
+        /// <summary>RECENTER under the two signs: what B or Y does, for hands (they have no B or Y).</summary>
+        public PointerButton recenterButton;
         public bool showFreeSpaceBorder = true;
         /// <summary>Keep Mars' ground under the feet while walking (the real floor is flat).</summary>
         public bool followGround = true;
@@ -357,10 +359,14 @@ namespace Walkback
             position = feet - rotation * new Vector3(pointMeters.x - half, groundHeight, pointMeters.y - half);
         }
 
+        /// <summary>How many times the mission was recentered (B, Y, N or the RECENTER sign).</summary>
+        public int Recenters { get; private set; }
+
         /// <summary>Recenter: the progress point back under the user, the stop ahead of where they look now.</summary>
         public bool Recenter(Transform head)
         {
             if (Current == Mode.Table || Fading || head == null) return false;
+            Recenters++;
             Anchor(head);
             PlaceBorder(head);
             PlaceControls(head);
@@ -427,6 +433,7 @@ namespace Walkback
         public const string NextStopText = "NEXT STOP";
         public const string RoomViewText = "ROOM VIEW";
         public const string BackToTableText = "BACK TO TABLE";
+        public const string RecenterText = "RECENTER";
 
         /// <summary>Shows the two signs for the current mode, in front of the user, and wires what they do.</summary>
         void ShowControls(Transform head)
@@ -440,6 +447,8 @@ namespace Walkback
                 // The sign says where the press leads: Mars -> the room -> the table.
                 if (nextViewButton.label != null) nextViewButton.label.text = After(Current) == Mode.Table ? BackToTableText : RoomViewText;
             }
+            if (recenterButton != null && recenterButton.Clicked == null)
+                recenterButton.Clicked = () => Recenter(app.HeadTransform());
             controls.gameObject.SetActive(Current != Mode.Table);
             PlaceControls(head);
         }

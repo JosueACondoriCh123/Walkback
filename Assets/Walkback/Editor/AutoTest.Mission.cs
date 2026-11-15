@@ -488,6 +488,41 @@ namespace Walkback.EditorTools
                         "stays " + stays + ", came " + came + ", in front " + inFront + " (" + toTable.magnitude.ToString("F2") + " m)");
                 }
 
+                // ---- RECENTER with the pointer: B and Y do not exist with hands
+                {
+                    mission.NextMode(cam.transform);
+                    PointerButton sign = mission.recenterButton, stopSign = mission.nextStopButton;
+                    BoxCollider signBox = sign != null ? sign.GetComponent<BoxCollider>() : null, stopBox = stopSign != null ? stopSign.GetComponent<BoxCollider>() : null;
+                    // In the signs' own plane: its top edge is at least 10 mm under the bottom edge of the row above.
+                    float under = signBox != null && stopBox != null
+                        ? (stopSign.transform.localPosition.y - stopBox.size.y / 2f) - (sign.transform.localPosition.y + signBox.size.y / 2f) : -1f;
+                    bool there = sign != null && mission.controls != null && sign.transform.IsChildOf(mission.controls) && sign.gameObject.activeInHierarchy && under >= 0.01f &&
+                        sign.label != null && sign.label.text == MissionMode.RecenterText && sign.label.fontSize * sign.label.transform.lossyScale.y >= 0.0239f;
+
+                    // The sign does what B does (the press itself goes to the app's head, which in this test is not this camera).
+                    int recentersBefore = mission.Recenters;
+                    if (sign != null) sign.OnPointerClick(sign.transform.position);
+                    bool pressed = mission.Recenters == recentersBefore + 1;
+
+                    // Looking 90° away from the stop and recentering: the stop is straight ahead again, the signs in front.
+                    Quaternion looked = cam.transform.rotation;
+                    mission.Recenter(cam.transform);
+                    cam.transform.rotation = Quaternion.Euler(0f, 90f, 0f) * looked;
+                    mission.Tick(cam.transform, 0.3f);
+                    bool turnedAway = mission.HasBearing && Mathf.Abs(Mathf.DeltaAngle(mission.HeadingDegrees, mission.BearingToNext)) > 80f;
+                    mission.Recenter(cam.transform);
+                    mission.Tick(cam.transform, 0.3f);
+                    bool aheadAgain = mission.HasBearing && Mathf.Abs(Mathf.DeltaAngle(mission.HeadingDegrees, mission.BearingToNext)) < 1f;
+                    Vector3 toSigns = mission.controls != null ? mission.controls.position - cam.transform.position : Vector3.zero;
+                    toSigns.y = 0f;
+                    bool signsInFront = toSigns.sqrMagnitude > 0.01f && Vector3.Dot(toSigns.normalized, Vector3.ProjectOnPlane(cam.transform.forward, Vector3.up).normalized) > 0.99f;
+                    cam.transform.rotation = looked;
+                    mission.Switch(MissionMode.Mode.Table, cam.transform);
+                    Check("Mission: a RECENTER sign under NEXT STOP does what B or Y does (hands have no B or Y): the stop is ahead again, the signs in front",
+                        there && pressed && turnedAway && aheadAgain && signsInFront && !mission.Recenter(cam.transform),
+                        "there " + there + ", pressed " + pressed + ", turned away " + turnedAway + ", ahead again " + aheadAgain + ", signs in front " + signsInFront);
+                }
+
                 // ---- An error in a change behind the curtain must not leave the curtain closed
                 {
                     int failedBefore = mission.FailedChanges;
