@@ -547,6 +547,27 @@ namespace Walkback.EditorTools
                         "there " + there + ", pressed " + pressed + ", turned away " + turnedAway + ", ahead again " + aheadAgain + ", signs in front " + signsInFront);
                 }
 
+                // ---- The end of the route: after the last jump (to the habitat) the first sign says so
+                {
+                    mission.NextMode(cam.transform);
+                    PointerButton stopSign = mission.nextStopButton;
+                    string atStart = stopSign != null && stopSign.label != null ? stopSign.label.text : "";
+                    int jumps = 0;
+                    while (jumps < 40 && mission.Jump(cam.transform)) jumps++;
+                    mission.Tick(cam.transform, 0.3f);
+                    string atEndOfRoute = stopSign != null && stopSign.label != null ? stopSign.label.text : "";
+                    bool lastLeg = mission.Progress != null && !mission.Progress.CanJump && mission.Progress.Leg == plan.Legs.Count - 1 && mission.Last.nextStop == -1;
+                    Canvas.ForceUpdateCanvases();
+                    bool fits = stopSign != null && stopSign.label != null && stopSign.label.preferredWidth <= ((RectTransform)stopSign.label.transform).rect.width - 16f;
+                    mission.Switch(MissionMode.Mode.Table, cam.transform);
+                    mission.NextMode(cam.transform);
+                    string again = stopSign != null && stopSign.label != null ? stopSign.label.text : "";
+                    mission.Switch(MissionMode.Mode.Table, cam.transform);
+                    Check("Mission: after the last jump the NEXT STOP sign reads END OF ROUTE (it kept saying NEXT STOP and did nothing); a new mission starts with NEXT STOP again",
+                        atStart == MissionMode.NextStopText && atEndOfRoute == MissionMode.EndOfRouteText && lastLeg && jumps == plan.Legs.Count && fits && again == MissionMode.NextStopText,
+                        jumps + " jumps for " + plan.Legs.Count + " legs, then \"" + atEndOfRoute + "\"");
+                }
+
                 // ---- An error in a change behind the curtain must not leave the curtain closed
                 {
                     int failedBefore = mission.FailedChanges;

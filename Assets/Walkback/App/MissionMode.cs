@@ -434,6 +434,8 @@ namespace Walkback
         public const string RoomViewText = "ROOM VIEW";
         public const string BackToTableText = "BACK TO TABLE";
         public const string RecenterText = "RECENTER";
+        /// <summary>What the NEXT STOP sign says once the route has no next point to jump to (the last leg, to the habitat).</summary>
+        public const string EndOfRouteText = "END OF ROUTE";
 
         /// <summary>Shows the two signs for the current mode, in front of the user, and wires what they do.</summary>
         void ShowControls(Transform head)
@@ -450,7 +452,19 @@ namespace Walkback
             if (recenterButton != null && recenterButton.Clicked == null)
                 recenterButton.Clicked = () => Recenter(app.HeadTransform());
             controls.gameObject.SetActive(Current != Mode.Table);
+            SyncNextStopSign();
             PlaceControls(head);
+        }
+
+        /// <summary>
+        /// The first sign says what a press will do: NEXT STOP while the route has a next point, END OF ROUTE
+        /// once it has none (it used to keep saying NEXT STOP and do nothing).
+        /// </summary>
+        void SyncNextStopSign()
+        {
+            if (nextStopButton == null || nextStopButton.label == null) return;
+            string text = Progress != null && !Progress.CanJump ? EndOfRouteText : NextStopText;
+            if (nextStopButton.label.text != text) nextStopButton.label.text = text;
         }
 
         /// <summary>The signs low in front of where the head looks, tilted up to face the eyes.</summary>
@@ -555,6 +569,7 @@ namespace Walkback
             PlacePillar();
             if (pillarLabel != null) pillarLabel.Face(head.position);
             if (Last.arrived && !CardShown) ShowCard(head);
+            SyncNextStopSign();
         }
 
         void DesktopWalk(float deltaTime)
