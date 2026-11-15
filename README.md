@@ -96,8 +96,8 @@ How the terrain was checked: the slopes of the Mars Trek DEM differ from Curiosi
 
 ## Install on a Meta Quest 3
 
-1. Download `walkback.apk` from this repository's [Releases page](https://github.com/kendal-dev/Walkback/releases).
-2. Enable developer mode on the headset, connect it by USB and run `adb install -r walkback.apk`.
+1. Download `Walkback-v1.0-submission.apk` from the [v1.0-submission release](https://github.com/kendal-dev/Walkback/releases/tag/v1.0-submission).
+2. Enable developer mode on the headset, connect it by USB and run `adb install -r Walkback-v1.0-submission.apk`.
 3. Open *Walkback* from *Unknown sources* in the app library.
 
 Controls in the app are listed on the CONTROLS card next to the table.
@@ -122,7 +122,7 @@ Use exactly these versions (newer ones were not tested):
 
 ## Automatic test (no headset)
 
-The project carries its own test (`Assets/Walkback/Editor/AutoTest*.cs`): it builds the scene, loads the Gale package, runs the route, verdict, HUD, panel, pointer, globe and mission-mode checks and saves screenshots in `TestOutput/`. Last count: **424 checks, all passing (15 Nov 2026, 01:33)**.
+The project carries its own test (`Assets/Walkback/Editor/AutoTest*.cs`): it builds the scene, loads the Gale package, runs the route, verdict, HUD, panel, pointer, globe and mission-mode checks and saves screenshots in `TestOutput/`. Last count: **424 checks, all passing (15 Nov 2026, run again on the commit of the v1.0-submission release)**.
 
 - Unity open: menu *Walkback > Run Auto Test*.
 - Unity closed: `Unity.exe -batchmode -projectPath . -executeMethod Walkback.EditorTools.AutoTest.RunBatch -logFile TestOutput/unity.log`
