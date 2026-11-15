@@ -131,7 +131,7 @@ The project carries its own test (`Assets/Walkback/Editor/AutoTest*.cs`): it bui
 | `Assets/Walkback/` | The app (scripts, materials, editor tools and the automatic test) |
 | `Assets/StreamingAssets/Site/` | The Gale site package read by the app (see DATA.md) |
 | `data-pipeline/` | Scripts that build the site package from the NASA and USGS sources |
-| `pitch/presentacion/` | The presentation for the local defense (in Spanish) |
+| `pitch/presentacion/` | The presentation (Spanish for the local defense, English with key L). Its 3D scenes and numbers are computed in the page from the app's data: no screenshots, and no AI-generated image in the repository |
 | `DATA.md` | Data sources, build commands and checks |
 | `CLAUDE.md` | Internal working notes and instructions for the AI coding sessions |
 

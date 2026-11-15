@@ -101,7 +101,8 @@ Guidelines (nasa.gov/nasa-brand-center/images-and-media) for the terms;
 the astronaut's own page states no licence (read on 15 Nov 2026). The
 astronaut's texture carries the NASA insignia and a United States flag.
 The app does not show the models today (they need the glTFast package,
-not installed), so no NASA insignia appears in the app.
+not installed), so no NASA insignia appears in the app. The presentation
+does not use them either.
 Credit: NASA 3D Resources (see each model's page).
 
 
@@ -245,13 +246,14 @@ NASA images in the slides: Curiosity Mastcam PIA26696
 (NASA/JPL-Caltech/MSSS); HiRISE (NASA/JPL/University of Arizona, NASA
 Mars Trek, USGS); Viking MDIM 2.1 (NASA/JPL/USGS).
 
-Closing-slide astronaut: Astronaut.glb, NASA 3D Resources (public
-domain), data/astronaut.js; its place and size on the slide are
-illustrative. English version (for NASA): no AI-generated imagery.
-Spanish version (local defense), closing slide only: an AI-generated
-astronaut illustration (img/astronaut-realistic.png), credited on the
-slide and declared in AI_USAGE.md. Title slide: the Viking mosaic with
-its colour enhanced, said in its credit.
+Closing slide: the Gale terrain seen from Campo Marte (the HiRISE data
+above). NASA's 3D astronaut model is not used: its texture carries the
+NASA insignia. No AI-generated image is in the repository. On the
+defense laptop only, the Spanish closing slide shows an AI-generated
+astronaut illustration kept outside the repository (img/local/,
+ignored by git), marked on the image and credited on the slide; it is
+declared in AI_USAGE.md. Title slide: the Viking mosaic with its
+colour enhanced, said in its credit.
 
 The slides carry no screenshots: their 3D scenes are drawn from the
 data above, and their numbers come from the app's rule ported to
@@ -261,11 +263,3 @@ Inter font                  Copyright 2016 The Inter Project Authors.
                             SIL Open Font License 1.1 (fonts/LICENSE.txt).
 three.js (three.min.js)     Copyright 2010-2021 Three.js Authors. MIT
                             License.
-GLTFLoader.js,
-DRACOLoader.js              From three.js (r128, the version three.min.js
-                            names), MIT License, Copyright 2010-2021
-                            Three.js Authors. These two files carry no
-                            license header of their own; this notice
-                            covers them.
-Draco decoder               Copyright The Draco Authors (Google).
-                            Apache License 2.0 (draco_decoder_inline.js).
