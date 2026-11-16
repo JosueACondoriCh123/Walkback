@@ -931,6 +931,49 @@ main > .section { counter-increment: sec; }
   .stop-list { grid-template-columns: minmax(0, 1fr); }
 }
 
+/* Headset clips inside the two phase cards (portrait recordings from the Quest). */
+.phase { display: flex; gap: 20px; align-items: center; }
+.phase-clip {
+  flex: none; width: 150px; height: auto; aspect-ratio: 480 / 854; object-fit: cover;
+  border-radius: 14px; border: 1px solid var(--line-strong); background: #000;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, .45);
+}
+.phase-text { min-width: 0; }
+.gallery-quest { grid-template-columns: repeat(4, minmax(0, 1fr)); margin-top: 16px; }
+.gallery-quest .shot figcaption { padding: 10px 12px; font-size: 14px; }
+
+/* The team: four cards with an initial in a ring. */
+.team-grid { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
+.member {
+  padding: 24px 20px; border-radius: var(--radius); text-align: center;
+  background: var(--surface); border: 1px solid var(--line);
+  backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+  transition: border-color .2s, transform .2s;
+}
+.member:hover { border-color: rgba(71, 209, 255, .4); transform: translateY(-2px); }
+.member-avatar {
+  display: block; width: 96px; height: 96px; object-fit: cover; margin: 0 auto 14px; border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #ff8a5c, #c4532a 60%, #6e2410);
+  box-shadow: 0 0 0 2px var(--bg), 0 0 0 3px rgba(71, 209, 255, .6), 0 0 24px rgba(232, 103, 60, .35);
+  color: #fff; font-size: 30px; font-weight: 800;
+}
+.member h3 { margin: 0; font-size: 20px; font-weight: 700; }
+.member-role { margin: 4px 0 10px; font-size: 12px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--rust-2); }
+.member p:last-child { margin: 0; color: var(--muted); font-size: 15px; }
+
+/* Fade-up on scroll (reveal.js adds .js-reveal; without it everything is simply visible). */
+.js-reveal .reveal { opacity: 0; transform: translateY(18px); transition: opacity .6s ease, transform .6s cubic-bezier(.2, .7, .2, 1); }
+.js-reveal .reveal.is-in { opacity: 1; transform: none; }
+
+@media (min-width: 901px) and (max-width: 1180px) { .nav-links a { padding: 0 8px; font-size: 14px; } }
+@media (max-width: 900px) {
+  .gallery-quest, .team-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 560px) {
+  .phase { flex-direction: column; align-items: stretch; }
+  .phase-clip { width: 62%; margin: 0 auto; }
+}
+
 /* FAQ: native <details> rows with a HUD plus/minus marker. */
 .faq { display: grid; gap: 10px; max-width: 820px; }
 .faq-item {
